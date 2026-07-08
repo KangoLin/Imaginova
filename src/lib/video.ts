@@ -76,7 +76,7 @@ export function getVideoStatus(taskId: string): Promise<{
         rawStatus === "completed" ? "completed" :
         rawStatus === "failed" ? "failed" : "processing";
       const progress = typeof body.progress === "number" ? body.progress : 0;
-      const url = body.remixed_from_video_id || undefined;
+      const url = body.url || body.remixed_from_video_id || undefined;
       const errMsg = typeof body.error === "object" && body.error?.message
         ? body.error.message
         : typeof body.error === "string" ? body.error
@@ -92,7 +92,7 @@ export async function generateVideo(
 ): Promise<string> {
   const { task_id } = await createVideo(prompt);
 
-  const maxAttempts = 60;
+  const maxAttempts = 120; // 120 * 5s = 10 minutes
   for (let i = 0; i < maxAttempts; i++) {
     await new Promise((r) => setTimeout(r, 5000));
     const status = await getVideoStatus(task_id);

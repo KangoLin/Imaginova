@@ -21,24 +21,21 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Video not found" }, { status: 404 });
   }
 
-  const key = process.env.OPENAI_API_KEY || "";
-
   try {
-    const res = await fetch(videoUrl, {
-      headers: { Authorization: `Bearer ${key}` },
-    });
+    const res = await fetch(videoUrl);
 
     if (!res.ok) {
       return NextResponse.json({ error: "Failed to fetch video" }, { status: 502 });
     }
 
     const contentType = res.headers.get("content-type") || "video/mp4";
-    const buffer = Buffer.from(await res.arrayBuffer());
+    const contentLength = res.headers.get("content-length");
 
-    return new NextResponse(new Uint8Array(buffer), {
+    // Stream the response so browser can start playing immediately
+    return new NextResponse(res.body, {
       headers: {
         "Content-Type": contentType,
-        "Content-Length": buffer.length.toString(),
+        ...(contentLength ? { "Content-Length": contentLength } : {}),
       },
     });
   } catch (err) {

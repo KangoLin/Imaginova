@@ -36,33 +36,33 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
+    <div className="min-h-screen flex items-center justify-center px-4 animate-fade-in">
       <div className="w-full max-w-sm">
         <h1 className="text-2xl font-bold text-center mb-6">Create an account</h1>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label htmlFor="name" className="block text-sm font-medium mb-1">Name</label>
             <input id="name" name="name" required
-              className="w-full border rounded-md px-3 py-2 text-sm" />
+              className="w-full border border-[var(--border)] rounded-md px-3 py-2 text-sm bg-[var(--bg)] text-[var(--fg)] focus:ring-2 focus:ring-blue-500 outline-none" />
           </div>
           <div>
             <label htmlFor="email" className="block text-sm font-medium mb-1">Email</label>
             <input id="email" name="email" type="email" required
-              className="w-full border rounded-md px-3 py-2 text-sm" />
+              className="w-full border border-[var(--border)] rounded-md px-3 py-2 text-sm bg-[var(--bg)] text-[var(--fg)] focus:ring-2 focus:ring-blue-500 outline-none" />
           </div>
           <div>
             <label htmlFor="password" className="block text-sm font-medium mb-1">Password</label>
             <input id="password" name="password" type="password" required minLength={6}
-              className="w-full border rounded-md px-3 py-2 text-sm" />
+              className="w-full border border-[var(--border)] rounded-md px-3 py-2 text-sm bg-[var(--bg)] text-[var(--fg)] focus:ring-2 focus:ring-blue-500 outline-none" />
           </div>
           {error && <p className="text-red-600 text-sm">{error}</p>}
           <button type="submit" disabled={loading}
-            className="w-full bg-blue-600 text-white rounded-md py-2 text-sm font-medium disabled:opacity-50">
+            className="w-full bg-[var(--primary)] text-[var(--primary-fg)] rounded-md py-2 text-sm font-medium disabled:opacity-50 hover:opacity-90 transition">
             {loading ? "Creating..." : "Create Account"}
           </button>
         </form>
-        <p className="text-center text-sm text-gray-500 mt-6">
-          Already have an account? <Link href="/login" className="text-blue-600 underline">Sign In</Link>
+        <p className="text-center text-sm text-[var(--muted-fg)] mt-6">
+          Already have an account? <Link href="/login" className="text-[var(--primary)] underline">Sign In</Link>
         </p>
       </div>
     </div>
