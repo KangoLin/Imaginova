@@ -59,12 +59,13 @@ export async function POST(req: NextRequest) {
   try {
     const task = await createVideo(prompt, imageUrl);
 
-    db.prepare("UPDATE users SET credits = credits - 2 WHERE id = ?").run(userId);
-    db.prepare(
+    const info = db.prepare(
       "INSERT INTO videos (user_id, prompt, model, status, task_id) VALUES (?, ?, ?, ?, ?)"
     ).run(userId, prompt, "agnes-video-v2.0", "queued", task.task_id);
+    db.prepare("UPDATE users SET credits = credits - 2 WHERE id = ?").run(userId);
 
     return NextResponse.json({
+      id: info.lastInsertRowid,
       task_id: task.task_id,
       credits: user.credits - 2,
     });
@@ -109,7 +110,8 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    return NextResponse.json(status);
+    const videoRow = db.prepare("SELECT id FROM videos WHERE task_id = ?").get(taskId) as { id: number } | undefined;
+    return NextResponse.json({ ...status, id: videoRow?.id });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Status check failed";
     return NextResponse.json({ error: message }, { status: 500 });

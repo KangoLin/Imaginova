@@ -4,16 +4,20 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { useToast } from "@/components/toast";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type Tab = "image" | "video";
 
 export default function CreatePage() {
   const router = useRouter();
+  const { toast } = useToast();
   const [tab, setTab] = useState<Tab>("image");
   const [prompt, setPrompt] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [resultUrl, setResultUrl] = useState<string | null>(null);
   const [progress, setProgress] = useState(0);
   const [progressPhase, setProgressPhase] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -28,7 +32,6 @@ export default function CreatePage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
-    setResultUrl(null);
     setProgress(0);
     setLoading(true);
 
@@ -58,8 +61,8 @@ export default function CreatePage() {
           return;
         }
 
-        setResultUrl(data.url);
-        setLoading(false);
+        router.push(`/image/${data.id}`);
+        return;
       } else {
         let res: Response;
         if (imageFile) {
@@ -84,6 +87,7 @@ export default function CreatePage() {
           return;
         }
 
+        toast("Video generation started — you can leave this page and check progress in Dashboard", "info");
         pollStatus(data.task_id);
       }
     } catch (err) {
@@ -96,7 +100,7 @@ export default function CreatePage() {
   async function pollStatus(taskId: string) {
     pollingRef.current = true;
     const startTime = Date.now();
-    const maxDuration = 10 * 60 * 1000; // 10 minutes max (API queuing can be slow)
+    const maxDuration = 10 * 60 * 1000;
     let failCount = 0;
 
     while (pollingRef.current) {
@@ -121,9 +125,7 @@ export default function CreatePage() {
         else setProgressPhase("Finalizing...");
 
         if (data.status === "completed") {
-          setResultUrl(data.url);
-          setProgressPhase("Done");
-          setLoading(false);
+          router.push(`/video/${data.id}`);
           pollingRef.current = false;
           return;
         }
@@ -147,153 +149,98 @@ export default function CreatePage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-12">
-      <nav className="flex items-center justify-between mb-8">
-        <span className="font-bold text-lg">Imaginova</span>
-        <div className="flex items-center gap-4 text-sm">
-          <Link href="/dashboard" className="text-[var(--muted-fg)] hover:text-[var(--fg)] transition">Dashboard</Link>
-          <ThemeToggle />
-          <form action="/api/logout" method="POST" className="inline">
-            <button className="text-[var(--muted-fg)] hover:text-red-500 transition">Sign Out</button>
-          </form>
-        </div>
-      </nav>
-      <h1 className="text-2xl font-bold mb-8 animate-fade-in">Create</h1>
-
-      <div className="flex gap-1 mb-6 border-b border-[var(--border)]">
-        <button
-          onClick={() => { setTab("image"); setImageFile(null); setImagePreview(null); if (fileInputRef.current) fileInputRef.current.value = ""; }}
-          className={`px-4 py-2 text-sm font-medium rounded-t-md border-b-2 transition ${
-            tab === "image"
-              ? "border-[var(--primary)] text-[var(--primary)]"
-              : "border-transparent text-[var(--muted-fg)] hover:text-[var(--fg)]"
-          }`}
-        >
-          Image
-        </button>
-        <button
-          onClick={() => { setTab("video"); setImageFile(null); setImagePreview(null); if (fileInputRef.current) fileInputRef.current.value = ""; }}
-          className={`px-4 py-2 text-sm font-medium rounded-t-md border-b-2 transition ${
-            tab === "video"
-              ? "border-[var(--primary)] text-[var(--primary)]"
-              : "border-transparent text-[var(--muted-fg)] hover:text-[var(--fg)]"
-          }`}
-        >
-          Video
-        </button>
-      </div>
-
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label htmlFor="prompt" className="block text-sm font-medium mb-1">
-            Prompt
-          </label>
-          <textarea
-            id="prompt"
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            placeholder={
-              tab === "image"
-                ? "A serene mountain landscape at sunset..."
-                : "A cinematic drone shot flying over a forest..."
-            }
-            rows={3}
-            className="w-full border border-[var(--border)] rounded-md px-3 py-2 text-sm bg-[var(--bg)] text-[var(--fg)] resize-none focus:ring-2 focus:ring-blue-500 outline-none"
-            required
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-1">Reference Image (optional)</label>
-          {imagePreview ? (
-            <div className="relative inline-block">
-              <img src={imagePreview} alt="Reference" className="w-32 h-32 object-cover rounded-md border border-[var(--border)]" />
-              <button
-                type="button"
-                onClick={() => { setImageFile(null); setImagePreview(null); if (fileInputRef.current) fileInputRef.current.value = ""; }}
-                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 text-xs"
-              >
-                x
-              </button>
-            </div>
-          ) : (
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              className="w-full border-2 border-dashed border-[var(--border)] rounded-md py-8 text-sm text-[var(--muted-fg)] hover:text-[var(--fg)] hover:border-[var(--muted-fg)] transition cursor-pointer"
-            >
-              + Upload Image
-            </button>
-          )}
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) {
-                setImageFile(file);
-                const url = URL.createObjectURL(file);
-                setImagePreview(url);
-              }
-            }}
-          />
-        </div>
-
-        <div className="flex items-center gap-2 text-sm text-[var(--muted-fg)]">
-          <span>{tab === "image" ? "1 credit" : "2 credits"}</span>
-        </div>
-
-        {error && <p className="text-red-600 text-sm animate-fade-in">{error}</p>}
-
-        <button
-          type="submit"
-          disabled={loading || !prompt.trim()}
-          className="w-full bg-[var(--primary)] text-[var(--primary-fg)] rounded-md py-2 text-sm font-medium disabled:opacity-50 hover:opacity-90 transition"
-        >
-          {loading
-            ? tab === "video"
-              ? `Generating video... ${progress}%`
-              : "Generating..."
-            : `Generate ${tab === "image" ? "Image" : "Video"}`}
-        </button>
-      </form>
-
-      {loading && tab === "video" && (
-        <div className="mt-8 animate-fade-in">
-          <div className="w-full bg-[var(--muted)] rounded-full h-2.5">
-            <div
-              className="bg-[var(--primary)] h-2.5 rounded-full transition-all duration-500"
-              style={{ width: `${Math.max(progress, 5)}%` }}
-            />
+    <div className="min-h-screen bg-background">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-background/70 backdrop-blur-xl border-b border-border/50">
+        <div className="container-narrow px-6 h-16 flex items-center justify-between">
+          <Link href="/" className="text-xl font-bold tracking-tight text-primary">Imaginova</Link>
+          <div className="flex items-center gap-5 text-sm">
+            <Link href="/dashboard" className="text-muted-foreground hover:text-foreground transition-colors">Dashboard</Link>
+            <ThemeToggle />
+            <button onClick={async () => { await fetch("/api/logout", { method: "POST" }); router.push("/"); router.refresh(); }} className="text-muted-foreground hover:text-foreground transition-colors">Sign Out</button>
           </div>
-          <p className="text-xs text-[var(--muted-fg)] mt-1 text-center">
-            {progressPhase || "Starting..."}
-          </p>
         </div>
-      )}
+      </header>
 
-      {resultUrl && (
-        <div className="mt-8 animate-fade-in">
-          <h2 className="text-lg font-semibold mb-3">Result</h2>
-          {tab === "image" ? (
-            <img
-              src={resultUrl}
-              alt={prompt}
-              className="w-full rounded-lg shadow-lg"
-            />
-          ) : (
-            <video
-              src={resultUrl}
-              controls
-              autoPlay
-              loop
-              className="w-full rounded-lg shadow-lg"
-            />
+      <main className="container-narrow px-6 pt-24 pb-12 animate-slide-up">
+        <div className="max-w-xl mx-auto">
+          <div className="mb-10">
+            <h1 className="text-3xl font-bold tracking-tight mb-1">Create</h1>
+            <p className="text-muted-foreground text-sm">Describe what you want to generate</p>
+          </div>
+
+          <Tabs value={tab} onValueChange={(v) => { setTab(v as Tab); setImageFile(null); setImagePreview(null); if (fileInputRef.current) fileInputRef.current.value = ""; }}>
+            <TabsList className="mb-6 w-full bg-muted/50 p-0.5">
+              <TabsTrigger value="image" className="flex-1">Image</TabsTrigger>
+              <TabsTrigger value="video" className="flex-1">Video</TabsTrigger>
+            </TabsList>
+          </Tabs>
+
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div>
+              <label htmlFor="prompt" className="block text-sm font-medium mb-1.5 text-foreground">Prompt</label>
+              <Textarea
+                id="prompt"
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                placeholder={tab === "image" ? "A serene mountain landscape at sunset, volumetric lighting..." : "A cinematic drone shot flying over a forest canopy..."}
+                rows={4}
+                required
+                className="resize-none min-h-[100px]"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1.5 text-foreground">Reference Image (optional)</label>
+              {imagePreview ? (
+                <div className="relative inline-block">
+                  <img src={imagePreview} alt="Reference" className="w-28 h-28 object-cover rounded-lg border border-border" />
+                  <button
+                    type="button"
+                    onClick={() => { setImageFile(null); setImagePreview(null); if (fileInputRef.current) fileInputRef.current.value = ""; }}
+                    className="absolute -top-2 -right-2 bg-muted-foreground/20 text-muted-foreground hover:bg-muted-foreground/40 hover:text-foreground rounded-full w-5 h-5 text-[10px] flex items-center justify-center transition-all cursor-pointer"
+                  >
+                    x
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-full border border-dashed border-border rounded-lg py-8 text-sm text-muted-foreground hover:text-foreground hover:border-primary/30 transition-all cursor-pointer bg-transparent"
+                >
+                  <div className="flex flex-col items-center gap-1.5">
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4v16m8-8H4" /></svg>
+                    <span>Upload an image</span>
+                  </div>
+                </button>
+              )}
+              <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) { setImageFile(file); setImagePreview(URL.createObjectURL(file)); }
+              }} />
+            </div>
+
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Cost: {tab === "image" ? "1 credit" : "2 credits"}</span>
+            </div>
+
+            {error && <p className="text-sm text-destructive bg-destructive/5 rounded-lg p-3">{error}</p>}
+
+            <Button type="submit" disabled={loading || !prompt.trim()} className="w-full">
+              {loading ? tab === "video" ? `Generating... ${progress}%` : "Generating..." : `Generate ${tab === "image" ? "Image" : "Video"}`}
+            </Button>
+          </form>
+
+          {loading && tab === "video" && (
+            <div className="mt-6 animate-fade-in">
+              <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
+                <div className="h-full rounded-full bg-primary transition-all duration-500" style={{ width: `${Math.max(progress, 5)}%` }} />
+              </div>
+              <p className="text-xs text-muted-foreground mt-2 text-center">{progressPhase || "Starting..."}</p>
+            </div>
           )}
         </div>
-      )}
+      </main>
     </div>
   );
 }

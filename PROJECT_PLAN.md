@@ -5,7 +5,8 @@
 | 层 | 选型 |
 |---|---|
 | 框架 | **Next.js 16** (App Router, Turbopack) |
-| 样式 | **Tailwind CSS 4** |
+| 样式 | **Tailwind CSS 4 + shadcn/ui** |
+| 设计引擎 | **UI UX Pro Max** (Exaggerated Minimalism) |
 | 数据库 | **SQLite** (`better-sqlite3`) |
 | 认证 | **JWT** (`jose` + `bcryptjs`) |
 | 图像生成 | Agnes AI (`agnes-image-2.1-flash`) |
@@ -30,6 +31,99 @@
 ## 已知问题
 - ⚠️ Video CDN 速度较慢（`platform-outputs.agnes-ai.space`），目前直接使用 CDN 直连绕过服务端中转
 - ⚠️ 图片/视频需要支持 URL 下载/分享功能（简单实现即可）
+
+## UI 重构 v1 (2026-07-09) — shadcn/ui + frontend-design skill
+- ✅ shadcn/ui (base-nova) 初始化: Button, Card, Input, Textarea, Label, Tabs, Badge
+- ✅ 暖橙色系 oklch 色板 + Geist 字体
+- ✅ 所有页面 shadcn 组件化
+
+## UI 重构 v2 (2026-07-09) — UI UX Pro Max (Exaggerated Minimalism)
+
+### 设计系统
+- **Style**: Exaggerated Minimalism — 超大排印、高对比度、大量留白
+- **Primary**: `oklch(0.541 0.247 293)` (#7C3AED 紫色) → CTA/主按钮
+- **Accent**: `oklch(0.656 0.212 354)` (#EC4899 粉色) → 强调色/渐变
+- **Secondary**: `oklch(0.585 0.204 277)` (#6366F1 靛蓝) → 辅助色
+- **Background**: `oklch(0.977 0.014 308)` (#FAF5FF) 浅紫
+- **Typography**: Inter (900/800/700/600/400)
+- **Gradient**: 紫色→粉色渐变 (primary → accent)
+- **Pattern**: Video-First Hero / 紫色径向渐变背景
+
+### 全局工具类
+- `text-exaggerated`: `clamp(2.5rem, 8vw, 8rem)` 超大字重
+- `text-exaggerated-md`: `clamp(1.5rem, 4vw, 4rem)` 中等强调
+- `btn-accent` / `btn-ghost`: 粉色按钮 + 紫色幽灵按钮
+- `gradient-purple-pink`: 紫色→粉色渐变背景
+- `gradient-text`: 紫色→粉色渐变文字
+- `card-hover`: 带 lift 效果的卡片
+- `section-padding` / `container-wide`: 布局常量
+
+### 页面重构
+| 页面 | 关键改动 |
+|------|----------|
+| 首页 `/` | 固定导航 + 渐变 radial background + 超大 hero 排版 + 标签 pill + 底部装饰分隔 |
+| 登录/注册 | 背景渐变光晕 + Imaginova logo + shadow-xl Card + error inline alert |
+| Create `/create` | 全高导航栏 + dashed upload zone + 渐变 progress bar |
+| Dashboard | 导航栏 Create 按钮 + gradient credits 链接 + 4:3 卡片网格 + hover lift |
+| Credits | 超大 gradient 数字显示 + rounded hover transaction rows |
+| Settings | 与 Dashboard 一致导航 + 带 label/placeholder 的密码表单 |
+| Image Detail | 全黑展示区 + muted 标签式信息卡 + 下载按钮 |
+| Video Detail | 实时渐变 progress bar + 3 列信息网格 + 同风格下载按钮 |
+
+## Taste Skill 设计审计 (2026-07-09)
+- ✅ 安装 `taste-skill` npm 包，生成 7 个设计口味模板到 `skills/taste/` 和 `templates/taste/`
+- ✅ 配置: STRICTNESS=high, AUDIT_DEPTH=comprehensive, PRESERVATION=aggressive, SCOPE=system
+- ✅ 修复 8 个审计问题:
+
+| Severity | 问题 | 修复 |
+|----------|------|------|
+| CRITICAL | 首页双 CTA 冲突 | 移除 "Learn More"，保留单个 "Start Creating" |
+| CRITICAL | 缺少 prefers-reduced-motion | 全局添加 `@media (prefers-reduced-motion: reduce)` |
+| CRITICAL | "x" 按钮误用 destructive | 改为 `bg-muted-foreground/20 text-muted-foreground` |
+| MAJOR | 卡片过度使用 border | 所有 Card 移除 `border-border`，改用 `shadow-sm` |
+| MAJOR | `leading-[0.85]` 魔法数字 | 改为 `leading-none` |
+| MAJOR | Badge `text-[10px]` | 改为 `text-xs` |
+| MAJOR | 底部文字 50% 透明度 | 提升至 65% |
+| MAJOR | btn-accent hover 用 opacity | 改为 `brightness(1.1)` lightness shift |
+
+### 设计资源
+- `design-system/imaginova/MASTER.md` — 全局设计规范
+- `design-system/imaginova/pages/*.md` — 页面级覆写规则
+- `.opencode/skills/ui-ux-pro-max/` — 设计搜索引擎
+- `skills/taste/` — Taste Skill 设计口味模板
+- `templates/taste/` — Taste Skill 纯文本 prompt 模板
+- `docs/UI-RESOURCES.md` — 组件库 & AI 技能清单
+
+### H1 — 添加 proxy.ts 全局路由保护 ✅
+- 新增 `src/proxy.ts`（Next.js 16 Proxy 中间件）
+- 未登录用户访问受保护页面直接 302 到 `/login?redirect=xxx`
+- 已登录用户访问 `/login` `/register` 自动跳转 `/dashboard`
+
+### H2 — 生成结果后跳转详情页 ✅
+- 图片生成 API 返回 `id`，Create 页面成功后 `router.push("/image/${id}")`
+- 视频生成 API 返回 `id`，轮询完成或出错时 `router.push("/video/${id}")`
+- 不再在 Create 页内联展示结果，避免刷新丢失
+
+### M1 — 视频轮询期间 Toast 提示 ✅
+- 视频生成开始时弹出 Toast："Video generation started — you can leave this page and check progress in Dashboard"
+
+### M2 — 登录后跳转 Dashboard ✅
+- 登录成功 `router.push("/dashboard")` 而非首页
+
+### M3 — 统一使用 Toast 系统 ✅
+- Dashboard check-in、Settings 密码修改、Credits 充值全部改用 `useToast()`
+- 移除了所有页面的内联 `setTimeout` 消息
+
+### L1 — Logout 改为 fetch ✅
+- Dashboard 和 Create 页的 Sign Out 改为 `fetch + router.push("/") + router.refresh()`
+- 首页（Server Component）使用 `SignOutButton` Client Component
+
+### L2 — Video 详情页自动轮询 ✅
+- `video/[id]/page.tsx` 在 status 为 queued/processing 时每 5s 自动刷新状态
+- 完成或失败后停止轮询
+
+### L3 — Credits 页去重 ✅
+- 充值成功后移除手动 `setUser`，统一通过 `fetch("/api/me")` 刷新
 
 ## 后续计划
 

@@ -8,7 +8,7 @@ export function ThemeToggle() {
   return (
     <button
       onClick={toggle}
-      className="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition"
+      className="text-xs text-muted-foreground hover:text-foreground transition-colors font-medium cursor-pointer"
       title={`Switch to ${theme === "light" ? "dark" : "light"} mode`}
     >
       {theme === "light" ? "Dark" : "Light"}

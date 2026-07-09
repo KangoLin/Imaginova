@@ -64,12 +64,12 @@ export async function POST(req: NextRequest) {
       imageUrl,
     });
 
-    db.prepare("UPDATE users SET credits = credits - 1 WHERE id = ?").run(userId);
-    db.prepare(
+    const info = db.prepare(
       "INSERT INTO images (user_id, prompt, url, model) VALUES (?, ?, ?, ?)"
     ).run(userId, prompt, result.url, "agnes-image-2.1-flash");
+    db.prepare("UPDATE users SET credits = credits - 1 WHERE id = ?").run(userId);
 
-    return NextResponse.json({ url: result.url, credits: user.credits - 1 });
+    return NextResponse.json({ id: info.lastInsertRowid, url: result.url, credits: user.credits - 1 });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Image generation failed";
     console.error("Generate error:", message);

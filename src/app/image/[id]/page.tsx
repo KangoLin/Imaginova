@@ -3,14 +3,10 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 
-interface ImageData {
-  id: number;
-  prompt: string;
-  model: string;
-  url: string;
-  created_at: string;
-}
+interface ImageData { id: number; prompt: string; model: string; url: string; created_at: string; }
 
 export default function ImageDetailPage() {
   const params = useParams();
@@ -32,19 +28,19 @@ export default function ImageDetailPage() {
 
   if (loading) {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-12">
-        <div className="h-4 w-32 bg-[var(--muted)] rounded animate-pulse" />
-        <div className="mt-6 h-[50vh] bg-[var(--muted)] rounded-xl animate-pulse" />
-        <div className="mt-6 h-40 bg-[var(--muted)] rounded-xl animate-pulse" />
+      <div className="container-narrow px-6 py-12">
+        <div className="h-4 w-24 bg-muted rounded animate-pulse mb-6" />
+        <div className="aspect-[4/3] bg-muted rounded-xl animate-pulse mb-6" />
+        <div className="h-32 bg-muted rounded-xl animate-pulse" />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-12 animate-fade-in">
-        <p className="text-red-600">{error}</p>
-        <Link href="/dashboard" className="text-[var(--primary)] underline text-sm mt-4 inline-block">Back to Dashboard</Link>
+      <div className="container-narrow px-6 py-12 animate-fade-in">
+        <div className="bg-destructive/5 rounded-lg p-4 text-sm text-destructive">{error}</div>
+        <Link href="/dashboard" className="text-primary text-sm mt-4 inline-block hover:underline">Back to Dashboard</Link>
       </div>
     );
   }
@@ -52,41 +48,37 @@ export default function ImageDetailPage() {
   if (!image) return null;
 
   return (
-    <div className="min-h-screen bg-[var(--muted)]">
-      <div className="max-w-4xl mx-auto px-4 py-8 animate-fade-in">
-        <Link href="/dashboard" className="text-[var(--primary)] underline text-sm">&larr; Back to Dashboard</Link>
+    <div className="min-h-screen bg-background">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-background/70 backdrop-blur-xl border-b border-border/50">
+        <div className="container-narrow px-6 h-16 flex items-center justify-between">
+          <Link href="/" className="text-xl font-bold tracking-tight text-primary">Imaginova</Link>
+          <Link href="/dashboard" className="text-sm text-muted-foreground hover:text-foreground transition-colors">&larr; Dashboard</Link>
+        </div>
+      </header>
 
-        <div className="mt-6 bg-[var(--bg)] rounded-xl shadow-sm border border-[var(--border)] overflow-hidden">
-          <div className="bg-black flex items-center justify-center p-4">
-            <img src={image.url} alt={image.prompt} className="max-w-full max-h-[70vh] object-contain rounded-lg" />
-          </div>
-
-          <div className="p-6 space-y-4">
-            <h1 className="text-xl font-bold">{image.prompt}</h1>
-
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <span className="text-[var(--muted-fg)]">Model</span>
-                <p className="font-mono text-[var(--fg)]">{image.model}</p>
-              </div>
-              <div>
-                <span className="text-[var(--muted-fg)]">Created</span>
-                <p className="text-[var(--fg)]">{image.created_at}</p>
-              </div>
+      <main className="container-narrow px-6 pt-24 pb-12 animate-slide-up">
+        <div className="max-w-3xl mx-auto">
+          <div className="bg-card rounded-xl overflow-hidden border border-border/60">
+            <div className="bg-[#0a0a0a] flex items-center justify-center p-6">
+              <img src={image.url} alt={image.prompt} className="max-w-full max-h-[65vh] object-contain rounded-lg" />
             </div>
-
-            <div className="flex gap-3 pt-2">
-              <a
-                href={image.url}
-                download
-                className="inline-flex items-center gap-1.5 bg-[var(--primary)] text-[var(--primary-fg)] text-sm rounded-md px-4 py-2 hover:opacity-90 transition"
-              >
-                Download
-              </a>
+            <div className="p-6 space-y-5">
+              <h1 className="text-xl font-bold leading-snug">{image.prompt}</h1>
+              <div className="flex gap-4 text-sm">
+                <div className="bg-muted/50 rounded-lg px-3 py-2 flex-1">
+                  <span className="text-muted-foreground text-xs block">Model</span>
+                  <span className="font-medium">{image.model}</span>
+                </div>
+                <div className="bg-muted/50 rounded-lg px-3 py-2 flex-1">
+                  <span className="text-muted-foreground text-xs block">Created</span>
+                  <span className="font-medium">{image.created_at}</span>
+                </div>
+              </div>
+              <a href={image.url} download><Button>Download</Button></a>
             </div>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

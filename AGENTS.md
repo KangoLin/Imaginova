@@ -7,3 +7,6 @@ This version has breaking changes — APIs, conventions, and file structure may 
 ## Development Rules
 - Every change must support hot-reload (HMR/Fast Refresh). After modifying code, the dev server should reflect changes without a manual restart. Do not introduce patterns that break HMR (e.g., modifying module scope state directly, using `module.exports` in pages, or editing files outside the module graph that require a full restart).
 - After every modification, verify the page loads successfully without compile errors, runtime crashes, or blank screens. Do not leave the app in a broken state.
+
+## Project Management
+- After completing any feature update (whether implementing new functionality, fixing bugs, or optimizing), always update `PROJECT_PLAN.md` to reflect the current status — move completed items to ✅, update progress, and adjust upcoming plans accordingly.

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import db from "@/lib/db";
 import { getSessionUserId } from "@/lib/auth";
+import { SignOutButton } from "@/components/sign-out-button";
 export default async function Home() {
   const userId = await getSessionUserId();
   let user: { name: string } | null = null;
@@ -11,45 +12,62 @@ export default async function Home() {
 
   return (
     <>
-      <header className="border-b border-[var(--border)]">
-        <div className="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between">
-          <span className="font-bold text-lg">Imaginova</span>
-          <nav className="flex items-center gap-4 text-sm">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-background/70 backdrop-blur-xl border-b border-border/50">
+        <div className="container-narrow px-6 h-16 flex items-center justify-between">
+          <span className="text-xl font-bold tracking-tight text-primary">Imaginova</span>
+          <nav className="flex items-center gap-6 text-sm">
             {user ? (
               <>
-                <Link href="/create" className="text-[var(--muted-fg)] hover:text-[var(--fg)]">Create</Link>
-                <Link href="/dashboard" className="text-[var(--muted-fg)] hover:text-[var(--fg)]">Dashboard</Link>
-                <span className="text-[var(--muted-fg)]">Hi, {user.name}</span>
-                <form action="/api/logout" method="POST" className="inline">
-                  <button className="text-[var(--muted-fg)] hover:text-red-500 text-sm">Sign Out</button>
-                </form>
+                <Link href="/create" className="text-muted-foreground hover:text-foreground transition-colors">Create</Link>
+                <Link href="/dashboard" className="text-muted-foreground hover:text-foreground transition-colors">Dashboard</Link>
+                <span className="text-muted-foreground/70">{user.name}</span>
+                <SignOutButton className="text-muted-foreground hover:text-foreground transition-colors" />
               </>
             ) : (
               <>
-                <Link href="/login" className="text-[var(--muted-fg)] hover:text-[var(--fg)]">Sign In</Link>
-                <Link href="/register" className="bg-[var(--primary)] text-[var(--primary-fg)] px-3 py-1.5 rounded-md">
-                  Get Started
-                </Link>
+                <Link href="/login" className="text-muted-foreground hover:text-foreground transition-colors">Sign In</Link>
+                <Link href="/register" className="inline-flex h-9 items-center justify-center rounded-lg bg-primary px-5 text-sm font-medium text-primary-foreground hover:opacity-90 transition-all">Get Started</Link>
               </>
             )}
           </nav>
         </div>
       </header>
 
-      <main className="flex-1 flex flex-col items-center justify-center px-4 text-center animate-fade-in">
-        <h1 className="text-4xl font-bold tracking-tight sm:text-5xl mb-4">
-          Imagine. Create.{" "}
-          <span className="text-[var(--primary)]">Bring it to life.</span>
-        </h1>
-        <p className="text-[var(--muted-fg)] max-w-md mb-8">
-          Generate images and videos with AI. No complex setup.
-        </p>
-        <Link
-          href={user ? "/create" : "/register"}
-          className="bg-[var(--primary)] text-[var(--primary-fg)] px-6 py-2.5 rounded-md font-medium hover:opacity-90 transition"
-        >
-          Start Creating
-        </Link>
+      <main className="min-h-screen flex flex-col items-center justify-center px-6 text-center relative overflow-hidden">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/5 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-1/3 right-1/4 w-64 h-64 bg-accent/5 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="max-w-3xl mx-auto relative animate-slide-up">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-sm font-medium text-primary mb-8">
+            <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+            AI-Powered Creative Platform
+          </div>
+
+          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.05] mb-6">
+            Turn your ideas
+            <br />
+            <span className="text-primary">into reality</span>
+          </h1>
+
+          <p className="text-base sm:text-lg text-muted-foreground max-w-lg mx-auto mb-10 leading-relaxed">
+            Generate stunning images and videos with AI. No complex setup required.
+          </p>
+
+          <Link
+            href={user ? "/create" : "/register"}
+            className="inline-flex h-12 items-center justify-center rounded-lg bg-primary px-8 text-base font-medium text-primary-foreground hover:opacity-90 hover:shadow-lg hover:shadow-primary/25 transition-all"
+          >
+            Start Creating
+          </Link>
+        </div>
+
+        <div className="absolute bottom-10 left-0 right-0 flex justify-center gap-8 text-xs text-muted-foreground/50">
+          <span>Image Generation</span>
+          <span className="w-px h-3 bg-border" />
+          <span>Video Creation</span>
+          <span className="w-px h-3 bg-border" />
+          <span>AI-Powered</span>
+        </div>
       </main>
     </>
   );
