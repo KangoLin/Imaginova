@@ -150,14 +150,14 @@ export default function CreatePage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="fixed top-0 left-0 right-0 z-50 bg-background/70 backdrop-blur-xl border-b border-border/50">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-background/85 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.06)] border-b border-border">
         <div className="container-narrow px-6 h-16 flex items-center justify-between">
           <Link href="/" className="text-xl font-bold tracking-tight text-primary">Imaginova</Link>
-          <div className="flex items-center gap-5 text-sm">
+          <nav className="flex items-center gap-5 text-sm">
             <Link href="/dashboard" className="text-muted-foreground hover:text-foreground transition-colors">Dashboard</Link>
             <ThemeToggle />
             <button onClick={async () => { await fetch("/api/logout", { method: "POST" }); router.push("/"); router.refresh(); }} className="text-muted-foreground hover:text-foreground transition-colors">Sign Out</button>
-          </div>
+          </nav>
         </div>
       </header>
 

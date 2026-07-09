@@ -12,7 +12,7 @@ export default async function Home() {
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-50 bg-background/70 backdrop-blur-xl border-b border-border/50">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-background/85 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.06)] border-b border-border">
         <div className="container-narrow px-6 h-16 flex items-center justify-between">
           <span className="text-xl font-bold tracking-tight text-primary">Imaginova</span>
           <nav className="flex items-center gap-6 text-sm">
