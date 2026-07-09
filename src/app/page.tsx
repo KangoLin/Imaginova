@@ -18,15 +18,15 @@ export default async function Home() {
           <nav className="flex items-center gap-6 text-sm">
             {user ? (
               <>
-                <Link href="/create" className="text-muted-foreground hover:text-foreground transition-colors">Create</Link>
-                <Link href="/dashboard" className="text-muted-foreground hover:text-foreground transition-colors">Dashboard</Link>
+                <Link href="/create" className="text-muted-foreground hover:text-foreground transition-all active:scale-[0.97]">Create</Link>
+                <Link href="/dashboard" className="text-muted-foreground hover:text-foreground transition-all active:scale-[0.97]">Dashboard</Link>
                 <span className="text-muted-foreground/70">{user.name}</span>
-                <SignOutButton className="text-muted-foreground hover:text-foreground transition-colors" />
+                <SignOutButton className="text-muted-foreground hover:text-foreground transition-all active:scale-[0.97]" />
               </>
             ) : (
               <>
-                <Link href="/login" className="text-muted-foreground hover:text-foreground transition-colors">Sign In</Link>
-                <Link href="/register" className="inline-flex h-9 items-center justify-center rounded-lg bg-primary px-5 text-sm font-medium text-primary-foreground hover:opacity-90 transition-all">Get Started</Link>
+                <Link href="/login" className="text-muted-foreground hover:text-foreground transition-all active:scale-[0.97]">Sign In</Link>
+                <Link href="/register" className="inline-flex h-9 items-center justify-center rounded-lg bg-primary px-5 text-sm font-medium text-primary-foreground hover:opacity-90 hover:shadow-sm hover:shadow-primary/20 transition-all active:scale-[0.97]">Get Started</Link>
               </>
             )}
           </nav>
@@ -55,7 +55,7 @@ export default async function Home() {
 
           <Link
             href={user ? "/create" : "/register"}
-            className="inline-flex h-12 items-center justify-center rounded-lg bg-primary px-8 text-base font-medium text-primary-foreground hover:opacity-90 hover:shadow-lg hover:shadow-primary/25 transition-all"
+            className="inline-flex h-12 items-center justify-center rounded-lg bg-primary px-8 text-base font-medium text-primary-foreground hover:opacity-90 hover:shadow-lg hover:shadow-primary/25 transition-all active:scale-[0.97]"
           >
             Start Creating
           </Link>

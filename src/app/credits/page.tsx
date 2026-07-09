@@ -65,7 +65,7 @@ export default function CreditsPage() {
       <header className="fixed top-0 left-0 right-0 z-50 bg-background/85 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.06)] border-b border-border">
         <div className="container-narrow px-6 h-16 flex items-center justify-between">
           <Link href="/" className="text-xl font-bold tracking-tight text-primary">Imaginova</Link>
-          <Link href="/dashboard" className="text-sm text-muted-foreground hover:text-foreground transition-colors">&larr; Dashboard</Link>
+          <Link href="/dashboard" className="text-sm text-muted-foreground hover:text-foreground transition-all active:scale-[0.97]">&larr; Dashboard</Link>
         </div>
       </header>
 
@@ -82,7 +82,8 @@ export default function CreditsPage() {
             <CardContent>
               <div className="flex flex-wrap gap-2">
                 {RECHARGE_AMOUNTS.map((amount) => (
-                  <Button key={amount} variant={recharging === amount ? "default" : "outline"} onClick={() => handleRecharge(amount)} disabled={recharging === amount} className="flex-1 min-w-[70px]">
+                  <Button key={amount} variant={recharging === amount ? "default" : "outline"} onClick={() => handleRecharge(amount)} disabled={recharging !== null} className="flex-1 min-w-[70px] gap-1.5">
+                    {recharging === amount && <svg className="animate-spin h-3.5 w-3.5" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" /></svg>}
                     {recharging === amount ? "..." : `+${amount}`}
                   </Button>
                 ))}

@@ -38,6 +38,14 @@
   - L2: Video 详情页自动轮询（5s）
   - L3: Credits 充值后统一调用 `/api/me` 刷新
 - ✅ **UI 最终版 — 推翻重做**：从紫色/粉色完全替换为青碧/琥珀（teal/amber）配色，移除所有自定义工具类，纯 Tailwind + shadcn
+- ✅ **P7 — 交互手感优化**：
+  - 下载改用 server-side proxy (`/api/proxy/download`)，CDN 跨域直接下载，不再跳转页面
+  - Textarea 自动扩展 + Cmd+Enter 快捷提交
+  - 全页面按钮增加 `active:scale-[0.97]` 按压反馈 + `hover:shadow-sm` 悬停提升
+  - 导航栏 Create 按钮从 `size="xs"` 升级为 `size="sm"`，更醒目
+  - Dashboard 卡片增加 `active:scale-[0.98]` 点按反馈
+  - Settings/Credits 按钮增加加载 Spinner
+- ✅ **提取 Navbar 组件**：新增 `src/components/navbar.tsx`，统一管理所有页面导航栏变体（home/app/detail）
 
 ## 已知问题
 - ⚠️ Video CDN 速度较慢（`platform-outputs.agnes-ai.space`），目前直接使用 CDN 直连绕过服务端中转
@@ -66,7 +74,7 @@ src/
     auth.ts            — JWT 生成/验证
     image.ts           — 图片生成 API 封装（T2I + I2I）
     video.ts           — 视频生成 API 封装（T2V + I2V，异步轮询）
-    utils.ts           — shadcn cn() 工具函数
+    utils.ts           — shadcn cn() + downloadFile() 工具函数
   proxy.ts             — Next.js 16 Proxy 中间件（路由保护）
   components/
     ui/                — shadcn/ui 组件（Button, Card, Input, Textarea, Tabs, Badge, Label）
@@ -86,6 +94,7 @@ src/
       register, login, logout, me, me/images, me/videos
       generate/image, generate/video
       proxy/video — 视频流式代理（备用）
+      proxy/download — 文件下载代理（CDN 跨域直链下载）
       credits/transactions, credits/checkin, credits/recharge
       image/[id], video/[id]
       settings/password

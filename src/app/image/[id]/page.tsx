@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { downloadFile } from "@/lib/utils";
 
 interface ImageData { id: number; prompt: string; model: string; url: string; created_at: string; }
 
@@ -40,7 +40,7 @@ export default function ImageDetailPage() {
     return (
       <div className="container-narrow px-6 py-12 animate-fade-in">
         <div className="bg-destructive/5 rounded-lg p-4 text-sm text-destructive">{error}</div>
-        <Link href="/dashboard" className="text-primary text-sm mt-4 inline-block hover:underline">Back to Dashboard</Link>
+        <Link href="/dashboard" className="text-primary text-sm mt-4 inline-block hover:underline active:scale-[0.97] transition-all">Back to Dashboard</Link>
       </div>
     );
   }
@@ -52,7 +52,7 @@ export default function ImageDetailPage() {
       <header className="fixed top-0 left-0 right-0 z-50 bg-background/85 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.06)] border-b border-border">
         <div className="container-narrow px-6 h-16 flex items-center justify-between">
           <Link href="/" className="text-xl font-bold tracking-tight text-primary">Imaginova</Link>
-          <Link href="/dashboard" className="text-sm text-muted-foreground hover:text-foreground transition-colors">&larr; Dashboard</Link>
+          <Link href="/dashboard" className="text-sm text-muted-foreground hover:text-foreground transition-all active:scale-[0.97]">&larr; Dashboard</Link>
         </div>
       </header>
 
@@ -74,7 +74,7 @@ export default function ImageDetailPage() {
                   <span className="font-medium">{image.created_at}</span>
                 </div>
               </div>
-              <a href={image.url} download><Button>Download</Button></a>
+              <Button onClick={() => downloadFile(image.url, `imaginova-${image.id}`)}>Download</Button>
             </div>
           </div>
         </div>

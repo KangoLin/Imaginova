@@ -49,7 +49,7 @@ export default function SettingsPage() {
       <header className="fixed top-0 left-0 right-0 z-50 bg-background/85 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.06)] border-b border-border">
         <div className="container-narrow px-6 h-16 flex items-center justify-between">
           <Link href="/" className="text-xl font-bold tracking-tight text-primary">Imaginova</Link>
-          <Link href="/dashboard" className="text-sm text-muted-foreground hover:text-foreground transition-colors">&larr; Dashboard</Link>
+          <Link href="/dashboard" className="text-sm text-muted-foreground hover:text-foreground transition-all active:scale-[0.97]">&larr; Dashboard</Link>
         </div>
       </header>
 
@@ -76,7 +76,8 @@ export default function SettingsPage() {
                   <label className="block text-sm font-medium mb-1.5 text-foreground">Confirm New Password</label>
                   <Input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required minLength={6} placeholder="Repeat new password" />
                 </div>
-                <Button type="submit" disabled={saving} className="w-full h-11">
+                <Button type="submit" disabled={saving} className="w-full h-11 gap-2">
+                  {saving && <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" /></svg>}
                   {saving ? "Saving..." : "Change Password"}
                 </Button>
               </form>

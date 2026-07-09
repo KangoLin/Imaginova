@@ -24,6 +24,12 @@ export default function CreatePage() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const pollingRef = useRef(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  function autoResize(el: HTMLTextAreaElement) {
+    el.style.height = "auto";
+    el.style.height = `${el.scrollHeight}px`;
+  }
 
   useEffect(() => {
     return () => { pollingRef.current = false; };
@@ -154,9 +160,9 @@ export default function CreatePage() {
         <div className="container-narrow px-6 h-16 flex items-center justify-between">
           <Link href="/" className="text-xl font-bold tracking-tight text-primary">Imaginova</Link>
           <nav className="flex items-center gap-5 text-sm">
-            <Link href="/dashboard" className="text-muted-foreground hover:text-foreground transition-colors">Dashboard</Link>
+            <Link href="/dashboard" className="text-muted-foreground hover:text-foreground transition-all active:scale-[0.97]">Dashboard</Link>
             <ThemeToggle />
-            <button onClick={async () => { await fetch("/api/logout", { method: "POST" }); router.push("/"); router.refresh(); }} className="text-muted-foreground hover:text-foreground transition-colors">Sign Out</button>
+            <button onClick={async () => { await fetch("/api/logout", { method: "POST" }); router.push("/"); router.refresh(); }} className="text-muted-foreground hover:text-foreground transition-all active:scale-[0.97]">Sign Out</button>
           </nav>
         </div>
       </header>
@@ -179,13 +185,15 @@ export default function CreatePage() {
             <div>
               <label htmlFor="prompt" className="block text-sm font-medium mb-1.5 text-foreground">Prompt</label>
               <Textarea
+                ref={textareaRef}
                 id="prompt"
                 value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
+                onChange={(e) => { setPrompt(e.target.value); if (textareaRef.current) autoResize(textareaRef.current); }}
+                onKeyDown={(e) => { if ((e.metaKey || e.ctrlKey) && e.key === "Enter") handleSubmit(e); }}
                 placeholder={tab === "image" ? "A serene mountain landscape at sunset, volumetric lighting..." : "A cinematic drone shot flying over a forest canopy..."}
-                rows={4}
+                rows={3}
                 required
-                className="resize-none min-h-[100px]"
+                className="resize-none min-h-[76px] overflow-hidden"
               />
             </div>
 
@@ -226,7 +234,8 @@ export default function CreatePage() {
 
             {error && <p className="text-sm text-destructive bg-destructive/5 rounded-lg p-3">{error}</p>}
 
-            <Button type="submit" disabled={loading || !prompt.trim()} className="w-full">
+            <Button type="submit" disabled={loading || !prompt.trim()} className="w-full gap-2">
+              {loading && <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" /></svg>}
               {loading ? tab === "video" ? `Generating... ${progress}%` : "Generating..." : `Generate ${tab === "image" ? "Image" : "Video"}`}
             </Button>
           </form>

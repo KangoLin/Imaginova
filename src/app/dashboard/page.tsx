@@ -67,11 +67,11 @@ export default function DashboardPage() {
       <header className="fixed top-0 left-0 right-0 z-50 bg-background/85 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.06)] border-b border-border">
         <div className="container-narrow px-6 h-16 flex items-center justify-between">
           <Link href="/" className="text-xl font-bold tracking-tight text-primary">Imaginova</Link>
-          <nav className="flex items-center gap-5 text-sm">
-            <Button size="xs" onClick={() => router.push("/create")}>Create</Button>
-            <Link href="/settings" className="text-muted-foreground hover:text-foreground transition-colors">Settings</Link>
+          <nav className="flex items-center gap-4 text-sm">
+            <Button size="sm" onClick={() => router.push("/create")}>Create</Button>
+            <Link href="/settings" className="text-muted-foreground hover:text-foreground transition-all active:scale-[0.97]">Settings</Link>
             <ThemeToggle />
-            <button onClick={async () => { await fetch("/api/logout", { method: "POST" }); router.push("/"); router.refresh(); }} className="text-muted-foreground hover:text-foreground transition-colors">Sign Out</button>
+            <button onClick={async () => { await fetch("/api/logout", { method: "POST" }); router.push("/"); router.refresh(); }} className="text-muted-foreground hover:text-foreground transition-all active:scale-[0.97]">Sign Out</button>
           </nav>
         </div>
       </header>
@@ -86,23 +86,23 @@ export default function DashboardPage() {
               <span className="hidden sm:inline">{user.email}</span>
             </div>
           </div>
-          <Button variant="outline" size="xs" onClick={handleCheckin}>Check In</Button>
+          <Button variant="outline" size="sm" onClick={handleCheckin}>Check In</Button>
         </div>
 
-        <div className="grid grid-cols-3 gap-3 mb-8">
-          <div className="bg-card rounded-lg p-4 border border-border/60">
-            <p className="text-xs text-muted-foreground font-medium">Images</p>
-            <p className="text-xl font-bold mt-0.5">{images.length}</p>
+          <div className="grid grid-cols-3 gap-3 mb-8">
+            <div className="bg-card rounded-lg p-4 border border-border/60">
+              <p className="text-xs text-muted-foreground font-medium">Images</p>
+              <p className="text-xl font-bold mt-0.5">{images.length}</p>
+            </div>
+            <div className="bg-card rounded-lg p-4 border border-border/60">
+              <p className="text-xs text-muted-foreground font-medium">Videos</p>
+              <p className="text-xl font-bold mt-0.5">{videos.length}</p>
+            </div>
+            <Link href="/credits" className="bg-card rounded-lg p-4 border border-border/60 hover:border-primary/30 hover:shadow-sm transition-all active:scale-[0.98] block">
+              <p className="text-xs text-muted-foreground font-medium">Credits</p>
+              <p className="text-xl font-bold mt-0.5 text-primary">{user.credits}</p>
+            </Link>
           </div>
-          <div className="bg-card rounded-lg p-4 border border-border/60">
-            <p className="text-xs text-muted-foreground font-medium">Videos</p>
-            <p className="text-xl font-bold mt-0.5">{videos.length}</p>
-          </div>
-          <Link href="/credits" className="bg-card rounded-lg p-4 border border-border/60 hover:border-primary/30 transition-colors block">
-            <p className="text-xs text-muted-foreground font-medium">Credits</p>
-            <p className="text-xl font-bold mt-0.5 text-primary">{user.credits}</p>
-          </Link>
-        </div>
 
         <Tabs value={tab} onValueChange={(v) => setTab(v as Tab)}>
           <TabsList variant="line" className="mb-6">
@@ -114,7 +114,7 @@ export default function DashboardPage() {
         {tab === "images" && (
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
             {images.map((img) => (
-              <Card key={img.id} className="overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer" onClick={() => router.push(`/image/${img.id}`)}>
+              <Card key={img.id} className="overflow-hidden hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 cursor-pointer" onClick={() => router.push(`/image/${img.id}`)}>
                 <div className="aspect-[4/3] overflow-hidden bg-muted"><img src={img.url} alt={img.prompt} className="w-full h-full object-cover" /></div>
                 <div className="p-3"><p className="text-sm font-medium truncate">{img.prompt}</p><p className="text-xs text-muted-foreground mt-1">{img.created_at}</p></div>
               </Card>
@@ -122,7 +122,7 @@ export default function DashboardPage() {
             {images.length === 0 && (
               <div className="col-span-full text-center py-16">
                 <p className="text-muted-foreground text-sm mb-4">No images yet</p>
-                <Link href="/create" className="inline-flex h-9 items-center justify-center rounded-lg bg-primary px-5 text-sm font-medium text-primary-foreground hover:opacity-90 transition-all">Create your first image</Link>
+                <Link href="/create" className="inline-flex h-9 items-center justify-center rounded-lg bg-primary px-5 text-sm font-medium text-primary-foreground hover:opacity-90 hover:shadow-sm hover:shadow-primary/20 transition-all active:scale-[0.97]">Create your first image</Link>
               </div>
             )}
           </div>
@@ -131,7 +131,7 @@ export default function DashboardPage() {
         {tab === "videos" && (
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
             {videos.map((vid) => (
-              <Card key={vid.id} className="overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer" onClick={() => router.push(`/video/${vid.id}`)}>
+              <Card key={vid.id} className="overflow-hidden hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 cursor-pointer" onClick={() => router.push(`/video/${vid.id}`)}>
                 {vid.status === "completed" && vid.url ? (
                   <div className="aspect-[4/3] overflow-hidden bg-muted"><video src={vid.url} preload="metadata" muted playsInline className="w-full h-full object-cover" /></div>
                 ) : (
@@ -151,7 +151,7 @@ export default function DashboardPage() {
             {videos.length === 0 && (
               <div className="col-span-full text-center py-16">
                 <p className="text-muted-foreground text-sm mb-4">No videos yet</p>
-                <Link href="/create" className="inline-flex h-9 items-center justify-center rounded-lg bg-primary px-5 text-sm font-medium text-primary-foreground hover:opacity-90 transition-all">Create your first video</Link>
+                <Link href="/create" className="inline-flex h-9 items-center justify-center rounded-lg bg-primary px-5 text-sm font-medium text-primary-foreground hover:opacity-90 hover:shadow-sm hover:shadow-primary/20 transition-all active:scale-[0.97]">Create your first video</Link>
               </div>
             )}
           </div>
