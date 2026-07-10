@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run lint
+
+      - run: npm run build
+        env:
+          DATABASE_URL: "file:./dev.db"
+          AUTH_SECRET: "ci-secret-key-for-testing"
+          AUTH_URL: "http://localhost:3000"
+          AI_API_BASE_URL: "https://apihub.agnes-ai.com"
+          OPENAI_API_KEY: "sk-ci-fake-key"
+
+      - run: npm test

@@ -5,6 +5,8 @@ import Link from "next/link";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { SignOutButton } from "@/components/sign-out-button";
 import { Button } from "@/components/ui/button";
+import { LanguageSwitcher } from "@/components/language-switcher";
+import { useLocale } from "@/components/locale-provider";
 
 interface NavbarProps {
   variant?: "home" | "app" | "detail";
@@ -13,6 +15,7 @@ interface NavbarProps {
 
 export function Navbar({ variant = "app", user }: NavbarProps) {
   const router = useRouter();
+  const { t } = useLocale();
 
   const shared = "fixed top-0 left-0 right-0 z-50 bg-background/85 backdrop-blur-xl shadow-sm border-b border-border";
 
@@ -27,17 +30,18 @@ export function Navbar({ variant = "app", user }: NavbarProps) {
           <nav className="flex items-center gap-6 text-sm">
             {user ? (
               <>
-                <Link href="/create" className={linkClass}>Create</Link>
-                <Link href="/dashboard" className={linkClass}>Dashboard</Link>
+                <Link href="/create" className={linkClass}>{t("nav.create")}</Link>
+                <Link href="/dashboard" className={linkClass}>{t("nav.dashboard")}</Link>
                 <span className="text-muted-foreground/70">{user.name}</span>
                 <SignOutButton className={linkClass} />
               </>
             ) : (
               <>
-                <Link href="/login" className={linkClass}>Sign In</Link>
-                <Link href="/register" className={navBtnClass}>Get Started</Link>
+                <Link href="/login" className={linkClass}>{t("nav.signIn")}</Link>
+                <Link href="/register" className={navBtnClass}>{t("nav.getStarted")}</Link>
               </>
             )}
+            <LanguageSwitcher />
           </nav>
         </div>
       </header>
@@ -49,7 +53,10 @@ export function Navbar({ variant = "app", user }: NavbarProps) {
       <header className={shared}>
         <div className="container-narrow px-6 h-16 flex items-center justify-between">
           <Link href="/" className="text-xl font-bold tracking-tight text-primary">Imaginova</Link>
-          <Link href="/dashboard" className={`${linkClass} text-sm`}>&larr; Dashboard</Link>
+          <div className="flex items-center gap-4">
+            <Link href="/dashboard" className={`${linkClass} text-sm`}>{t("nav.backToDashboard")}</Link>
+            <LanguageSwitcher />
+          </div>
         </div>
       </header>
     );
@@ -60,11 +67,12 @@ export function Navbar({ variant = "app", user }: NavbarProps) {
       <div className="container-narrow px-6 h-16 flex items-center justify-between">
         <Link href="/" className="text-xl font-bold tracking-tight text-primary">Imaginova</Link>
         <nav className="flex items-center gap-4 text-sm">
-          <Button size="sm" onClick={() => router.push("/create")}>Create</Button>
-          <Link href="/dashboard" className={linkClass}>Dashboard</Link>
-          <Link href="/settings" className={linkClass}>Settings</Link>
+          <Button size="sm" onClick={() => router.push("/create")}>{t("nav.create")}</Button>
+          <Link href="/dashboard" className={linkClass}>{t("nav.dashboard")}</Link>
+          <Link href="/settings" className={linkClass}>{t("nav.settings")}</Link>
           <ThemeToggle />
-          <button onClick={async () => { await fetch("/api/logout", { method: "POST" }); router.push("/"); router.refresh(); }} className={linkClass}>Sign Out</button>
+          <LanguageSwitcher />
+          <button onClick={async () => { await fetch("/api/logout", { method: "POST" }); router.push("/"); router.refresh(); }} className={linkClass}>{t("nav.signOut")}</button>
         </nav>
       </div>
     </header>

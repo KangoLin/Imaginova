@@ -25,3 +25,18 @@ export async function GET(
 
   return NextResponse.json(image);
 }
+
+export async function DELETE(
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const userId = await getSessionUserId();
+  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { id } = await params;
+  const image = db.prepare("SELECT id FROM images WHERE id = ? AND user_id = ?").get(Number(id), userId);
+  if (!image) return NextResponse.json({ error: "Image not found" }, { status: 404 });
+
+  db.prepare("DELETE FROM images WHERE id = ?").run(Number(id));
+  return NextResponse.json({ success: true });
+}

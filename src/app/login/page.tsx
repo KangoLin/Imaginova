@@ -7,9 +7,11 @@ import { api, ApiError } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
+import { useLocale } from "@/components/locale-provider";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { t } = useLocale();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -27,7 +29,7 @@ export default function LoginPage() {
       router.push("/dashboard");
       router.refresh();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Login failed");
+      setError(err instanceof ApiError ? err.message : t("auth.loginFailed"));
       setLoading(false);
     }
   }
@@ -40,29 +42,30 @@ export default function LoginPage() {
       </div>
       <Card className="w-full max-w-sm animate-scale-in shadow-lg">
         <CardHeader className="pb-4">
-          <CardTitle className="text-center text-xl font-bold">Welcome back</CardTitle>
-          <p className="text-center text-sm text-muted-foreground mt-0.5">Sign in to your account</p>
+          <CardTitle className="text-center text-xl font-bold">{t("auth.welcomeBack")}</CardTitle>
+          <p className="text-center text-sm text-muted-foreground mt-0.5">{t("auth.signInSubtitle")}</p>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium mb-1.5 text-foreground">Email</label>
-              <Input id="email" name="email" type="email" required placeholder="you@example.com" />
+              <label htmlFor="email" className="block text-sm font-medium mb-1.5 text-foreground">{t("auth.email")}</label>
+              <Input id="email" name="email" type="email" required placeholder={t("auth.emailPlaceholder")} />
             </div>
             <div>
-              <label htmlFor="password" className="block text-sm font-medium mb-1.5 text-foreground">Password</label>
-              <Input id="password" name="password" type="password" required placeholder="Your password" />
+              <label htmlFor="password" className="block text-sm font-medium mb-1.5 text-foreground">{t("auth.password")}</label>
+              <Input id="password" name="password" type="password" required placeholder={t("auth.passwordPlaceholder")} />
+              <div className="text-right"><Link href="/forgot-password" className="text-xs text-muted-foreground hover:text-primary hover:underline">{t("auth.forgotPassword")}</Link></div>
             </div>
             {error && <p className="text-sm text-destructive">{error}</p>}
             <Button type="submit" disabled={loading} className="w-full">
-              {loading ? "Signing in..." : "Sign In"}
+              {loading ? t("auth.signingIn") : t("auth.signIn")}
             </Button>
           </form>
         </CardContent>
         <CardFooter className="justify-center pb-6">
           <p className="text-sm text-muted-foreground">
-            Don&apos;t have an account?{" "}
-            <Link href="/register" className="text-primary font-medium hover:underline">Sign Up</Link>
+            {t("auth.noAccount")}{" "}
+            <Link href="/register" className="text-primary font-medium hover:underline">{t("auth.signUp")}</Link>
           </p>
         </CardFooter>
       </Card>

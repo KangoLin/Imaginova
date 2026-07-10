@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
+import { LocaleProvider } from "@/components/locale-provider";
 import { ToastProvider } from "@/components/toast";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { Inter } from "next/font/google";
@@ -30,6 +31,10 @@ export default function RootLayout({
                   if (t === 'dark' || (!t && matchMedia('(prefers-color-scheme:dark)').matches)) {
                     document.documentElement.classList.add('dark');
                   }
+                  var l = localStorage.getItem('imaginova-locale');
+                  if (l === 'zh' || l === 'en') {
+                    document.documentElement.lang = l;
+                  }
                 } catch(e) {}
               })();
             `,
@@ -39,9 +44,11 @@ export default function RootLayout({
       <body className="min-h-screen flex flex-col transition-theme">
         <ErrorBoundary>
           <ThemeProvider>
-            <ToastProvider>
-              {children}
-            </ToastProvider>
+            <LocaleProvider>
+              <ToastProvider>
+                {children}
+              </ToastProvider>
+            </LocaleProvider>
           </ThemeProvider>
         </ErrorBoundary>
       </body>

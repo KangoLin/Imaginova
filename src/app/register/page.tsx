@@ -7,9 +7,11 @@ import { api, ApiError } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
+import { useLocale } from "@/components/locale-provider";
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { t } = useLocale();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -27,7 +29,7 @@ export default function RegisterPage() {
       });
       router.push("/login");
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Registration failed");
+      setError(err instanceof ApiError ? err.message : t("auth.registrationFailed"));
       setLoading(false);
     }
   }
@@ -40,33 +42,33 @@ export default function RegisterPage() {
       </div>
       <Card className="w-full max-w-sm animate-scale-in shadow-lg">
         <CardHeader className="pb-4">
-          <CardTitle className="text-center text-xl font-bold">Create an account</CardTitle>
-          <p className="text-center text-sm text-muted-foreground mt-0.5">Get started with Imaginova</p>
+          <CardTitle className="text-center text-xl font-bold">{t("auth.createAccount")}</CardTitle>
+          <p className="text-center text-sm text-muted-foreground mt-0.5">{t("auth.createAccountSubtitle")}</p>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="name" className="block text-sm font-medium mb-1.5 text-foreground">Name</label>
-              <Input id="name" name="name" required placeholder="Your name" />
+              <label htmlFor="name" className="block text-sm font-medium mb-1.5 text-foreground">{t("auth.name")}</label>
+              <Input id="name" name="name" required placeholder={t("auth.namePlaceholder")} />
             </div>
             <div>
-              <label htmlFor="email" className="block text-sm font-medium mb-1.5 text-foreground">Email</label>
-              <Input id="email" name="email" type="email" required placeholder="you@example.com" />
+              <label htmlFor="email" className="block text-sm font-medium mb-1.5 text-foreground">{t("auth.email")}</label>
+              <Input id="email" name="email" type="email" required placeholder={t("auth.emailPlaceholder")} />
             </div>
             <div>
-              <label htmlFor="password" className="block text-sm font-medium mb-1.5 text-foreground">Password</label>
-              <Input id="password" name="password" type="password" required minLength={6} placeholder="At least 6 characters" />
+              <label htmlFor="password" className="block text-sm font-medium mb-1.5 text-foreground">{t("auth.password")}</label>
+              <Input id="password" name="password" type="password" required minLength={6} placeholder={t("auth.passwordMinPlaceholder")} />
             </div>
             {error && <p className="text-sm text-destructive">{error}</p>}
             <Button type="submit" disabled={loading} className="w-full">
-              {loading ? "Creating..." : "Create Account"}
+              {loading ? t("auth.creating") : t("auth.createAccount")}
             </Button>
           </form>
         </CardContent>
         <CardFooter className="justify-center pb-6">
           <p className="text-sm text-muted-foreground">
-            Already have an account?{" "}
-            <Link href="/login" className="text-primary font-medium hover:underline">Sign In</Link>
+            {t("auth.alreadyHaveAccount")}{" "}
+            <Link href="/login" className="text-primary font-medium hover:underline">{t("auth.signIn")}</Link>
           </p>
         </CardFooter>
       </Card>

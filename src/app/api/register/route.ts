@@ -2,8 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import db from "@/lib/db";
 
+function stripHtml(s: string) { return s.replace(/<[^>]*>/g, "").trim(); }
+
 export async function POST(request: NextRequest) {
-  const { name, email, password } = await request.json();
+  const { name: rawName, email, password } = await request.json();
+  const name = stripHtml(rawName);
 
   if (!name || !email || !password) {
     return NextResponse.json({ error: "All fields are required" }, { status: 400 });

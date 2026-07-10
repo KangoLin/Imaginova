@@ -25,3 +25,18 @@ export async function GET(
 
   return NextResponse.json(video);
 }
+
+export async function DELETE(
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const userId = await getSessionUserId();
+  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { id } = await params;
+  const video = db.prepare("SELECT id FROM videos WHERE id = ? AND user_id = ?").get(Number(id), userId);
+  if (!video) return NextResponse.json({ error: "Video not found" }, { status: 404 });
+
+  db.prepare("DELETE FROM videos WHERE id = ?").run(Number(id));
+  return NextResponse.json({ success: true });
+}
