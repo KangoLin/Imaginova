@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { GridSkeleton } from "@/components/skeleton";
@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type Tab = "images" | "videos";
+const PAGE_SIZE = 12;
 
 interface ImageItem { id: number; prompt: string; model: string; url: string; created_at: string; }
 interface VideoItem { id: number; prompt: string; model: string; status: string; url: string | null; progress: number; created_at: string; }
@@ -23,22 +24,31 @@ export default function DashboardPage() {
   const [images, setImages] = useState<ImageItem[]>([]);
   const [videos, setVideos] = useState<VideoItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [imageTotal, setImageTotal] = useState(0);
+  const [videoTotal, setVideoTotal] = useState(0);
 
-  const loadUser = async () => {
+  const loadUser = useCallback(async () => {
     const meRes = await fetch("/api/me");
     if (meRes.status === 401) { router.push("/login"); return; }
     setUser(await meRes.json());
-  };
+  }, [router]);
+
+  const fetchPage = useCallback(async (tab: Tab, offset: number) => {
+    const res = await fetch(`/api/me/${tab}?limit=${PAGE_SIZE}&offset=${offset}`);
+    if (res.status === 401) { router.push("/login"); return null; }
+    return res.json();
+  }, [router]);
 
   useEffect(() => {
     (async () => {
       await loadUser();
-      const [imgRes, vidRes] = await Promise.all([fetch("/api/me/images"), fetch("/api/me/videos")]);
-      setImages(await imgRes.json());
-      setVideos(await vidRes.json());
+      const [imgData, vidData] = await Promise.all([fetchPage("images", 0), fetchPage("videos", 0)]);
+      if (imgData) { setImages(imgData.items); setImageTotal(imgData.total); }
+      if (vidData) { setVideos(vidData.items); setVideoTotal(vidData.total); }
       setLoading(false);
     })();
-  }, [router]);
+  }, [loadUser, fetchPage]);
 
   const handleCheckin = async () => {
     const res = await fetch("/api/credits/checkin", { method: "POST" });
@@ -60,6 +70,19 @@ export default function DashboardPage() {
   }
 
   if (!user) return null;
+
+  async function loadMore() {
+    setLoadingMore(true);
+    const offset = tab === "images" ? images.length : videos.length;
+    const data = await fetchPage(tab, offset);
+    if (!data) return;
+    if (tab === "images") { setImages((prev) => [...prev, ...data.items]); } else { setVideos((prev) => [...prev, ...data.items]); }
+    setLoadingMore(false);
+  }
+
+  const currentItems = tab === "images" ? images : videos;
+  const currentTotal = tab === "images" ? imageTotal : videoTotal;
+  const hasMore = currentItems.length < currentTotal;
 
   return (
       <main className="container-narrow px-6 pt-24 pb-12 animate-fade-in">
@@ -92,8 +115,8 @@ export default function DashboardPage() {
 
         <Tabs value={tab} onValueChange={(v) => setTab(v as Tab)}>
           <TabsList variant="line" className="mb-6">
-            <TabsTrigger value="images">Images ({images.length})</TabsTrigger>
-            <TabsTrigger value="videos">Videos ({videos.length})</TabsTrigger>
+            <TabsTrigger value="images">Images ({imageTotal})</TabsTrigger>
+            <TabsTrigger value="videos">Videos ({videoTotal})</TabsTrigger>
           </TabsList>
         </Tabs>
 
@@ -140,6 +163,15 @@ export default function DashboardPage() {
                 <Link href="/create" className="inline-flex h-9 items-center justify-center rounded-lg bg-primary px-5 text-sm font-medium text-primary-foreground hover:opacity-90 hover:shadow-sm hover:shadow-primary/20 transition-all active:scale-[0.97]">Create your first video</Link>
               </div>
             )}
+          </div>
+        )}
+
+        {hasMore && (
+          <div className="flex justify-center mt-8">
+            <Button variant="outline" onClick={loadMore} disabled={loadingMore} className="gap-2 min-w-[140px]">
+              {loadingMore && <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" /></svg>}
+              {loadingMore ? "Loading..." : `Load More (${currentItems.length}/${currentTotal})`}
+            </Button>
           </div>
         )}
       </main>
