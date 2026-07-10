@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/toast";
+import { api, ApiError } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { LoadingSpinner } from "@/components/loading-spinner";
 import { Textarea } from "@/components/ui/textarea";
@@ -42,62 +43,35 @@ export default function CreatePage() {
 
     try {
       if (tab === "image") {
-        let res: Response;
+        let data: { id: number };
         if (imageFile) {
           const formData = new FormData();
           formData.append("prompt", prompt);
           formData.append("model", "agnes-image-2.1-flash");
           formData.append("image", imageFile);
-          res = await fetch("/api/generate/image", { method: "POST", body: formData });
+          data = await api.post("/api/generate/image", formData);
         } else {
-          res = await fetch("/api/generate/image", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ prompt, model: "agnes-image-2.1-flash" }),
-          });
-        }
-
-        if (res.status === 401) { router.push("/login"); return; }
-
-        const data = await res.json();
-        if (!res.ok) {
-          setError(data.error ?? "Generation failed");
-          setLoading(false);
-          return;
+          data = await api.post("/api/generate/image", { prompt, model: "agnes-image-2.1-flash" });
         }
 
         router.push(`/image/${data.id}`);
         return;
       } else {
-        let res: Response;
+        let data: { task_id: string };
         if (imageFile) {
           const formData = new FormData();
           formData.append("prompt", prompt);
           formData.append("image", imageFile);
-          res = await fetch("/api/generate/video", { method: "POST", body: formData });
+          data = await api.post("/api/generate/video", formData);
         } else {
-          res = await fetch("/api/generate/video", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ prompt }),
-          });
-        }
-
-        if (res.status === 401) { router.push("/login"); return; }
-
-        const data = await res.json();
-        if (!res.ok) {
-          setError(data.error ?? "Video creation failed");
-          setLoading(false);
-          return;
+          data = await api.post("/api/generate/video", { prompt });
         }
 
         toast("Video generation started — you can leave this page and check progress in Dashboard", "info");
         pollStatus(data.task_id);
       }
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Network error";
-      setError(`Request failed: ${msg}. Server may be restarting, please retry.`);
+      if (err instanceof ApiError) { setError(err.message); } else { setError("Network error. Server may be restarting, please retry."); }
       setLoading(false);
     }
   }

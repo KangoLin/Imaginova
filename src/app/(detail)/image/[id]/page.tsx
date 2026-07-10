@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import Link from "next/link";
+import { api, ApiError } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { downloadFile } from "@/lib/utils";
 
@@ -10,21 +11,20 @@ interface ImageData { id: number; prompt: string; model: string; url: string; cr
 
 export default function ImageDetailPage() {
   const params = useParams();
-  const router = useRouter();
   const [image, setImage] = useState<ImageData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
     (async () => {
-      const res = await fetch(`/api/image/${params.id}`);
-      if (res.status === 401) { router.push("/login"); return; }
-      if (res.status === 404) { setError("Image not found"); setLoading(false); return; }
-      const data = await res.json();
-      if (data.error) { setError(data.error); } else { setImage(data); }
+      try {
+        setImage(await api.get<ImageData>(`/api/image/${params.id}`));
+      } catch (err) {
+        if (err instanceof ApiError) setError(err.message);
+      }
       setLoading(false);
     })();
-  }, [params.id, router]);
+  }, [params.id]);
 
   if (loading) {
     return (

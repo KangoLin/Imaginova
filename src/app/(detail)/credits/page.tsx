@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { useToast } from "@/components/toast";
+import { api, ApiError } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { LoadingSpinner } from "@/components/loading-spinner";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -11,40 +11,46 @@ interface Transaction {
   id: number; type: string; amount: number; description: string; created_at: string;
 }
 
+interface UserData { name: string; email: string; credits: number; }
+
 const RECHARGE_AMOUNTS = [5, 10, 20, 50];
 
 export default function CreditsPage() {
-  const router = useRouter();
   const { toast } = useToast();
-  const [user, setUser] = useState<{ name: string; email: string; credits: number } | null>(null);
+  const [user, setUser] = useState<UserData | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [recharging, setRecharging] = useState<number | null>(null);
 
   useEffect(() => { (async () => {
-    const meRes = await fetch("/api/me");
-    if (meRes.status === 401) { router.push("/login"); return; }
-    setUser(await meRes.json());
-    const txRes = await fetch("/api/credits/transactions");
-    setTransactions(await txRes.json());
+    try {
+      const [me, txs] = await Promise.all([
+        api.get<UserData>("/api/me"),
+        api.get<Transaction[]>("/api/credits/transactions"),
+      ]);
+      setUser(me);
+      setTransactions(txs);
+    } catch (err) {
+      if (!(err instanceof ApiError && err.status === 401)) throw err;
+    }
     setLoading(false);
-  })(); }, [router]);
+  })(); }, []);
 
   const handleRecharge = async (amount: number) => {
     setRecharging(amount);
-    const res = await fetch("/api/credits/recharge", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ amount }),
-    });
-    const data = await res.json();
+    try {
+      await api.post("/api/credits/recharge", { amount });
+      toast(`Recharged ${amount} credits successfully!`, "success");
+      const [me, txs] = await Promise.all([
+        api.get<UserData>("/api/me"),
+        api.get<Transaction[]>("/api/credits/transactions"),
+      ]);
+      setUser(me);
+      setTransactions(txs);
+    } catch (err) {
+      if (err instanceof ApiError) toast(err.message, "error");
+    }
     setRecharging(null);
-    if (data.error) { toast(data.error, "error"); return; }
-    toast(`Recharged ${amount} credits successfully!`, "success");
-    const meRes = await fetch("/api/me");
-    setUser(await meRes.json());
-    const txRes = await fetch("/api/credits/transactions");
-    setTransactions(await txRes.json());
   };
 
   if (loading) {

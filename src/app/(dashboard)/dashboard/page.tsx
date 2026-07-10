@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { GridSkeleton } from "@/components/skeleton";
 import { useToast } from "@/components/toast";
+import { api, ApiError } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { LoadingSpinner } from "@/components/loading-spinner";
 import { Card } from "@/components/ui/card";
@@ -14,14 +15,16 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 type Tab = "images" | "videos";
 const PAGE_SIZE = 12;
 
+interface UserData { name: string; email: string; credits: number; }
 interface ImageItem { id: number; prompt: string; model: string; url: string; created_at: string; }
 interface VideoItem { id: number; prompt: string; model: string; status: string; url: string | null; progress: number; created_at: string; }
+interface PageData<T> { items: T[]; total: number; }
 
 export default function DashboardPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [tab, setTab] = useState<Tab>("images");
-  const [user, setUser] = useState<{ name: string; email: string; credits: number } | null>(null);
+  const [user, setUser] = useState<UserData | null>(null);
   const [images, setImages] = useState<ImageItem[]>([]);
   const [videos, setVideos] = useState<VideoItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -29,34 +32,31 @@ export default function DashboardPage() {
   const [imageTotal, setImageTotal] = useState(0);
   const [videoTotal, setVideoTotal] = useState(0);
 
-  const loadUser = useCallback(async () => {
-    const meRes = await fetch("/api/me");
-    if (meRes.status === 401) { router.push("/login"); return; }
-    setUser(await meRes.json());
-  }, [router]);
-
-  const fetchPage = useCallback(async (tab: Tab, offset: number) => {
-    const res = await fetch(`/api/me/${tab}?limit=${PAGE_SIZE}&offset=${offset}`);
-    if (res.status === 401) { router.push("/login"); return null; }
-    return res.json();
-  }, [router]);
-
   useEffect(() => {
     (async () => {
-      await loadUser();
-      const [imgData, vidData] = await Promise.all([fetchPage("images", 0), fetchPage("videos", 0)]);
-      if (imgData) { setImages(imgData.items); setImageTotal(imgData.total); }
-      if (vidData) { setVideos(vidData.items); setVideoTotal(vidData.total); }
+      try {
+        const [me, imgData, vidData] = await Promise.all([
+          api.get<UserData>("/api/me"),
+          api.get<PageData<ImageItem>>(`/api/me/images?limit=${PAGE_SIZE}&offset=0`),
+          api.get<PageData<VideoItem>>(`/api/me/videos?limit=${PAGE_SIZE}&offset=0`),
+        ]);
+        setUser(me);
+        setImages(imgData.items); setImageTotal(imgData.total);
+        setVideos(vidData.items); setVideoTotal(vidData.total);
+      } catch (err) {
+        if (!(err instanceof ApiError && err.status === 401)) throw err;
+      }
       setLoading(false);
     })();
-  }, [loadUser, fetchPage]);
+  }, []);
 
   const handleCheckin = async () => {
-    const res = await fetch("/api/credits/checkin", { method: "POST" });
-    const data = await res.json();
-    if (data.error) { toast(data.error, "error"); } else {
+    try {
+      const data = await api.post<{ reward: number; credits: number }>("/api/credits/checkin");
       toast(`Checked in! +${data.reward} credit`, "success");
       setUser((prev) => prev ? { ...prev, credits: data.credits } : prev);
+    } catch (err) {
+      if (err instanceof ApiError) toast(err.message, "error");
     }
   };
 
@@ -75,9 +75,8 @@ export default function DashboardPage() {
   async function loadMore() {
     setLoadingMore(true);
     const offset = tab === "images" ? images.length : videos.length;
-    const data = await fetchPage(tab, offset);
-    if (!data) return;
-    if (tab === "images") { setImages((prev) => [...prev, ...data.items]); } else { setVideos((prev) => [...prev, ...data.items]); }
+    const data = await api.get<PageData<ImageItem & VideoItem>>(`/api/me/${tab}?limit=${PAGE_SIZE}&offset=${offset}`);
+    if (tab === "images") { setImages((prev) => [...prev, ...(data.items as ImageItem[])]); } else { setVideos((prev) => [...prev, ...(data.items as VideoItem[])]); }
     setLoadingMore(false);
   }
 

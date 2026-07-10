@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import Link from "next/link";
+import { api, ApiError } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { downloadFile } from "@/lib/utils";
 
@@ -10,7 +11,6 @@ interface VideoData { id: number; prompt: string; model: string; status: string;
 
 export default function VideoDetailPage() {
   const params = useParams();
-  const router = useRouter();
   const [video, setVideo] = useState<VideoData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -18,14 +18,14 @@ export default function VideoDetailPage() {
 
   useEffect(() => {
     (async () => {
-      const res = await fetch(`/api/video/${params.id}`);
-      if (res.status === 401) { router.push("/login"); return; }
-      if (res.status === 404) { setError("Video not found"); setLoading(false); return; }
-      const data = await res.json();
-      if (data.error) { setError(data.error); } else { setVideo(data); }
+      try {
+        setVideo(await api.get<VideoData>(`/api/video/${params.id}`));
+      } catch (err) {
+        if (err instanceof ApiError) setError(err.message);
+      }
       setLoading(false);
     })();
-  }, [params.id, router]);
+  }, [params.id]);
 
   const status = video?.status;
 

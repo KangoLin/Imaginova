@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { api, ApiError } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
@@ -18,24 +19,17 @@ export default function LoginPage() {
     setLoading(true);
 
     const form = new FormData(e.currentTarget);
-    const res = await fetch("/api/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+    try {
+      await api.post("/api/login", {
         email: form.get("email"),
         password: form.get("password"),
-      }),
-    });
-
-    if (!res.ok) {
-      const data = await res.json();
-      setError(data.error ?? "Login failed");
+      });
+      router.push("/dashboard");
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Login failed");
       setLoading(false);
-      return;
     }
-
-    router.push("/dashboard");
-    router.refresh();
   }
 
   return (

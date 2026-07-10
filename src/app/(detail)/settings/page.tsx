@@ -1,15 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { useToast } from "@/components/toast";
+import { api, ApiError } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { LoadingSpinner } from "@/components/loading-spinner";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
 export default function SettingsPage() {
-  const router = useRouter();
   const { toast } = useToast();
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -25,23 +24,16 @@ export default function SettingsPage() {
     }
 
     setSaving(true);
-    const res = await fetch("/api/settings/password", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ currentPassword, newPassword }),
-    });
-    const data = await res.json();
-    setSaving(false);
-
-    if (data.error) {
-      toast(data.error, "error");
-      return;
+    try {
+      await api.put("/api/settings/password", { currentPassword, newPassword });
+      toast("Password changed successfully", "success");
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (err) {
+      if (err instanceof ApiError) toast(err.message, "error");
     }
-
-    toast("Password changed successfully", "success");
-    setCurrentPassword("");
-    setNewPassword("");
-    setConfirmPassword("");
+    setSaving(false);
   };
 
   return (
