@@ -6,6 +6,7 @@ import Link from "next/link";
 import { GridSkeleton } from "@/components/skeleton";
 import { useToast } from "@/components/toast";
 import { Button } from "@/components/ui/button";
+import { LoadingSpinner } from "@/components/loading-spinner";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -169,7 +170,7 @@ export default function DashboardPage() {
         {hasMore && (
           <div className="flex justify-center mt-8">
             <Button variant="outline" onClick={loadMore} disabled={loadingMore} className="gap-2 min-w-[140px]">
-              {loadingMore && <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" /></svg>}
+              {loadingMore && <LoadingSpinner />}
               {loadingMore ? "Loading..." : `Load More (${currentItems.length}/${currentTotal})`}
             </Button>
           </div>

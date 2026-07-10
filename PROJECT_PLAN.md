@@ -113,7 +113,7 @@
 | ✅ | **S1 修复下载代理安全性** | 添加 `user_id` 所有权校验 | `api/proxy/download/route.ts` ✅ |
 | ✅ | **S2 提取 Layout + 启用 Navbar** | 增加 `(dashboard)` 和 `(detail)` 路由组布局，6 个页面移除重复 header | `app/(dashboard)/layout.tsx`, `app/(detail)/layout.tsx` ✅ |
 | ✅ | **S3 Dashboard 分页** | API 支持 `limit`/`offset`，前端 "Load More" 按钮 | `api/me/images`, `api/me/videos`, `app/dashboard/page.tsx` ✅ |
-| S4 | 提取 Spinner 组件 | 消除 5 处内联 SVG | `components/loading-spinner.tsx`, 各页面 |
+| ✅ | **S4 提取 Spinner 组件** | 新增 `LoadingSpinner`，替换 4 处内联 SVG | `components/loading-spinner.tsx` ✅ |
 | S5 | 提取通用 fetch 封装 | 统一 401 处理 + 错误解析 | `lib/api-client.ts` |
 
 ### 第 2 梯队 — 用户体验（应该修）

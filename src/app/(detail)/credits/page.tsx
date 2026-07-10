@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/toast";
 import { Button } from "@/components/ui/button";
+import { LoadingSpinner } from "@/components/loading-spinner";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
 interface Transaction {
@@ -74,7 +75,7 @@ export default function CreditsPage() {
               <div className="flex flex-wrap gap-2">
                 {RECHARGE_AMOUNTS.map((amount) => (
                   <Button key={amount} variant={recharging === amount ? "default" : "outline"} onClick={() => handleRecharge(amount)} disabled={recharging !== null} className="flex-1 min-w-[70px] gap-1.5">
-                    {recharging === amount && <svg className="animate-spin h-3.5 w-3.5" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" /></svg>}
+                    {recharging === amount && <LoadingSpinner size="sm" />}
                     {recharging === amount ? "..." : `+${amount}`}
                   </Button>
                 ))}
