@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { useToast } from "@/components/toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -45,14 +44,6 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="fixed top-0 left-0 right-0 z-50 bg-background/85 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.06)] border-b border-border">
-        <div className="container-narrow px-6 h-16 flex items-center justify-between">
-          <Link href="/" className="text-xl font-bold tracking-tight text-primary">Imaginova</Link>
-          <Link href="/dashboard" className="text-sm text-muted-foreground hover:text-foreground transition-all active:scale-[0.97]">&larr; Dashboard</Link>
-        </div>
-      </header>
-
       <main className="container-narrow px-6 pt-24 pb-12 animate-slide-up">
         <div className="max-w-lg mx-auto">
           <h1 className="text-3xl font-bold tracking-tight mb-1">Settings</h1>
@@ -85,6 +76,5 @@ export default function SettingsPage() {
           </Card>
         </div>
       </main>
-    </div>
   );
 }

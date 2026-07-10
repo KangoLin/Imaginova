@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { GridSkeleton } from "@/components/skeleton";
 import { useToast } from "@/components/toast";
 import { Button } from "@/components/ui/button";
@@ -63,19 +62,6 @@ export default function DashboardPage() {
   if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="fixed top-0 left-0 right-0 z-50 bg-background/85 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.06)] border-b border-border">
-        <div className="container-narrow px-6 h-16 flex items-center justify-between">
-          <Link href="/" className="text-xl font-bold tracking-tight text-primary">Imaginova</Link>
-          <nav className="flex items-center gap-4 text-sm">
-            <Button size="sm" onClick={() => router.push("/create")}>Create</Button>
-            <Link href="/settings" className="text-muted-foreground hover:text-foreground transition-all active:scale-[0.97]">Settings</Link>
-            <ThemeToggle />
-            <button onClick={async () => { await fetch("/api/logout", { method: "POST" }); router.push("/"); router.refresh(); }} className="text-muted-foreground hover:text-foreground transition-all active:scale-[0.97]">Sign Out</button>
-          </nav>
-        </div>
-      </header>
-
       <main className="container-narrow px-6 pt-24 pb-12 animate-fade-in">
         <div className="flex items-start justify-between mb-8">
           <div>
@@ -157,6 +143,5 @@ export default function DashboardPage() {
           </div>
         )}
       </main>
-    </div>
   );
 }
