@@ -10,8 +10,22 @@ import { cn } from "@/lib/utils";
 const inter = Inter({subsets:['latin'],variable:'--font-sans'});
 
 export const metadata: Metadata = {
-  title: "Imaginova - AI Image & Video Generation",
-  description: "Generate images and videos with AI",
+  title: "Imaginova - AI Image & Video Generation Platform",
+  description: "Generate stunning images and videos with AI. Free multimodal API for text-to-image, text-to-video, image-to-image, and image-to-video generation. Powered by Agnes AI.",
+  keywords: ["AI image generation", "AI video generation", "text to image", "text to video", "AI art", "free API"],
+  openGraph: {
+    title: "Imaginova - AI Image & Video Generation",
+    description: "Generate stunning images and videos with AI. No complex setup required.",
+    type: "website",
+    locale: "en_US",
+    siteName: "Imaginova",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Imaginova - AI Image & Video Generation",
+    description: "Generate stunning images and videos with AI. No complex setup required.",
+  },
+  robots: "index, follow",
 };
 
 export default function RootLayout({

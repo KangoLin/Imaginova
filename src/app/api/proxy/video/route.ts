@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import db from "@/lib/db";
+import db, { type VideoRow } from "@/lib/db";
 import { getSessionUserId } from "@/lib/auth";
 
 export async function GET(req: NextRequest) {
@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
 
   const video = db
     .prepare("SELECT url FROM videos WHERE url = ? AND user_id = ?")
-    .get(videoUrl, userId) as { url: string } | undefined;
+    .get(videoUrl, userId) as Pick<VideoRow, "url"> | undefined;
 
   if (!video) {
     return NextResponse.json({ error: "Video not found" }, { status: 404 });

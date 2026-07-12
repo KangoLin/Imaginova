@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import db from "@/lib/db";
+import db, { type UserRow } from "@/lib/db";
 import { getSessionUserId } from "@/lib/auth";
 
 export async function PUT(req: NextRequest) {
@@ -19,7 +19,7 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ error: "New password must be at least 6 characters" }, { status: 400 });
   }
 
-  const user = db.prepare("SELECT password FROM users WHERE id = ?").get(userId) as { password: string } | undefined;
+  const user = db.prepare("SELECT password FROM users WHERE id = ?").get(userId) as Pick<UserRow, "password"> | undefined;
   if (!user) {
     return NextResponse.json({ error: "User not found" }, { status: 404 });
   }

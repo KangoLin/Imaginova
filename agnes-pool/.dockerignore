@@ -1,0 +1,10 @@
+web/node_modules
+web/dist
+server/__pycache__
+server/**/__pycache__
+server/*.db
+server/.env
+.git
+.gitignore
+PROJECT_PLAN.md
+AGENTS.md

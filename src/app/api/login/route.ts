@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import db from "@/lib/db";
+import db, { type UserRow } from "@/lib/db";
 import { setSessionCookie } from "@/lib/auth";
 
 export async function POST(request: NextRequest) {
@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
 
   const user = db.prepare(
     "SELECT id, name, email, password FROM users WHERE email = ?"
-  ).get(email) as { id: number; name: string; email: string; password: string } | undefined;
+  ).get(email) as Pick<UserRow, "id" | "name" | "email" | "password"> | undefined;
 
   if (!user) {
     return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });

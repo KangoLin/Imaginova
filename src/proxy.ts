@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 import { jwtVerify } from "jose";
 
 const secret = new TextEncoder().encode(
-  process.env.AUTH_SECRET ?? "dev-secret-key-change-in-production"
+  process.env.AUTH_SECRET ?? (() => { throw new Error("AUTH_SECRET environment variable is required"); })()
 );
 
 const protectedPaths = [
@@ -13,6 +13,7 @@ const protectedPaths = [
   "/settings",
   "/image/",
   "/video/",
+  "/admin",
 ];
 
 const authPaths = ["/login", "/register"];

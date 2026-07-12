@@ -24,11 +24,11 @@ export class ErrorBoundary extends Component<Props, State> {
       return (
         this.props.fallback || (
           <div className="max-w-lg mx-auto px-4 py-12 text-center">
-            <p className="text-red-600 font-medium">Something went wrong</p>
-            <p className="text-sm text-gray-500 mt-1">{this.state.error?.message}</p>
+            <p className="text-destructive font-medium">Something went wrong</p>
+            <p className="text-sm text-muted-foreground mt-1">{this.state.error?.message}</p>
             <button
               onClick={() => this.setState({ hasError: false })}
-              className="mt-4 text-sm text-blue-600 underline"
+              className="mt-4 text-sm text-primary underline"
             >
               Try again
             </button>

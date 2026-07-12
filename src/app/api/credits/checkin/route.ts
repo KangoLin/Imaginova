@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import db from "@/lib/db";
+import db, { type UserRow } from "@/lib/db";
 import { getSessionUserId } from "@/lib/auth";
 
 export async function POST() {
@@ -31,7 +31,7 @@ export async function POST() {
 
   insertTx();
 
-  const user = db.prepare("SELECT credits FROM users WHERE id = ?").get(userId) as { credits: number };
+  const user = db.prepare("SELECT credits FROM users WHERE id = ?").get(userId) as Pick<UserRow, "credits">;
 
   return NextResponse.json({ credits: user.credits, reward: creditAmount });
 }

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionUserId } from "@/lib/auth";
-import db from "@/lib/db";
+import db, { type UserRow, type VideoRow } from "@/lib/db";
 import { createVideo, getVideoStatus } from "@/lib/video";
 
 export const maxDuration = 180;
@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
 
   const user = db
     .prepare("SELECT credits FROM users WHERE id = ?")
-    .get(userId) as { credits: number } | undefined;
+    .get(userId) as Pick<UserRow, "credits"> | undefined;
 
   if (!user) {
     return NextResponse.json({ error: "User not found" }, { status: 404 });
@@ -63,6 +63,7 @@ export async function POST(req: NextRequest) {
       "INSERT INTO videos (user_id, prompt, model, status, task_id) VALUES (?, ?, ?, ?, ?)"
     ).run(userId, prompt, "agnes-video-v2.0", "queued", task.task_id);
     db.prepare("UPDATE users SET credits = credits - 2 WHERE id = ?").run(userId);
+    db.prepare("INSERT INTO api_usage (user_id, action, cost) VALUES (?, 'video_generation', ?)").run(userId, 2);
 
     return NextResponse.json({
       id: info.lastInsertRowid,
@@ -110,7 +111,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const videoRow = db.prepare("SELECT id FROM videos WHERE task_id = ?").get(taskId) as { id: number } | undefined;
+    const videoRow = db.prepare("SELECT id FROM videos WHERE task_id = ?").get(taskId) as Pick<VideoRow, "id"> | undefined;
     return NextResponse.json({ ...status, id: videoRow?.id });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Status check failed";

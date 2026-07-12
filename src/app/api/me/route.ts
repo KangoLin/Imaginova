@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import db from "@/lib/db";
+import db, { type UserRow } from "@/lib/db";
 import { getSessionUserId } from "@/lib/auth";
 
 export async function GET() {
@@ -10,7 +10,7 @@ export async function GET() {
 
   const user = db.prepare(
     "SELECT id, name, email, credits, created_at FROM users WHERE id = ?"
-  ).get(userId) as { id: number; name: string; email: string; credits: number; created_at: string } | undefined;
+  ).get(userId) as Pick<UserRow, "id" | "name" | "email" | "credits" | "created_at"> | undefined;
 
   if (!user) {
     return NextResponse.json({ error: "User not found" }, { status: 404 });

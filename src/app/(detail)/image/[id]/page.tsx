@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { api, ApiError } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { LoadingSpinner } from "@/components/loading-spinner";
@@ -20,6 +21,7 @@ export default function ImageDetailPage() {
   const [error, setError] = useState("");
   const [deleting, setDeleting] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [reported, setReported] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -59,6 +61,13 @@ export default function ImageDetailPage() {
     setTimeout(() => setCopied(false), 2000);
   }
 
+  async function handleReport() {
+    try {
+      await api.post("/api/admin/reports", { type: "image", id: params.id });
+      setReported(true);
+    } catch {}
+  }
+
   async function handleDelete() {
     if (!window.confirm(t("common.confirmDeleteImage"))) return;
     setDeleting(true);
@@ -75,8 +84,8 @@ export default function ImageDetailPage() {
       <main className="container-narrow px-6 pt-24 pb-12 animate-slide-up">
         <div className="max-w-3xl mx-auto">
           <div className="bg-card rounded-xl overflow-hidden border border-border/60">
-            <div className="bg-[#0a0a0a] flex items-center justify-center p-6">
-              <img src={image.url} alt={image.prompt} className="max-w-full max-h-[65vh] object-contain rounded-lg" />
+            <div className="bg-muted relative flex items-center justify-center p-6 max-h-[65vh]">
+              <Image src={image.url} alt={image.prompt} fill className="object-contain rounded-lg" sizes="(max-width: 768px) 100vw, 768px" />
             </div>
             <div className="p-6 space-y-5">
               <h1 className="text-xl font-bold leading-snug">{image.prompt}</h1>
@@ -98,6 +107,11 @@ export default function ImageDetailPage() {
                 <Button variant="outline" onClick={() => window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(image.prompt)}&url=${encodeURIComponent(window.location.href)}`, "_blank", "noopener")} className="gap-2">
                   {t("common.share")}
                 </Button>
+                {!reported ? (
+                  <Button size="sm" variant="ghost" onClick={handleReport} className="text-muted-foreground">{t("admin.report")}</Button>
+                ) : (
+                  <span className="text-xs text-muted-foreground">{t("admin.reported")}</span>
+                )}
                 <Button variant="destructive" onClick={handleDelete} disabled={deleting} className="gap-2 ml-auto">
                   {deleting && <LoadingSpinner />}
                   {deleting ? t("common.deleting") : t("common.delete")}

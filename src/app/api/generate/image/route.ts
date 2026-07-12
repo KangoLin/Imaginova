@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionUserId } from "@/lib/auth";
-import db from "@/lib/db";
+import db, { type UserRow } from "@/lib/db";
 import { generateImage } from "@/lib/image";
 
 export const maxDuration = 180;
@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
 
   const user = db
     .prepare("SELECT credits, name FROM users WHERE id = ?")
-    .get(userId) as { credits: number; name: string } | undefined;
+    .get(userId) as Pick<UserRow, "credits" | "name"> | undefined;
 
   if (!user) {
     return NextResponse.json({ error: "User not found" }, { status: 404 });
@@ -68,6 +68,7 @@ export async function POST(req: NextRequest) {
       "INSERT INTO images (user_id, prompt, url, model) VALUES (?, ?, ?, ?)"
     ).run(userId, prompt, result.url, "agnes-image-2.1-flash");
     db.prepare("UPDATE users SET credits = credits - 1 WHERE id = ?").run(userId);
+    db.prepare("INSERT INTO api_usage (user_id, action, cost) VALUES (?, 'image_generation', ?)").run(userId, 1);
 
     return NextResponse.json({ id: info.lastInsertRowid, url: result.url, credits: user.credits - 1 });
   } catch (err) {

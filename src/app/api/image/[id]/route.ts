@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import db from "@/lib/db";
+import db, { type ImageRow } from "@/lib/db";
 import { getSessionUserId } from "@/lib/auth";
 
 export async function GET(
@@ -14,7 +14,7 @@ export async function GET(
   const { id } = await params;
   const image = db
     .prepare("SELECT id, user_id, prompt, model, url, created_at FROM images WHERE id = ?")
-    .get(Number(id)) as { id: number; user_id: number; prompt: string; model: string; url: string; created_at: string } | undefined;
+    .get(Number(id)) as Pick<ImageRow, "id" | "user_id" | "prompt" | "model" | "url" | "created_at"> | undefined;
 
   if (!image) {
     return NextResponse.json({ error: "Image not found" }, { status: 404 });

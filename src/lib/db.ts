@@ -1,7 +1,7 @@
 import Database from "better-sqlite3";
 import path from "path";
 
-const dbPath = path.join(process.cwd(), "data.db");
+const dbPath = process.env.DATABASE_PATH || path.join(process.cwd(), "data.db");
 const db = new Database(dbPath);
 
 db.pragma("journal_mode = WAL");
@@ -66,6 +66,86 @@ db.exec(`
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     FOREIGN KEY (user_id) REFERENCES users(id)
   );
+`);
+
+export interface UserRow {
+  id: number;
+  name: string;
+  email: string;
+  password: string;
+  credits: number;
+  role: string;
+  created_at: string;
+}
+
+export interface ImageRow {
+  id: number;
+  user_id: number;
+  prompt: string;
+  model: string;
+  url: string;
+  flagged: number;
+  reported: number;
+  reviewed: number;
+  created_at: string;
+}
+
+export interface VideoRow {
+  id: number;
+  user_id: number;
+  prompt: string;
+  model: string;
+  status: string;
+  progress: number;
+  task_id: string | null;
+  url: string | null;
+  flagged: number;
+  reported: number;
+  reviewed: number;
+  created_at: string;
+}
+
+export interface CreditTransactionRow {
+  id: number;
+  user_id: number;
+  type: string;
+  amount: number;
+  description: string | null;
+  created_at: string;
+}
+
+export interface PasswordResetRow {
+  id: number;
+  user_id: number;
+  token: string;
+  expires_at: string;
+  used: number;
+  created_at: string;
+}
+
+// user role migration
+try { db.exec("ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'user'"); } catch {}
+
+// moderation columns for images
+try { db.exec("ALTER TABLE images ADD COLUMN flagged INTEGER NOT NULL DEFAULT 0"); } catch {}
+try { db.exec("ALTER TABLE images ADD COLUMN reported INTEGER NOT NULL DEFAULT 0"); } catch {}
+try { db.exec("ALTER TABLE images ADD COLUMN reviewed INTEGER NOT NULL DEFAULT 0"); } catch {}
+
+// moderation columns for videos
+try { db.exec("ALTER TABLE videos ADD COLUMN flagged INTEGER NOT NULL DEFAULT 0"); } catch {}
+try { db.exec("ALTER TABLE videos ADD COLUMN reported INTEGER NOT NULL DEFAULT 0"); } catch {}
+try { db.exec("ALTER TABLE videos ADD COLUMN reviewed INTEGER NOT NULL DEFAULT 0"); } catch {}
+
+// api_usage table for statistics
+db.exec(`
+  CREATE TABLE IF NOT EXISTS api_usage (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    action TEXT NOT NULL,
+    cost INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (user_id) REFERENCES users(id)
+  )
 `);
 
 export default db;

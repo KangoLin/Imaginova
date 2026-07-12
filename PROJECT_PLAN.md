@@ -124,16 +124,64 @@
 
 ---
 
+### Tier 5 — 管理后台 ✅
+
+| # | 任务 | 说明 |
+|---|------|------|
+| ✅ | **A1 数据库迁移** | users 加 `role`，images/videos 加 `flagged/reported/reviewed`，新建 `api_usage` 表 |
+| ✅ | **A2 管理 API** | 6 个 API：统计 / 用户列表 / 内容列表 / 审核操作 / 举报 / 用量记录 |
+| ✅ | **A3 管理后台前端** | 概览统计页 + 内容审核页 + 用户管理页 |
+| ✅ | **A4 用户举报** | 详情页举报按钮，作品在审核页显示"已举报" |
+| ✅ | **A5 导航入口** | 管理员自动显示"管理后台"导航入口 |
+| ✅ | **A6 中英翻译** | 全部管理后台文案覆盖 |
+
+### Tier 6 — 代理集成 ✅
+
+| # | 任务 | 说明 |
+|---|------|------|
+| ✅ | **P1 添加视频状态路由** | agnes-pool 代理新增 `GET /v1/videos/{task_id}` |
+| ✅ | **P2 指向号池代理** | `AI_API_BASE_URL` 改为 `http://localhost:8000`，移除直连 Key |
+
+### Tier 8 — SEO 首页 + 实时进度推送 ✅
+
+| # | 任务 | 说明 |
+|---|------|------|
+| ✅ | **S1 营销落地页** | 重写首页：英雄区 + 功能卡片 + 使用步骤 + CTA 区 |
+| ✅ | **S2 SEO 元数据** | layout.tsx 添加 OG / Twitter / robots 标签 |
+| ✅ | **S3 双语翻译** | 新增 20+ 条首页营销文案（中/英） |
+| ✅ | **S4 SSE 后端端点** | `GET /api/video/[id]/stream` 实时推送视频进度 |
+| ✅ | **S5 前端改用 SSE** | Create 页 + Detail 页用 EventSource 替代轮询 |
+
+### Tier 7 — Docker 部署 ✅
+
+| # | 任务 | 说明 |
+|---|------|------|
+| ✅ | **D1 开启 standalone 输出** | `next.config.ts` 添加 `output: "standalone"` |
+| ✅ | **D2 Imaginova Dockerfile** | 多阶段构建：deps → builder → runner |
+| ✅ | **D3 根目录 docker-compose** | 串联 imaginova + agnes-pool 两个服务 |
+| ✅ | **D4 .dockerignore** | 排除 node_modules / .next / .git / data 等 |
+
+启动命令：
+```bash
+docker compose up -d
+# 前台: http://localhost:3000
+# 号池: http://localhost:8000
+```
+
+> **注意**：构建前需确保 Docker Desktop 已启动。首次构建需下载 Node.js / Python 基础镜像。
+
+---
+
 ## 已知问题
 
 | 问题 | 状态 | 说明 |
 |------|------|------|
-| Video CDN 速度慢 | ⚠️ 待解决 | `platform-outputs.agnes-ai.space` 直连绕过服务端中转 |
-| 无 lint-staged / pre-commit | ❌ | 提交前无自动检查 |
-| 未使用 Image 优化 | 🟢 低 | CDN 图片未用 next/image |
-| `--accent` `--chart-*` 未使用 | 🟢 低 | 已定义但代码中未引用 |
-| 类型断言 `as T` | 🟢 低 | SQLite 返回类型未包装 |
-| SQLite 位置 | 🟢 低 | 数据库文件在工作目录，生产需调整 |
+| Video CDN 速度慢 | ✅ 已解决 | 视频 `<video>` 改为 `/api/proxy/video?url=` 代理转发 |
+| 未使用 Image 优化 | ✅ 已解决 | 4 处 `<img>` 替换为 `next/image`，`remotePatterns` 新增 `**.agnes-ai.space` |
+| `--chart-*` 未使用 | ✅ 已解决 | Dashboard 统计卡片使用 `chart-2/4/5` 作为数字色 + 左侧边框色 |
+| husky + lint-staged | ✅ 已解决 | 提交前自动 `eslint --fix` |
+| 类型断言 `as T` | ✅ 已解决 | 改为 `Pick<RowType, ...>` 集中类型引用 |
+| SQLite 位置 | ✅ 已解决 | 支持 `DATABASE_PATH` 环境变量 |
 
 ---
 
@@ -183,13 +231,46 @@ e2e/                   — Playwright E2E 测试
 
 | 表 | 字段 | 备注 |
 |---|---|---|
-| `users` | id, name, email, password, credits, created_at | ✅ |
-| `images` | id, user_id, prompt, model, url, created_at | ✅ |
-| `videos` | id, user_id, prompt, model, status, progress, task_id, url, created_at | ✅ |
+| `users` | id, name, email, password, credits, **role**, created_at | ✅ |
+| `images` | id, user_id, prompt, model, url, **flagged, reported, reviewed**, created_at | ✅ |
+| `videos` | id, user_id, prompt, model, status, progress, task_id, url, **flagged, reported, reviewed**, created_at | ✅ |
 | `credit_transactions` | id, user_id, type, amount, description, created_at | ✅ |
 | `password_resets` | id, user_id, token, expires_at, used, created_at | ✅ |
+| `api_usage` | id, user_id, action, cost, created_at | ✅ (新增) |
+
+---
+
+## 管理后台 (Admin Panel)
+
+| # | 任务 | 状态 |
+|---|------|------|
+| ✅ | **T1 数据库迁移** — role/flagged/api_usage 表 & 接口 | ✅ |
+| 🔲 | T2 api_usage 统计路由 | 🔲 |
+| 🔲 | T3 用户管理 API (list/search/update credits) | 🔲 |
+| 🔲 | T4 内容审核 API (list pending / approve / reject) | 🔲 |
+| 🔲 | T5 管理员 Dashboard 页面 (统计概览) | 🔲 |
+| 🔲 | T6 用户管理页面 (表格 + 搜索 + 编辑积分) | 🔲 |
+| 🔲 | T7 内容审核页面 (图片/视频列表 + 审核操作) | 🔲 |
+| 🔲 | T8 访问控制中间件 + 管理员角色守卫 | 🔲 |
 
 ## 构建状态
 
 - `npm run build` — 零错误，零警告 ✅
 - `npm test` — 2/2 passed ✅
+
+## 上线前安全修复 (2026-07-12)
+
+| # | 问题 | 严重度 | 修复 |
+|---|------|--------|------|
+| ✅ | Cookie `secure: false` → 生产环境 `true` | P0 | `src/lib/auth.ts` |
+| ✅ | 开发密钥回退 → 强制要求 `AUTH_SECRET` | P0 | `src/lib/auth.ts`, `src/proxy.ts` |
+| ✅ | 密码重置 token 在生产环境不暴露 | P0 | `src/app/api/auth/forgot-password/route.ts` |
+| ✅ | 创建 404 页面 (`not-found.tsx`) | P1 | `src/app/not-found.tsx` |
+| ✅ | 创建错误页面 (`error.tsx`) | P1 | `src/app/error.tsx` |
+| ✅ | 删除按钮 focus-visible 可见 + focus trap | P1 | Dashboard lightbox |
+| ✅ | ErrorBoundary 硬编码颜色 → 主题色 | P1 | `src/components/error-boundary.tsx` |
+| ✅ | 详情页硬编码背景色 → `bg-muted` | P1 | image & video detail pages |
+| ✅ | 模拟充值接口生产环境禁用 | P1 | `src/app/api/credits/recharge/route.ts` |
+| ✅ | Dashboard 排序加 `useMemo` 缓存 | P2 | `src/app/(dashboard)/dashboard/page.tsx` |
+| ✅ | Toast 悬停暂停自动消失 + `aria-hidden` | P2 | `src/components/toast.tsx` |
+| ✅ | 创建 `.env.example` | P2 | `.env.example` |

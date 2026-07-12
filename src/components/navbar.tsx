@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -16,6 +17,14 @@ interface NavbarProps {
 export function Navbar({ variant = "app", user }: NavbarProps) {
   const router = useRouter();
   const { t } = useLocale();
+  const [isAdmin, setIsAdmin] = useState(false);
+  useEffect(() => {
+    if (variant === "app") {
+      fetch("/api/me").then(r => r.ok ? r.json() : null).then(data => {
+        if (data?.role === "admin") setIsAdmin(true);
+      });
+    }
+  }, [variant]);
 
   const shared = "fixed top-0 left-0 right-0 z-50 bg-background/85 backdrop-blur-xl shadow-sm border-b border-border";
 
@@ -70,6 +79,9 @@ export function Navbar({ variant = "app", user }: NavbarProps) {
           <Button size="sm" onClick={() => router.push("/create")}>{t("nav.create")}</Button>
           <Link href="/dashboard" className={linkClass}>{t("nav.dashboard")}</Link>
           <Link href="/settings" className={linkClass}>{t("nav.settings")}</Link>
+          {isAdmin && (
+            <Link href="/admin" className={linkClass}>{t("nav.admin")}</Link>
+          )}
           <ThemeToggle />
           <LanguageSwitcher />
           <button onClick={async () => { await fetch("/api/logout", { method: "POST" }); router.push("/"); router.refresh(); }} className={linkClass}>{t("nav.signOut")}</button>

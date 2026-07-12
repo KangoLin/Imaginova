@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/toast";
 import { api, ApiError } from "@/lib/api-client";
@@ -104,7 +105,7 @@ export default function CreatePage() {
         router.push(`/image/${data.id}`);
         return;
       } else {
-        let data: { task_id: string };
+        let data: { id: number; task_id: string };
         if (imageFile) {
           const formData = new FormData();
           formData.append("prompt", prompt);
@@ -116,7 +117,7 @@ export default function CreatePage() {
 
         toast(t("create.videoStarted"), "info");
         pollStartRef.current = Date.now();
-        pollStatus(data.task_id);
+        startSSE(data.id);
       }
     } catch (err) {
       if (err instanceof ApiError) { setError(err.message); } else { setError(t("create.networkError")); }
@@ -124,61 +125,38 @@ export default function CreatePage() {
     }
   }
 
-  async function pollStatus(taskId: string) {
+  function startSSE(videoId: number) {
     pollingRef.current = true;
     const startTime = Date.now();
-    const maxDuration = 10 * 60 * 1000;
-    let failCount = 0;
+    const es = new EventSource(`/api/video/${videoId}/stream`);
 
-    while (pollingRef.current) {
-      if (Date.now() - startTime > maxDuration) {
-        setError(t("create.videoTimedOut"));
-        setLoading(false);
+    es.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      const p = data.progress || 0;
+      setProgress(p);
+
+      if (p <= 0) setProgressPhase(t("create.waitingInQueue"));
+      else if (p < 100) setProgressPhase(t("create.generatingProgress", { progress: p }));
+      else setProgressPhase(t("create.finalizing"));
+
+      if (data.status === "completed") {
+        es.close();
         pollingRef.current = false;
-        return;
+        router.push(`/video/${videoId}`);
+      } else if (data.status === "failed") {
+        es.close();
+        pollingRef.current = false;
+        setError(data.error || t("create.videoFailed"));
+        setLoading(false);
       }
+    };
 
-      await new Promise((r) => setTimeout(r, 3000));
-      if (document.hidden) {
-        await new Promise<void>((resolve) => {
-          const cb = () => { document.removeEventListener("visibilitychange", cb); resolve(); };
-          document.addEventListener("visibilitychange", cb);
-        });
-        if (!pollingRef.current) return;
-      }
-      try {
-        const data = await api.get<{ status: string; progress: number; id?: number; error?: string }>(`/api/generate/video?taskId=${taskId}`);
-        if (data.error) { setError(data.error); setLoading(false); pollingRef.current = false; return; }
-
-        const p = data.progress || 0;
-        setProgress(p);
-
-        if (p <= 0) setProgressPhase(t("create.waitingInQueue"));
-        else if (p < 100) setProgressPhase(t("create.generatingProgress", { progress: p }));
-        else setProgressPhase(t("create.finalizing"));
-
-        if (data.status === "completed") {
-          router.push(`/video/${data.id}`);
-          pollingRef.current = false;
-          return;
-        }
-        if (data.status === "failed") {
-          setError(data.error ? `${t("create.videoFailed")}: ${data.error}` : t("create.videoFailed"));
-          setLoading(false);
-          pollingRef.current = false;
-          return;
-        }
-        failCount = 0;
-      } catch {
-        failCount++;
-        if (failCount >= 3) {
-          setError(t("create.statusCheckFailed"));
-          setLoading(false);
-          pollingRef.current = false;
-          return;
-        }
-      }
-    }
+    es.onerror = () => {
+      es.close();
+      pollingRef.current = false;
+      setError(t("create.statusCheckFailed"));
+      setLoading(false);
+    };
   }
 
   return (
@@ -246,7 +224,7 @@ export default function CreatePage() {
               <label className="block text-sm font-medium mb-1.5 text-foreground">{t("create.referenceImage")}</label>
               {imagePreview ? (
                 <div className="relative inline-block">
-                  <img src={imagePreview} alt="Reference" className="w-28 h-28 object-cover rounded-lg border border-border" />
+                  <Image src={imagePreview} alt="Reference" width={112} height={112} className="object-cover rounded-lg border border-border" unoptimized />
                   <button
                     type="button"
                     onClick={() => { setImageFile(null); setImagePreview(null); if (fileInputRef.current) fileInputRef.current.value = ""; }}

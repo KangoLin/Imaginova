@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { GridSkeleton } from "@/components/skeleton";
 import { useToast } from "@/components/toast";
 import { api, ApiError } from "@/lib/api-client";
@@ -31,9 +32,21 @@ function ImageLightbox({ img, images, onClose, onNavigate }: {
   const next = idx < images.length - 1 ? images[idx + 1] : null;
   const containerRef = useRef<HTMLDivElement>(null);
 
+  function trapFocus(e: KeyboardEvent) {
+    if (e.key !== "Tab" || !containerRef.current) return;
+    const focusable = containerRef.current.querySelectorAll<HTMLElement>(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    if (focusable.length === 0) { e.preventDefault(); return; }
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  }
+
   const handleKey = useCallback((e: KeyboardEvent) => {
     if (e.key === "Escape") onClose();
-    if (e.key === "Tab") { e.preventDefault(); }
+    if (e.key === "Tab") { trapFocus(e); }
     if (e.key === "ArrowLeft" && prev) onNavigate(prev);
     if (e.key === "ArrowRight" && next) onNavigate(next);
   }, [onClose, onNavigate, prev, next]);
@@ -49,8 +62,8 @@ function ImageLightbox({ img, images, onClose, onNavigate }: {
     <div ref={containerRef} tabIndex={-1} className="fixed inset-0 z-50 bg-black/80 flex items-end md:items-center justify-center p-0 md:p-4 animate-fade-in" onClick={onClose}>
       <div className="relative max-w-4xl w-full max-h-[90vh] md:max-h-[90vh] flex flex-col rounded-t-2xl md:rounded-t-xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
         <button onClick={onClose} className="absolute -top-3 right-2 md:-right-3 z-10 size-8 rounded-full bg-background/80 backdrop-blur-sm border border-border/60 flex items-center justify-center hover:bg-destructive hover:text-destructive-foreground transition-all" aria-label="Close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg></button>
-        <div className="relative flex-1 flex items-center justify-center bg-black/40 rounded-t-xl overflow-hidden min-h-[50vh]">
-          <img src={img.url} alt={img.prompt} className="max-w-full max-h-[70vh] object-contain" />
+        <div className="relative flex-1 flex items-center justify-center bg-black/40 rounded-t-xl overflow-hidden min-h-[50vh] max-h-[70vh]">
+          <Image src={img.url} alt={img.prompt} fill className="object-contain" sizes="90vw" />
           {prev && <button onClick={() => onNavigate(prev)} className="absolute left-2 top-1/2 -translate-y-1/2 size-10 rounded-full bg-background/20 backdrop-blur-sm text-white flex items-center justify-center hover:bg-background/40 transition-all" aria-label="Previous"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6"/></svg></button>}
           {next && <button onClick={() => onNavigate(next)} className="absolute right-2 top-1/2 -translate-y-1/2 size-10 rounded-full bg-background/20 backdrop-blur-sm text-white flex items-center justify-center hover:bg-background/40 transition-all" aria-label="Next"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6-6-6"/></svg></button>}
         </div>
@@ -74,9 +87,21 @@ function VideoModal({ vid, onClose }: { vid: VideoItem; onClose: () => void }) {
   const { t } = useLocale();
   const containerRef = useRef<HTMLDivElement>(null);
 
+  function trapFocus(e: KeyboardEvent) {
+    if (e.key !== "Tab" || !containerRef.current) return;
+    const focusable = containerRef.current.querySelectorAll<HTMLElement>(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    if (focusable.length === 0) { e.preventDefault(); return; }
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  }
+
   const handleKey = useCallback((e: KeyboardEvent) => {
     if (e.key === "Escape") onClose();
-    if (e.key === "Tab") { e.preventDefault(); }
+    if (e.key === "Tab") { trapFocus(e); }
   }, [onClose]);
 
   useEffect(() => {
@@ -92,7 +117,7 @@ function VideoModal({ vid, onClose }: { vid: VideoItem; onClose: () => void }) {
         <button onClick={onClose} className="absolute -top-3 right-2 md:-right-3 z-10 size-8 rounded-full bg-background/80 backdrop-blur-sm border border-border/60 flex items-center justify-center hover:bg-destructive hover:text-destructive-foreground transition-all" aria-label="Close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg></button>
         <div className="relative flex-1 flex items-center justify-center bg-black/40 rounded-t-xl overflow-hidden min-h-[50vh]">
           {vid.status === "completed" && vid.url ? (
-            <video src={vid.url} controls autoPlay className="max-w-full max-h-[70vh]" />
+            <video src={`/api/proxy/video?url=${encodeURIComponent(vid.url)}`} controls autoPlay className="max-w-full max-h-[70vh]" />
           ) : (
             <div className="text-muted-foreground text-sm">{vid.status === "processing" ? t("video.processing", { progress: vid.progress }) : t("video.statusLabel", { status: vid.status })}</div>
           )}
@@ -208,6 +233,9 @@ export default function DashboardPage() {
     }
   };
 
+  const sortedImages = useMemo(() => [...images].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()), [images]);
+  const sortedVideos = useMemo(() => [...videos].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()), [videos]);
+
   if (loading) {
     return (
       <div className="container-narrow px-6 py-12">
@@ -250,9 +278,6 @@ export default function DashboardPage() {
   const currentTotal = tab === "images" ? imageTotal : videoTotal;
   const hasMore = rawItems.length < currentTotal;
 
-  const sortedImages = [...images].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-  const sortedVideos = [...videos].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-
   return (
       <main className="container-narrow px-6 pt-24 pb-12 animate-fade-in">
         {showWelcome && <WelcomeModal onDismiss={() => { localStorage.setItem(ONBOARDING_KEY, "1"); setShowWelcome(false); }} />}
@@ -275,17 +300,17 @@ export default function DashboardPage() {
         </div>
 
         <div className="grid grid-cols-3 gap-3 mb-8">
-          <div className="bg-card rounded-lg p-4 border border-border/60">
+          <div className="bg-card rounded-lg p-4 border border-border/60 border-l-chart-2 border-l-4">
             <p className="text-xs text-muted-foreground font-medium">{t("dashboard.images")}</p>
-            <p className="text-xl font-bold mt-0.5">{imageTotal}</p>
+            <p className="text-xl font-bold mt-0.5 text-chart-2">{imageTotal}</p>
           </div>
-          <div className="bg-card rounded-lg p-4 border border-border/60">
+          <div className="bg-card rounded-lg p-4 border border-border/60 border-l-chart-4 border-l-4">
             <p className="text-xs text-muted-foreground font-medium">{t("dashboard.videos")}</p>
-            <p className="text-xl font-bold mt-0.5">{videoTotal}</p>
+            <p className="text-xl font-bold mt-0.5 text-chart-4">{videoTotal}</p>
           </div>
-          <Link href="/credits" className="bg-card rounded-lg p-4 border border-border/60 hover:border-primary/30 hover:shadow-sm transition-all active:scale-[0.98] focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 block">
+          <Link href="/credits" className="bg-card rounded-lg p-4 border border-border/60 border-l-chart-5 border-l-4 hover:border-primary/30 hover:shadow-sm transition-all active:scale-[0.98] focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 block">
             <p className="text-xs text-muted-foreground font-medium">{t("dashboard.credits")}</p>
-            <p className="text-xl font-bold mt-0.5 text-primary">{user.credits}</p>
+            <p className="text-xl font-bold mt-0.5 text-chart-5">{user.credits}</p>
           </Link>
         </div>
 
@@ -313,11 +338,11 @@ export default function DashboardPage() {
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
             {sortedImages.filter((i) => i.prompt.toLowerCase().includes(query)).map((img) => (
               <Card key={img.id} className="relative group overflow-hidden hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 cursor-pointer" onClick={() => setSelectedImage(img)}>
-                <div className="aspect-[4/3] overflow-hidden bg-muted"><img src={img.url} alt={img.prompt} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" /></div>
+                <div className="aspect-[4/3] overflow-hidden bg-muted relative"><Image src={img.url} alt={img.prompt} fill className="object-cover group-hover:scale-105 transition-transform duration-300" sizes="(max-width: 640px) 50vw, 33vw" /></div>
                 <button
                   onClick={(e) => handleDeleteItem(img.id, "images", e)}
                   disabled={deletingItems.has(img.id)}
-                  className="absolute top-2 right-2 size-7 rounded-full bg-background/80 backdrop-blur-sm border border-border/60 flex items-center justify-center md:opacity-0 md:group-hover:opacity-100 transition-opacity hover:bg-destructive hover:text-destructive-foreground disabled:opacity-50"
+                  className="absolute top-2 right-2 size-7 rounded-full bg-background/80 backdrop-blur-sm border border-border/60 flex items-center justify-center md:opacity-0 md:group-hover:opacity-100 md:focus-visible:opacity-100 transition-opacity hover:bg-destructive hover:text-destructive-foreground disabled:opacity-50"
                 >
                   {deletingItems.has(img.id) ? <LoadingSpinner size="sm" /> : <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>}
                 </button>
@@ -332,7 +357,7 @@ export default function DashboardPage() {
             ))}
             {filteredItems.length === 0 && (
               <div className="col-span-full text-center py-16">
-                <svg className="w-12 h-12 mx-auto mb-4 text-muted-foreground/30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+                <svg className="w-12 h-12 mx-auto mb-4 text-muted-foreground/30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
                 <p className="text-muted-foreground text-sm mb-4">{search ? t("dashboard.noImagesSearch") : t("dashboard.noImages")}</p>
                 {!search && <Link href="/create" className="inline-flex h-9 items-center justify-center rounded-lg bg-primary px-5 text-sm font-medium text-primary-foreground hover:opacity-90 hover:shadow-sm hover:shadow-primary/20 transition-all active:scale-[0.97]">{t("dashboard.createFirstImage")}</Link>}
               </div>
@@ -345,7 +370,7 @@ export default function DashboardPage() {
             {sortedVideos.filter((v) => v.prompt.toLowerCase().includes(query)).map((vid) => (
               <Card key={vid.id} className="relative group overflow-hidden hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 cursor-pointer" onClick={() => setSelectedVideo(vid)}>
                 {vid.status === "completed" && vid.url ? (
-                  <div className="aspect-[4/3] overflow-hidden bg-muted"><video src={vid.url} preload="metadata" muted playsInline className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" /></div>
+                  <div className="aspect-[4/3] overflow-hidden bg-muted"><video src={`/api/proxy/video?url=${encodeURIComponent(vid.url)}`} preload="metadata" muted playsInline className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" /></div>
                 ) : (
                   <div className="aspect-[4/3] bg-muted flex items-center justify-center text-muted-foreground text-sm">
                     {vid.status === "processing" ? `Processing (${vid.progress}%)` : vid.status}
@@ -354,7 +379,7 @@ export default function DashboardPage() {
                 <button
                   onClick={(e) => handleDeleteItem(vid.id, "videos", e)}
                   disabled={deletingItems.has(vid.id)}
-                  className="absolute top-2 right-2 size-7 rounded-full bg-background/80 backdrop-blur-sm border border-border/60 flex items-center justify-center md:opacity-0 md:group-hover:opacity-100 transition-opacity hover:bg-destructive hover:text-destructive-foreground disabled:opacity-50"
+                  className="absolute top-2 right-2 size-7 rounded-full bg-background/80 backdrop-blur-sm border border-border/60 flex items-center justify-center md:opacity-0 md:group-hover:opacity-100 md:focus-visible:opacity-100 transition-opacity hover:bg-destructive hover:text-destructive-foreground disabled:opacity-50"
                 >
                   {deletingItems.has(vid.id) ? <LoadingSpinner size="sm" /> : <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>}
                 </button>
@@ -370,7 +395,7 @@ export default function DashboardPage() {
             ))}
             {filteredItems.length === 0 && (
               <div className="col-span-full text-center py-16">
-                <svg className="w-12 h-12 mx-auto mb-4 text-muted-foreground/30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+                <svg className="w-12 h-12 mx-auto mb-4 text-muted-foreground/30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" aria-hidden="true"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
                 <p className="text-muted-foreground text-sm mb-4">{search ? t("dashboard.noVideosSearch") : t("dashboard.noVideos")}</p>
                 {!search && <Link href="/create" className="inline-flex h-9 items-center justify-center rounded-lg bg-primary px-5 text-sm font-medium text-primary-foreground hover:opacity-90 hover:shadow-sm hover:shadow-primary/20 transition-all active:scale-[0.97]">{t("dashboard.createFirstVideo")}</Link>}
               </div>

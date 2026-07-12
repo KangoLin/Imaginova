@@ -20,13 +20,18 @@ export default function VideoDetailPage() {
   const [error, setError] = useState("");
   const [deleting, setDeleting] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [reported, setReported] = useState(false);
   const pollingRef = useRef(false);
   const pollStartRef = useRef(0);
 
   useEffect(() => {
     (async () => {
       try {
-        setVideo(await api.get<VideoData>(`/api/video/${params.id}`));
+        const data = await api.get<VideoData>(`/api/video/${params.id}`);
+        setVideo(data);
+        if (data.status === "queued" || data.status === "processing") {
+          startSSE(data.id);
+        }
       } catch (err) {
         if (err instanceof ApiError) setError(err.message);
       }
@@ -34,23 +39,32 @@ export default function VideoDetailPage() {
     })();
   }, [params.id]);
 
-  const status = video?.status;
+  function startSSE(videoId: number) {
+    pollingRef.current = true;
+    if (!pollStartRef.current) pollStartRef.current = Date.now();
+    const es = new EventSource(`/api/video/${videoId}/stream`);
 
-  useEffect(() => {
-    if (status && (status === "queued" || status === "processing")) {
-      pollingRef.current = true;
-      if (!pollStartRef.current) pollStartRef.current = Date.now();
-      const interval = setInterval(async () => {
-        if (document.hidden) return;
-        try {
-          const data = await api.get<VideoData>(`/api/video/${params.id}`);
-          setVideo(data);
-          if (data.status === "completed" || data.status === "failed") { clearInterval(interval); pollingRef.current = false; }
-        } catch { clearInterval(interval); pollingRef.current = false; }
-      }, 5000);
-      return () => { clearInterval(interval); pollingRef.current = false; };
-    }
-  }, [status, params.id]);
+    es.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      setVideo((prev) => prev ? { ...prev, status: data.status, progress: data.progress, url: data.url || prev.url } : prev);
+      if (data.status === "completed" || data.status === "failed") {
+        es.close();
+        pollingRef.current = false;
+      }
+    };
+
+    es.onerror = () => {
+      es.close();
+      pollingRef.current = false;
+    };
+
+    setTimeout(() => {
+      if (pollingRef.current) {
+        es.close();
+        pollingRef.current = false;
+      }
+    }, 600000);
+  }
 
   if (loading) {
     return (
@@ -79,6 +93,13 @@ export default function VideoDetailPage() {
     setTimeout(() => setCopied(false), 2000);
   }
 
+  async function handleReport() {
+    try {
+      await api.post("/api/admin/reports", { type: "video", id: params.id });
+      setReported(true);
+    } catch {}
+  }
+
   async function handleDelete() {
     if (!window.confirm(t("common.confirmDeleteVideo"))) return;
     setDeleting(true);
@@ -97,9 +118,9 @@ export default function VideoDetailPage() {
       <main className="container-narrow px-6 pt-24 pb-12 animate-slide-up">
         <div className="max-w-3xl mx-auto">
           <div className="bg-card rounded-xl overflow-hidden border border-border/60">
-            <div className="bg-[#0a0a0a] flex items-center justify-center p-6">
+            <div className="bg-muted flex items-center justify-center p-6">
               {isCompleted ? (
-                <video src={video.url!} controls autoPlay className="max-w-full max-h-[65vh] rounded-lg" />
+                <video src={`/api/proxy/video?url=${encodeURIComponent(video.url!)}`} controls autoPlay className="max-w-full max-h-[65vh] rounded-lg" />
               ) : (
                 <div className="w-full aspect-video flex flex-col items-center justify-center text-muted-foreground gap-3">
                   <div className="w-64 bg-muted rounded-full h-2 overflow-hidden">
@@ -140,6 +161,11 @@ export default function VideoDetailPage() {
                 <Button variant="outline" onClick={() => window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(video.prompt)}&url=${encodeURIComponent(window.location.href)}`, "_blank", "noopener")} className="gap-2">
                   {t("common.share")}
                 </Button>
+                {!reported ? (
+                  <Button size="sm" variant="ghost" onClick={handleReport} className="text-muted-foreground">{t("admin.report")}</Button>
+                ) : (
+                  <span className="text-xs text-muted-foreground">{t("admin.reported")}</span>
+                )}
                 <Button variant="destructive" onClick={handleDelete} disabled={deleting} className="gap-2 ml-auto">
                   {deleting && <LoadingSpinner />}
                   {deleting ? t("common.deleting") : t("common.delete")}

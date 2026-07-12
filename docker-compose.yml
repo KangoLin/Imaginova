@@ -1,0 +1,34 @@
+services:
+  imaginova:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - imaginova_data:/app/data
+    env_file: .env
+    environment:
+      - AI_API_BASE_URL=http://agnes-pool:8000
+      - DATABASE_PATH=/app/data/data.db
+    depends_on:
+      agnes-pool:
+        condition: service_started
+    restart: unless-stopped
+
+  agnes-pool:
+    build:
+      context: ./agnes-pool
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - agnes_pool_data:/app/data
+      - ./agnes-pool/server/.env:/app/.env:ro
+    environment:
+      - DATABASE_URL=sqlite+aiosqlite:///data/agnes_pool.db
+    restart: unless-stopped
+
+volumes:
+  imaginova_data:
+  agnes_pool_data:
