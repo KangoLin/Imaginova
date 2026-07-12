@@ -3,6 +3,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        - AUTH_SECRET
+        - STRIPE_SECRET_KEY
     ports:
       - "3000:3000"
     volumes:
