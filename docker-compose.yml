@@ -7,7 +7,7 @@ services:
         - AUTH_SECRET
         - STRIPE_SECRET_KEY
     ports:
-      - "3000:3000"
+      - "80:3000"
     volumes:
       - imaginova_data:/app/data
     env_file: .env
