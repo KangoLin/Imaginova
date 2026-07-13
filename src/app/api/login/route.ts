@@ -4,7 +4,8 @@ import db, { type UserRow } from "@/lib/db";
 import { setSessionCookie } from "@/lib/auth";
 
 export async function POST(request: NextRequest) {
-  const { email, password } = await request.json();
+  const raw = await request.text();
+  const { email, password } = JSON.parse(raw);
 
   if (!email || !password) {
     return NextResponse.json({ error: "Email and password are required" }, { status: 400 });

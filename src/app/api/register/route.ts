@@ -5,7 +5,8 @@ import db from "@/lib/db";
 function stripHtml(s: string) { return s.replace(/<[^>]*>/g, "").trim(); }
 
 export async function POST(request: NextRequest) {
-  const { name: rawName, email, password } = await request.json();
+  const raw = await request.text();
+  const { name: rawName, email, password } = JSON.parse(raw);
   const name = stripHtml(rawName);
 
   if (!name || !email || !password) {

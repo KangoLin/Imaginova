@@ -10,7 +10,8 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   if (!user) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   if (user.role !== "admin") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-  const body = await request.json();
+  const raw = await request.text();
+  const body = JSON.parse(raw);
   const { type, action } = body;
   const { id: paramId } = await params;
   const id = parseInt(paramId);
