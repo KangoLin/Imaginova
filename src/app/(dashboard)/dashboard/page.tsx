@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef, useMemo } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { GridSkeleton } from "@/components/skeleton";
@@ -183,7 +182,6 @@ function WelcomeModal({ onDismiss }: { onDismiss: () => void }) {
 }
 
 export default function DashboardPage() {
-  const router = useRouter();
   const { toast } = useToast();
   const { t } = useLocale();
   const [tab, setTab] = useState<Tab>("images");
@@ -217,7 +215,11 @@ export default function DashboardPage() {
         setImages(imgData.items); setImageTotal(imgData.total);
         setVideos(vidData.items); setVideoTotal(vidData.total);
       } catch (err) {
-        if (!(err instanceof ApiError && err.status === 401)) throw err;
+        if (err instanceof ApiError && err.status === 401) {
+          window.location.href = "/login";
+          return;
+        }
+        throw err;
       }
       setLoading(false);
     })();

@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useRef } from "react";
 import Link from "next/link";
 import { api, ApiError } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
@@ -10,13 +9,14 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/componen
 import { useLocale } from "@/components/locale-provider";
 
 export default function LoginPage() {
-  const router = useRouter();
   const { t } = useLocale();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const navigatingRef = useRef(false);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (navigatingRef.current) return;
     setError("");
     setLoading(true);
 
@@ -26,8 +26,8 @@ export default function LoginPage() {
         email: form.get("email"),
         password: form.get("password"),
       });
-      router.push("/dashboard");
-      router.refresh();
+      navigatingRef.current = true;
+      window.location.href = "/dashboard";
     } catch (err) {
       setError(err instanceof ApiError ? err.message : t("auth.loginFailed"));
       setLoading(false);

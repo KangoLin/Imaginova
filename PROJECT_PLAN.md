@@ -255,8 +255,23 @@ e2e/                   — Playwright E2E 测试
 
 ## 构建状态
 
-- `npm run build` — 零错误，零警告 ✅
+- `npm run build -- --webpack` — 零错误，零警告 ✅
 - `npm test` — 2/2 passed ✅
+
+## 🐛 线上问题记录 (2026-07-13)
+
+| # | 问题 | 严重度 | 状态 | 修复方案 |
+|---|------|--------|------|----------|
+| 1 | **注册/登录 500** — POST API 路由因 Turbopack `req.json()` bug 全部崩溃 | **P0** | ✅ 已修复 | Dockerfile 改用 `--webpack`；`next.config.ts` 加 `serverExternalPackages` |
+| 2 | **无 HTTPS** — 仅 HTTP 80，密码明文传输，无 SSL 证书 | **P0** | 🔲 待处理 | 配置 Nginx/Caddy + Let's Encrypt；或腾讯云免费 SSL |
+| 3 | **缺少安全响应头** — 无 `X-Frame-Options`、`X-Content-Type-Options`、`CSP`、`HSTS` | **P0** | 🔲 待处理 | 在反向代理或 `next.config.ts` 的 `headers()` 中添加 |
+| 4 | **`X-Powered-By: Next.js`** — 信息泄露 | P1 | ✅ 已修复 | `next.config.ts` 添加 `poweredByHeader: false` |
+| 5 | **缺少 `robots.txt`** — 搜索引擎爬虫无指引 | P1 | 🔲 待处理 | 创建 `public/robots.txt` |
+| 6 | **缺少 `sitemap.xml`** — 影响 SEO 收录 | P1 | 🔲 待处理 | 使用 Next.js `generateSitemaps()` 或手写 `public/sitemap.xml` |
+| 7 | **缺少 `og:image`** — 社交分享无预览图 | P1 | 🔲 待处理 | 在 `layout.tsx` 中添加 `og:image` / `twitter:image` |
+| 8 | **首页 JS chunk 过多**（12+ 个） | P2 | 🔲 待处理 | 检查 Turbopack/Webpack code splitting 配置 |
+| 9 | **页面缓存策略过保守** — 首页 `private, no-cache, no-store` | P2 | 🔲 待处理 | 静态页面可放宽 Cache-Control |
+| 10 | **登录间歇性失败** — `router.refresh()` 与 `router.push()` 竞态；`api-client.ts` 401 在登录页会触发不必要的页面重载 | **P0** | ✅ 已修复 | `login/page.tsx` 改用 `window.location.href`；`api-client.ts` 跳过已在 `/login` 时的 401 重定向；`dashboard/page.tsx` 401 时主动跳转 `/login` |
 
 ## 上线前安全修复 (2026-07-12)
 

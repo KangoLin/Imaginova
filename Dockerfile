@@ -12,7 +12,7 @@ ARG STRIPE_SECRET_KEY
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-RUN npm run build
+RUN npm run build -- --webpack
 
 FROM base AS runner
 WORKDIR /app

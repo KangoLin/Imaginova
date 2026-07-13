@@ -19,7 +19,7 @@ async function request<T>(url: string, options?: RequestInit): Promise<T> {
   });
 
   if (res.status === 401) {
-    if (typeof window !== "undefined") {
+    if (typeof window !== "undefined" && window.location.pathname !== "/login") {
       window.location.href = "/login";
     }
     throw new ApiError("Unauthorized", 401);
