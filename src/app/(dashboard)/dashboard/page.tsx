@@ -154,7 +154,6 @@ function FeatureIcon({ icon }: { icon: string }) {
 }
 
 function WelcomeModal({ onDismiss }: { onDismiss: () => void }) {
-  const { t } = useLocale();
   return (
     <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4 animate-fade-in" onClick={onDismiss}>
       <div className="bg-card rounded-2xl max-w-lg w-full p-8 shadow-2xl border border-border/60 animate-slide-up" onClick={(e) => e.stopPropagation()}>
@@ -196,12 +195,8 @@ export default function DashboardPage() {
   const [search, setSearch] = useState("");
   const [selectedImage, setSelectedImage] = useState<ImageItem | null>(null);
   const [selectedVideo, setSelectedVideo] = useState<VideoItem | null>(null);
-  const [showWelcome, setShowWelcome] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(() => !localStorage.getItem(ONBOARDING_KEY));
   const searchRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (!localStorage.getItem(ONBOARDING_KEY)) setShowWelcome(true);
-  }, []);
 
   useEffect(() => {
     (async () => {
