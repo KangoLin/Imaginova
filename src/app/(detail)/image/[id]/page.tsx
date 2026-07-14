@@ -82,10 +82,10 @@ export default function ImageDetailPage() {
 
   return (
       <main className="container-narrow px-6 pt-24 pb-12 animate-slide-up">
-        <div className="max-w-3xl mx-auto">
+        <div className="max-w-5xl mx-auto">
           <div className="bg-card rounded-xl overflow-hidden border border-border/60">
-            <div className="bg-muted relative flex items-center justify-center p-6 max-h-[65vh]">
-              <Image src={image.url} alt={image.prompt} fill className="object-contain rounded-lg" sizes="(max-width: 768px) 100vw, 768px" />
+            <div className="bg-muted relative flex items-center justify-center" style={{ minHeight: '65vh', maxHeight: '85vh' }}>
+              <Image src={image.url} alt={image.prompt} fill className="object-contain rounded-lg" sizes="(max-width: 768px) 100vw, 1024px" />
             </div>
             <div className="p-6 space-y-5">
               <h1 className="text-xl font-bold leading-snug">{image.prompt}</h1>

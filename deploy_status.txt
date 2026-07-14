@@ -1,0 +1,8 @@
+Server HEAD: 161c029 Fix dashboard lightbox UI (close button, animations) and add route progress bar
+OPENAI_API_KEY: OPENAI_API_KEY=sk-placeholder
+Logs: ▲ Next.js 16.2.9
+- Local:         http://localhost:3000
+- Network:       http://0.0.0.0:3000
+✓ Ready in 0ms
+
+Homepage HTTP: 200
