@@ -70,6 +70,7 @@ export function getVideoStatus(taskId: string): Promise<{
   return request(`/v1/videos/${taskId}`, { method: "GET" }).then(
     (res) => {
       const body = JSON.parse(res.body);
+      console.log("[video-status] raw 200 for", taskId.slice(0, 30), ":", res.body.slice(0, 500));
       if (res.status !== 200) {
         console.log("[video-status] non-200 for", taskId.slice(0, 30), ":", res.status, res.body.slice(0, 400));
         throw new Error(body.error?.message || `Status check failed (${res.status})`);
@@ -79,7 +80,7 @@ export function getVideoStatus(taskId: string): Promise<{
         rawStatus === "completed" ? "completed" :
         rawStatus === "failed" ? "failed" : "processing";
       const progress = typeof body.progress === "number" ? body.progress : 0;
-      const url = body.url || body.remixed_from_video_id || undefined;
+      const url = body.url || body.remixed_from_video_id || body.video_url || body.result?.url || undefined;
       const errMsg = typeof body.error === "object" && body.error?.message
         ? body.error.message
         : typeof body.error === "string" ? body.error
