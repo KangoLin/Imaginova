@@ -3,7 +3,8 @@ import crypto from "crypto";
 import db, { type UserRow } from "@/lib/db";
 
 export async function POST(req: NextRequest) {
-  const { email } = await req.json();
+  const raw = await req.text();
+  const { email } = JSON.parse(raw);
   if (!email) return NextResponse.json({ error: "Email is required" }, { status: 400 });
 
   const user = db.prepare("SELECT id FROM users WHERE email = ?").get(email) as Pick<UserRow, "id"> | null;

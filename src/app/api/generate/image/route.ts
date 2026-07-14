@@ -32,7 +32,8 @@ export async function POST(req: NextRequest) {
       imageUrl = `data:${mime};base64,${b64}`;
     }
   } else {
-    const body = await req.json();
+    const raw = await req.text();
+    const body = JSON.parse(raw);
     if (typeof body.prompt !== "string" || !body.prompt) {
       return NextResponse.json({ error: "Prompt is required" }, { status: 400 });
     }

@@ -6,7 +6,8 @@ export async function POST(req: NextRequest) {
   const userId = await getSessionUserId();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { credits } = await req.json();
+  const raw = await req.text();
+  const { credits } = JSON.parse(raw);
   const amount = typeof credits === "number" && credits > 0 ? credits : null;
   if (!amount) return NextResponse.json({ error: "Invalid credit amount" }, { status: 400 });
 

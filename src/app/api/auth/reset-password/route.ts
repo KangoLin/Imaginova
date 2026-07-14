@@ -3,7 +3,8 @@ import bcrypt from "bcryptjs";
 import db, { type PasswordResetRow } from "@/lib/db";
 
 export async function POST(req: NextRequest) {
-  const { token, password } = await req.json();
+  const raw = await req.text();
+  const { token, password } = JSON.parse(raw);
   if (!token || !password) return NextResponse.json({ error: "Token and password are required" }, { status: 400 });
 
   if (password.length < 6) return NextResponse.json({ error: "Password must be at least 6 characters" }, { status: 400 });

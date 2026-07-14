@@ -33,7 +33,8 @@ export async function POST(req: NextRequest) {
       console.log("Video FormData: no image file found, type:", typeof file, file ? Object.keys(file).join(",") : "null");
     }
   } else {
-    const body = await req.json();
+    const raw = await req.text();
+    const body = JSON.parse(raw);
     if (typeof body.prompt !== "string" || !body.prompt) {
       return NextResponse.json({ error: "Prompt is required" }, { status: 400 });
     }
