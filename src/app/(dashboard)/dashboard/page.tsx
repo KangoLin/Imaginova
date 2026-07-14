@@ -30,6 +30,12 @@ function ImageLightbox({ img, images, onClose, onNavigate }: {
   const prev = idx > 0 ? images[idx - 1] : null;
   const next = idx < images.length - 1 ? images[idx + 1] : null;
   const containerRef = useRef<HTMLDivElement>(null);
+  const [closing, setClosing] = useState(false);
+
+  const handleClose = useCallback(() => {
+    setClosing(true);
+    setTimeout(() => onClose(), 150);
+  }, [onClose]);
 
   function trapFocus(e: KeyboardEvent) {
     if (e.key !== "Tab" || !containerRef.current) return;
@@ -44,11 +50,11 @@ function ImageLightbox({ img, images, onClose, onNavigate }: {
   }
 
   const handleKey = useCallback((e: KeyboardEvent) => {
-    if (e.key === "Escape") onClose();
+    if (e.key === "Escape") handleClose();
     if (e.key === "Tab") { trapFocus(e); }
     if (e.key === "ArrowLeft" && prev) onNavigate(prev);
     if (e.key === "ArrowRight" && next) onNavigate(next);
-  }, [onClose, onNavigate, prev, next]);
+  }, [handleClose, onNavigate, prev, next]);
 
   useEffect(() => {
     document.addEventListener("keydown", handleKey);
@@ -58,23 +64,25 @@ function ImageLightbox({ img, images, onClose, onNavigate }: {
   }, [handleKey]);
 
   return (
-    <div ref={containerRef} tabIndex={-1} className="fixed inset-0 z-50 bg-black/80 flex items-end md:items-center justify-center p-0 md:p-4 animate-fade-in" onClick={onClose}>
-      <div className="relative max-w-4xl w-full max-h-[90vh] md:max-h-[90vh] flex flex-col rounded-t-2xl md:rounded-t-xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
-        <button onClick={onClose} className="absolute -top-3 right-2 md:-right-3 z-10 size-8 rounded-full bg-background/80 backdrop-blur-sm border border-border/60 flex items-center justify-center hover:bg-destructive hover:text-destructive-foreground transition-all" aria-label="Close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg></button>
-        <div className="relative flex-1 flex items-center justify-center bg-black/40 rounded-t-xl overflow-hidden min-h-[50vh] max-h-[70vh]">
-          <Image src={img.url} alt={img.prompt} fill className="object-contain" sizes="90vw" />
-          {prev && <button onClick={() => onNavigate(prev)} className="absolute left-2 top-1/2 -translate-y-1/2 size-10 rounded-full bg-background/20 backdrop-blur-sm text-white flex items-center justify-center hover:bg-background/40 transition-all" aria-label="Previous"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6"/></svg></button>}
-          {next && <button onClick={() => onNavigate(next)} className="absolute right-2 top-1/2 -translate-y-1/2 size-10 rounded-full bg-background/20 backdrop-blur-sm text-white flex items-center justify-center hover:bg-background/40 transition-all" aria-label="Next"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6-6-6"/></svg></button>}
+    <div ref={containerRef} tabIndex={-1} className={`fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-4 ${closing ? "animate-fade-out pointer-events-none" : "animate-fade-in"}`} onClick={handleClose}>
+      <div className={`relative max-w-4xl w-full max-h-[90vh] md:max-h-[90vh] flex flex-col overflow-hidden ${closing ? "animate-scale-out" : "animate-scale-in"}`} onClick={(e) => e.stopPropagation()}>
+        <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-4 py-2 bg-gradient-to-b from-black/60 to-transparent rounded-t-xl">
+          <span className="text-xs text-white/80">{idx + 1}/{images.length}</span>
+          <button onClick={handleClose} className="size-8 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center hover:bg-white/40 transition-all" aria-label="Close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg></button>
         </div>
-        <div className="bg-card rounded-b-xl p-4 flex items-center justify-between gap-4">
-          <div className="min-w-0 flex-1">
+        <div className="relative flex-1 flex items-center justify-center bg-black/40 min-h-[50vh] max-h-[70vh]">
+          <Image src={img.url} alt={img.prompt} fill className="object-contain" sizes="90vw" />
+          {prev && <button onClick={() => onNavigate(prev)} className="absolute left-2 top-1/2 -translate-y-1/2 size-10 rounded-full bg-black/30 backdrop-blur-sm text-white flex items-center justify-center hover:bg-black/50 transition-all" aria-label="Previous"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6"/></svg></button>}
+          {next && <button onClick={() => onNavigate(next)} className="absolute right-2 top-1/2 -translate-y-1/2 size-10 rounded-full bg-black/30 backdrop-blur-sm text-white flex items-center justify-center hover:bg-black/50 transition-all" aria-label="Next"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6-6-6"/></svg></button>}
+        </div>
+        <div className="bg-card p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="min-w-0 flex-1 w-full sm:w-auto">
             <p className="text-sm font-medium truncate">{img.prompt}</p>
             <p className="text-xs text-muted-foreground mt-0.5">{img.model} &middot; {img.created_at}</p>
           </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <span className="text-xs text-muted-foreground">{idx + 1}/{images.length}</span>
-            <Button size="sm" variant="secondary" onClick={() => window.open(`/image/${img.id}`, "_blank")}>{t("dashboard.viewDetails")}</Button>
-            <Button size="sm" variant="ghost" onClick={onClose}>{t("dashboard.close")}</Button>
+          <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">
+            <Button size="sm" variant="secondary" onClick={() => window.open(`/image/${img.id}`, "_blank")} className="flex-1 sm:flex-none">{t("dashboard.viewDetails")}</Button>
+            <Button size="sm" variant="ghost" onClick={handleClose} className="flex-1 sm:flex-none">{t("dashboard.close")}</Button>
           </div>
         </div>
       </div>
@@ -85,6 +93,12 @@ function ImageLightbox({ img, images, onClose, onNavigate }: {
 function VideoModal({ vid, onClose }: { vid: VideoItem; onClose: () => void }) {
   const { t } = useLocale();
   const containerRef = useRef<HTMLDivElement>(null);
+  const [closing, setClosing] = useState(false);
+
+  const handleClose = useCallback(() => {
+    setClosing(true);
+    setTimeout(() => onClose(), 150);
+  }, [onClose]);
 
   function trapFocus(e: KeyboardEvent) {
     if (e.key !== "Tab" || !containerRef.current) return;
@@ -99,9 +113,9 @@ function VideoModal({ vid, onClose }: { vid: VideoItem; onClose: () => void }) {
   }
 
   const handleKey = useCallback((e: KeyboardEvent) => {
-    if (e.key === "Escape") onClose();
+    if (e.key === "Escape") handleClose();
     if (e.key === "Tab") { trapFocus(e); }
-  }, [onClose]);
+  }, [handleClose]);
 
   useEffect(() => {
     document.addEventListener("keydown", handleKey);
@@ -111,24 +125,26 @@ function VideoModal({ vid, onClose }: { vid: VideoItem; onClose: () => void }) {
   }, [handleKey]);
 
   return (
-    <div ref={containerRef} tabIndex={-1} className="fixed inset-0 z-50 bg-black/80 flex items-end md:items-center justify-center p-0 md:p-4 animate-fade-in" onClick={onClose}>
-      <div className="relative max-w-3xl w-full max-h-[90vh] md:max-h-[90vh] flex flex-col rounded-t-2xl md:rounded-t-xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
-        <button onClick={onClose} className="absolute -top-3 right-2 md:-right-3 z-10 size-8 rounded-full bg-background/80 backdrop-blur-sm border border-border/60 flex items-center justify-center hover:bg-destructive hover:text-destructive-foreground transition-all" aria-label="Close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg></button>
-        <div className="relative flex-1 flex items-center justify-center bg-black/40 rounded-t-xl overflow-hidden min-h-[50vh]">
+    <div ref={containerRef} tabIndex={-1} className={`fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-4 ${closing ? "animate-fade-out pointer-events-none" : "animate-fade-in"}`} onClick={handleClose}>
+      <div className={`relative max-w-3xl w-full max-h-[90vh] md:max-h-[90vh] flex flex-col overflow-hidden ${closing ? "animate-scale-out" : "animate-scale-in"}`} onClick={(e) => e.stopPropagation()}>
+        <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-end px-4 py-2 bg-gradient-to-b from-black/60 to-transparent">
+          <button onClick={handleClose} className="size-8 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center hover:bg-white/40 transition-all" aria-label="Close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg></button>
+        </div>
+        <div className="relative flex-1 flex items-center justify-center bg-black/40 min-h-[50vh]">
           {vid.status === "completed" && vid.url ? (
             <video src={`/api/proxy/video?url=${encodeURIComponent(vid.url)}`} controls autoPlay className="max-w-full max-h-[70vh]" />
           ) : (
             <div className="text-muted-foreground text-sm">{vid.status === "processing" ? t("video.processing", { progress: vid.progress }) : t("video.statusLabel", { status: vid.status })}</div>
           )}
         </div>
-        <div className="bg-card rounded-b-xl p-4 flex items-center justify-between gap-4">
-          <div className="min-w-0 flex-1">
+        <div className="bg-card p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="min-w-0 flex-1 w-full sm:w-auto">
             <p className="text-sm font-medium truncate">{vid.prompt}</p>
             <p className="text-xs text-muted-foreground mt-0.5">{vid.model} &middot; {vid.created_at}</p>
           </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <Button size="sm" variant="secondary" onClick={() => window.open(`/video/${vid.id}`, "_blank")}>{t("dashboard.viewDetails")}</Button>
-            <Button size="sm" variant="ghost" onClick={onClose}>{t("dashboard.close")}</Button>
+          <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">
+            <Button size="sm" variant="secondary" onClick={() => window.open(`/video/${vid.id}`, "_blank")} className="flex-1 sm:flex-none">{t("dashboard.viewDetails")}</Button>
+            <Button size="sm" variant="ghost" onClick={handleClose} className="flex-1 sm:flex-none">{t("dashboard.close")}</Button>
           </div>
         </div>
       </div>
@@ -154,9 +170,14 @@ function FeatureIcon({ icon }: { icon: string }) {
 }
 
 function WelcomeModal({ onDismiss }: { onDismiss: () => void }) {
+  const [closing, setClosing] = useState(false);
+  function handleDismiss() {
+    setClosing(true);
+    setTimeout(onDismiss, 150);
+  }
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4 animate-fade-in" onClick={onDismiss}>
-      <div className="bg-card rounded-2xl max-w-lg w-full p-8 shadow-2xl border border-border/60 animate-slide-up" onClick={(e) => e.stopPropagation()}>
+    <div className={`fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4 ${closing ? "animate-fade-out pointer-events-none" : "animate-fade-in"}`} onClick={handleDismiss}>
+      <div className={`bg-card rounded-2xl max-w-lg w-full p-8 shadow-2xl border border-border/60 ${closing ? "animate-scale-out" : "animate-slide-up"}`} onClick={(e) => e.stopPropagation()}>
         <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-5">
           <svg className="w-6 h-6 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.64 5.64l2.83 2.83M15.54 15.54l2.83 2.83M5.64 18.36l2.83-2.83M15.54 8.46l2.83-2.83"/></svg>
         </div>
@@ -174,7 +195,7 @@ function WelcomeModal({ onDismiss }: { onDismiss: () => void }) {
           ))}
         </div>
 
-        <Button onClick={onDismiss} className="w-full">Get Started</Button>
+        <Button onClick={handleDismiss} className="w-full">Get Started</Button>
       </div>
     </div>
   );
@@ -195,7 +216,10 @@ export default function DashboardPage() {
   const [search, setSearch] = useState("");
   const [selectedImage, setSelectedImage] = useState<ImageItem | null>(null);
   const [selectedVideo, setSelectedVideo] = useState<VideoItem | null>(null);
-  const [showWelcome, setShowWelcome] = useState(() => !localStorage.getItem(ONBOARDING_KEY));
+  const [showWelcome, setShowWelcome] = useState(false);
+  useEffect(() => {
+    if (!localStorage.getItem(ONBOARDING_KEY)) setShowWelcome(true);
+  }, []);
   const searchRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {

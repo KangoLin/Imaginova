@@ -4,7 +4,9 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { LocaleProvider } from "@/components/locale-provider";
 import { ToastProvider } from "@/components/toast";
 import { ErrorBoundary } from "@/components/error-boundary";
+import { RouteProgress } from "@/components/route-progress";
 import { Inter } from "next/font/google";
+import { Suspense } from "react";
 import { cn } from "@/lib/utils";
 
 const inter = Inter({subsets:['latin'],variable:'--font-sans'});
@@ -56,6 +58,9 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-screen flex flex-col transition-theme">
+        <Suspense fallback={null}>
+          <RouteProgress />
+        </Suspense>
         <ErrorBoundary>
           <ThemeProvider>
             <LocaleProvider>

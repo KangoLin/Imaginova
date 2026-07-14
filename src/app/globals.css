@@ -1,9 +1,4 @@
 @import "tailwindcss";
-
-@view-transition { navigation: auto; }
-
-::view-transition-old(root) { animation: fade-out 0.15s ease-out; }
-::view-transition-new(root) { animation: fade-in 0.25s ease-out; }
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
@@ -26,9 +21,19 @@
   to { opacity: 1; }
 }
 
+@keyframes fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
 @keyframes scale-in {
   from { opacity: 0; transform: scale(0.95); }
   to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes scale-out {
+  from { opacity: 1; transform: scale(1); }
+  to { opacity: 0; transform: scale(0.95); }
 }
 
 @utility animate-slide-up {
@@ -39,8 +44,16 @@
   animation: fade-in 0.25s ease-out;
 }
 
+@utility animate-fade-out {
+  animation: fade-out 0.15s ease-out forwards;
+}
+
 @utility animate-scale-in {
   animation: scale-in 0.2s ease-out;
+}
+
+@utility animate-scale-out {
+  animation: scale-out 0.15s ease-out forwards;
 }
 
 @utility container-narrow {
