@@ -3,13 +3,19 @@ import re
 
 def extract_verification_code(text: str) -> str | None:
     match = re.search(
-        r"(?:验证码|verification code|code)[^:]*?:[\s]*(\d{4,8})",
+        r'class="verification-code">(\d{4,8})<',
         text,
-        re.IGNORECASE,
     )
     if match:
         return match.group(1)
-    match = re.search(r"\b(\d{6})\b", text)
+    match = re.search(
+        r"(?:验证码|verification code|code).{0,200}?(\d{4,8})",
+        text,
+        re.IGNORECASE | re.DOTALL,
+    )
+    if match:
+        return match.group(1)
+    match = re.search(r"(?<!#)\b(\d{6})\b", text)
     if match:
         return match.group(1)
     return None
