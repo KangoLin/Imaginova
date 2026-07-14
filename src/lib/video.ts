@@ -51,9 +51,11 @@ export function createVideo(prompt: string, imageUrl?: string): Promise<{
   ).then((res) => {
     const body = JSON.parse(res.body);
     if (res.status !== 200) {
+      console.log("[video-create] non-200 response:", res.status, res.body.slice(0, 500));
       throw new Error(body.error?.message || `Video creation failed (${res.status})`);
     }
     const taskId = body.task_id;
+    console.log("[video-create] response:", JSON.stringify({ task_id: taskId, url: body.url, status: body.status }).slice(0, 300));
     if (!taskId) throw new Error("No task_id in response");
     return { task_id: taskId };
   });
@@ -69,6 +71,7 @@ export function getVideoStatus(taskId: string): Promise<{
     (res) => {
       const body = JSON.parse(res.body);
       if (res.status !== 200) {
+        console.log("[video-status] non-200 for", taskId.slice(0, 30), ":", res.status, res.body.slice(0, 400));
         throw new Error(body.error?.message || `Status check failed (${res.status})`);
       }
       const rawStatus = (body.status || "").toLowerCase();
