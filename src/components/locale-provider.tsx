@@ -33,16 +33,17 @@ function tImpl(messages: Record<string, string>, key: string, params?: Record<st
 }
 
 export function LocaleProvider({ children }: { children: React.ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>("en");
-  const [mounted, setMounted] = useState(false);
+  const [locale, setLocaleState] = useState<Locale>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem(STORAGE_KEY) as Locale | null;
+      return saved === "en" || saved === "zh" ? saved : "zh";
+    }
+    return "zh";
+  });
 
   useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY) as Locale | null;
-    const initial = saved === "en" || saved === "zh" ? saved : "en";
-    setLocaleState(initial);
-    document.documentElement.lang = initial;
-    setMounted(true);
-  }, []);
+    document.documentElement.lang = locale;
+  }, [locale]);
 
   const setLocale = useCallback((next: Locale) => {
     setLocaleState(next);

@@ -22,7 +22,7 @@ export async function generateMetadata(): Promise<Metadata> {
       title: "Imaginova - AI Image & Video Generation",
       description: "Generate stunning images and videos with AI. No complex setup required.",
       type: "website",
-      locale: "en_US",
+      locale: "zh_CN",
       siteName: "Imaginova",
       url,
     },
@@ -41,7 +41,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning className={cn("font-sans", inter.variable)}>
+    <html lang="zh-CN" suppressHydrationWarning className={cn("font-sans", inter.variable)}>
       <head>
         <script
           dangerouslySetInnerHTML={{
