@@ -70,11 +70,12 @@ export function getVideoStatus(taskId: string): Promise<{
   return request(`/v1/videos/${taskId}`, { method: "GET" }).then(
     (res) => {
       const body = JSON.parse(res.body);
-      console.log("[video-status] raw 200 for", taskId.slice(0, 30), ":", res.body.slice(0, 500));
       if (res.status !== 200) {
         console.log("[video-status] non-200 for", taskId.slice(0, 30), ":", res.status, res.body.slice(0, 400));
         throw new Error(body.error?.message || `Status check failed (${res.status})`);
       }
+      console.log("[video-status] 200 keys:", Object.keys(body).join(","), "has_url:", !!(body.url || body.video_url || body.output || body.result?.url));
+      if (body.status === "completed") console.log("[video-status] COMPLETED full body:", res.body);
       const rawStatus = (body.status || "").toLowerCase();
       const mappedStatus =
         rawStatus === "completed" ? "completed" :
