@@ -61,8 +61,6 @@ export async function GET(
           const mappedStatus = status.status;
           const progress = status.progress || 0;
 
-          console.log("[sse] video", video.id, "attempt", i, "status:", mappedStatus, "progress:", progress, "url:", status.url?.slice(0, 60), "error:", status.error);
-
           if (mappedStatus === "completed" && status.url) {
             db.prepare("UPDATE videos SET status = ?, url = ?, progress = 100 WHERE id = ?").run("completed", status.url, video.id);
             send({ status: "completed", progress: 100, url: status.url });

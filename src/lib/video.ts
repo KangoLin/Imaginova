@@ -51,11 +51,9 @@ export function createVideo(prompt: string, imageUrl?: string): Promise<{
   ).then((res) => {
     const body = JSON.parse(res.body);
     if (res.status !== 200) {
-      console.log("[video-create] non-200 response:", res.status, res.body.slice(0, 500));
       throw new Error(body.error?.message || `Video creation failed (${res.status})`);
     }
     const taskId = body.task_id;
-    console.log("[video-create] response:", JSON.stringify({ task_id: taskId, url: body.url, status: body.status }).slice(0, 300));
     if (!taskId) throw new Error("No task_id in response");
     return { task_id: taskId };
   });
@@ -71,17 +69,14 @@ export function getVideoStatus(taskId: string): Promise<{
     (res) => {
       const body = JSON.parse(res.body);
       if (res.status !== 200) {
-        console.log("[video-status] non-200 for", taskId.slice(0, 30), ":", res.status, res.body.slice(0, 400));
         throw new Error(body.error?.message || `Status check failed (${res.status})`);
       }
-      console.log("[video-status] 200 keys:", Object.keys(body).join(","), "has_url:", !!(body.url || body.video_url || body.output || body.result?.url));
-      if (body.status === "completed") console.log("[video-status] COMPLETED full body:", res.body);
       const rawStatus = (body.status || "").toLowerCase();
       const mappedStatus =
         rawStatus === "completed" ? "completed" :
         rawStatus === "failed" ? "failed" : "processing";
       const progress = typeof body.progress === "number" ? body.progress : 0;
-      const url = body.url || body.remixed_from_video_id || body.video_url || body.result?.url || undefined;
+      const url = body.url || body.metadata?.url || body.remixed_from_video_id || body.video_url || body.result?.url || undefined;
       const errMsg = typeof body.error === "object" && body.error?.message
         ? body.error.message
         : typeof body.error === "string" ? body.error
