@@ -140,6 +140,10 @@ try { db.exec("ALTER TABLE videos ADD COLUMN flagged INTEGER NOT NULL DEFAULT 0"
 try { db.exec("ALTER TABLE videos ADD COLUMN reported INTEGER NOT NULL DEFAULT 0"); } catch {}
 try { db.exec("ALTER TABLE videos ADD COLUMN reviewed INTEGER NOT NULL DEFAULT 0"); } catch {}
 
+// migration: add checkin_streak and last_checkin_date to users
+try { db.exec("ALTER TABLE users ADD COLUMN checkin_streak INTEGER NOT NULL DEFAULT 0"); } catch {}
+try { db.exec("ALTER TABLE users ADD COLUMN last_checkin_date TEXT"); } catch {}
+
 // user_tasks table for onboarding tasks
 db.exec(`
   CREATE TABLE IF NOT EXISTS user_tasks (

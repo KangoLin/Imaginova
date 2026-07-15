@@ -2,7 +2,6 @@
 
 import { useState, useRef } from "react";
 import Link from "next/link";
-import { api, ApiError } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
@@ -13,6 +12,7 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigatingRef = useRef(false);
+  const formRef = useRef<HTMLFormElement>(null);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -22,14 +22,27 @@ export default function LoginPage() {
 
     const form = new FormData(e.currentTarget);
     try {
-      await api.post("/api/login", {
-        email: form.get("email"),
-        password: form.get("password"),
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: form.get("email"),
+          password: form.get("password"),
+        }),
       });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || t("auth.loginFailed"));
+        setLoading(false);
+        return;
+      }
+
       navigatingRef.current = true;
       window.location.href = "/dashboard";
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : t("auth.loginFailed"));
+    } catch {
+      setError(t("auth.loginFailed"));
       setLoading(false);
     }
   }
@@ -46,7 +59,7 @@ export default function LoginPage() {
           <p className="text-center text-sm text-muted-foreground mt-0.5">{t("auth.signInSubtitle")}</p>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form ref={formRef} onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label htmlFor="email" className="block text-sm font-medium mb-1.5 text-foreground">{t("auth.email")}</label>
               <Input id="email" name="email" type="email" required placeholder={t("auth.emailPlaceholder")} />
