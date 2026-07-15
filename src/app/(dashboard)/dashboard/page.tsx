@@ -222,6 +222,14 @@ export default function DashboardPage() {
     if (!localStorage.getItem(ONBOARDING_KEY)) setShowWelcome(true);
   }, []);
   const searchRef = useRef<HTMLInputElement>(null);
+  const [tasks, setTasks] = useState<TaskItem[]>([]);
+  const [claimingTask, setClaimingTask] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (user) {
+      api.get<TaskItem[]>("/api/tasks").then(setTasks).catch(() => {});
+    }
+  }, [user]);
 
   useEffect(() => {
     (async () => {
@@ -299,15 +307,6 @@ export default function DashboardPage() {
   const filteredItems = rawItems.filter((item) => item.prompt.toLowerCase().includes(query));
   const currentTotal = tab === "images" ? imageTotal : videoTotal;
   const hasMore = rawItems.length < currentTotal;
-
-  const [tasks, setTasks] = useState<TaskItem[]>([]);
-  const [claimingTask, setClaimingTask] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (user) {
-      api.get<TaskItem[]>("/api/tasks").then(setTasks).catch(() => {});
-    }
-  }, [user]);
 
   async function handleClaimTask(taskKey: string) {
     setClaimingTask(taskKey);
