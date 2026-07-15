@@ -37,6 +37,7 @@ export async function generateImage(params: { prompt: string; model: string; siz
     model: params.model || "agnes-image-2.1-flash",
     prompt: params.prompt,
     size: params.size || "1024x1024",
+    n: 1,
   };
   if (params.imageUrl) {
     reqBody.extra_body = {
@@ -56,10 +57,14 @@ export async function generateImage(params: { prompt: string; model: string; siz
 
   if (result.status !== 200) {
     let msg = `Image generation failed (${result.status})`;
-    try { const e = JSON.parse(result.body); if (e.error?.message) msg = e.error.message; } catch {}
+    try { const e = JSON.parse(result.body); if (e.error?.message) msg = `[${result.status}] ${e.error.message}`; } catch { msg += `: ${result.body.slice(0, 500)}`; }
     throw new Error(msg);
   }
 
   const data = JSON.parse(result.body);
-  return { url: data.data[0].url };
+  const item = data.data?.[0];
+  if (!item) throw new Error(`Unexpected API response: ${result.body.slice(0, 500)}`);
+  const imageUrl = item.url || item.b64_json || item.image_url || item.url;
+  if (!imageUrl) throw new Error(`API response missing image URL: ${result.body.slice(0, 500)}`);
+  return { url: imageUrl };
 }

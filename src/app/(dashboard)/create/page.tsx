@@ -65,6 +65,11 @@ export default function CreatePage() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [showHint, setShowHint] = useState(false);
   const [dragOver, setDragOver] = useState(false);
+  const [imageSize, setImageSize] = useState("1024x1024");
+  const [videoWidth, setVideoWidth] = useState(1280);
+  const [videoHeight, setVideoHeight] = useState(720);
+  const [videoNumFrames, setVideoNumFrames] = useState(121);
+  const [videoFrameRate, setVideoFrameRate] = useState(24);
 
   useEffect(() => {
     if (!localStorage.getItem("imaginova-onboarded")) setShowHint(true);
@@ -97,9 +102,10 @@ export default function CreatePage() {
           formData.append("prompt", prompt);
           formData.append("model", "agnes-image-2.1-flash");
           formData.append("image", imageFile);
+          formData.append("size", imageSize);
           data = await api.post("/api/generate/image", formData);
         } else {
-          data = await api.post("/api/generate/image", { prompt, model: "agnes-image-2.1-flash" });
+          data = await api.post("/api/generate/image", { prompt, model: "agnes-image-2.1-flash", size: imageSize });
         }
 
         router.push(`/image/${data.id}`);
@@ -110,9 +116,19 @@ export default function CreatePage() {
           const formData = new FormData();
           formData.append("prompt", prompt);
           formData.append("image", imageFile);
+          formData.append("width", String(videoWidth));
+          formData.append("height", String(videoHeight));
+          formData.append("num_frames", String(videoNumFrames));
+          formData.append("frame_rate", String(videoFrameRate));
           data = await api.post("/api/generate/video", formData);
         } else {
-          data = await api.post("/api/generate/video", { prompt });
+          data = await api.post("/api/generate/video", {
+            prompt,
+            width: videoWidth,
+            height: videoHeight,
+            num_frames: videoNumFrames,
+            frame_rate: videoFrameRate,
+          });
         }
 
         toast(t("create.videoStarted"), "info");
@@ -254,6 +270,72 @@ export default function CreatePage() {
                 if (file) { setImageFile(file); setImagePreview(URL.createObjectURL(file)); }
               }} />
             </div>
+
+            {tab === "image" && (
+              <div>
+                <label className="block text-sm font-medium mb-1.5 text-foreground">{t("create.imageSize")}</label>
+                <select
+                  value={imageSize}
+                  onChange={(e) => setImageSize(e.target.value)}
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-ring focus:ring-3 focus:ring-ring/50 outline-none"
+                >
+                  <option value="1024x1024">{t("create.size1024")}</option>
+                  <option value="1024x768">{t("create.size1024_768")}</option>
+                  <option value="768x1024">{t("create.size768_1024")}</option>
+                  <option value="1024x576">{t("create.size1024_576")}</option>
+                  <option value="576x1024">{t("create.size576_1024")}</option>
+                  <option value="2048x2048">{t("create.size2048")}</option>
+                </select>
+              </div>
+            )}
+
+            {tab === "video" && (
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-sm font-medium mb-1.5 text-foreground">{t("create.videoResolution")}</label>
+                  <select
+                    value={`${videoWidth}x${videoHeight}`}
+                    onChange={(e) => { const [w, h] = e.target.value.split("x").map(Number); setVideoWidth(w); setVideoHeight(h); }}
+                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-ring focus:ring-3 focus:ring-ring/50 outline-none"
+                  >
+                    <option value="854x480">{t("create.res480p")}</option>
+                    <option value="1280x720">{t("create.res720p")}</option>
+                    <option value="1920x1080">{t("create.res1080p")}</option>
+                    <option value="480x854">{t("create.res480pPortrait")}</option>
+                    <option value="720x1280">{t("create.res720pPortrait")}</option>
+                    <option value="1080x1920">{t("create.res1080pPortrait")}</option>
+                    <option value="480x480">{t("create.res480pSquare")}</option>
+                    <option value="720x720">{t("create.res720pSquare")}</option>
+                    <option value="1080x1080">{t("create.res1080pSquare")}</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1.5 text-foreground">{t("create.videoDuration")}</label>
+                  <select
+                    value={videoNumFrames}
+                    onChange={(e) => setVideoNumFrames(Number(e.target.value))}
+                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-ring focus:ring-3 focus:ring-ring/50 outline-none"
+                  >
+                    <option value={81}>{t("create.dur3s")}</option>
+                    <option value={121}>{t("create.dur5s")}</option>
+                    <option value={241}>{t("create.dur10s")}</option>
+                    <option value={441}>{t("create.dur18s")}</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1.5 text-foreground">{t("create.frameRate")}</label>
+                  <select
+                    value={videoFrameRate}
+                    onChange={(e) => setVideoFrameRate(Number(e.target.value))}
+                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-ring focus:ring-3 focus:ring-ring/50 outline-none"
+                  >
+                    <option value={24}>24 {t("create.fps")}</option>
+                    <option value={30}>30 {t("create.fps")}</option>
+                    <option value={60}>60 {t("create.fps")}</option>
+                  </select>
+                </div>
+              </div>
+            )}
 
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">{t("create.cost")}: {tab === "image" ? `1 ${t("create.credit")}` : `2 ${t("create.credits")}`}</span>

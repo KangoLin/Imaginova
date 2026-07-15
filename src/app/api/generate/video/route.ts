@@ -13,6 +13,10 @@ export async function POST(req: NextRequest) {
 
   let prompt: string;
   let imageUrl: string | undefined;
+  let width: number | undefined;
+  let height: number | undefined;
+  let num_frames: number | undefined;
+  let frame_rate: number | undefined;
 
   const ct = req.headers.get("content-type") || "";
   if (ct.includes("multipart/form-data")) {
@@ -22,6 +26,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Prompt is required" }, { status: 400 });
     }
     prompt = p;
+    const w = formData.get("width");
+    const h = formData.get("height");
+    const nf = formData.get("num_frames");
+    const fr = formData.get("frame_rate");
+    if (w) width = Number(w);
+    if (h) height = Number(h);
+    if (nf) num_frames = Number(nf);
+    if (fr) frame_rate = Number(fr);
     const file = formData.get("image");
     if (file && typeof file === "object" && "size" in file && file.size > 0 && "arrayBuffer" in file) {
       const buf = Buffer.from(await file.arrayBuffer());
@@ -40,6 +52,10 @@ export async function POST(req: NextRequest) {
     }
     prompt = body.prompt;
     imageUrl = body.imageUrl;
+    width = body.width ? Number(body.width) : undefined;
+    height = body.height ? Number(body.height) : undefined;
+    num_frames = body.num_frames ? Number(body.num_frames) : undefined;
+    frame_rate = body.frame_rate ? Number(body.frame_rate) : undefined;
   }
 
   const user = db
@@ -58,17 +74,18 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const task = await createVideo(prompt, imageUrl);
+    const task = await createVideo(prompt, imageUrl, { width, height, num_frames, frame_rate });
 
     const info = db.prepare(
-      "INSERT INTO videos (user_id, prompt, model, status, task_id) VALUES (?, ?, ?, ?, ?)"
-    ).run(userId, prompt, "agnes-video-v2.0", "queued", task.task_id);
+      "INSERT INTO videos (user_id, prompt, model, status, task_id, video_id) VALUES (?, ?, ?, ?, ?, ?)"
+    ).run(userId, prompt, "agnes-video-v2.0", "queued", task.task_id, task.video_id || null);
     db.prepare("UPDATE users SET credits = credits - 1 WHERE id = ?").run(userId);
     db.prepare("INSERT INTO api_usage (user_id, action, cost) VALUES (?, 'video_generation', ?)").run(userId, 1);
 
     return NextResponse.json({
       id: info.lastInsertRowid,
       task_id: task.task_id,
+      video_id: task.video_id,
       credits: user.credits - 1,
     });
   } catch (err) {
@@ -85,12 +102,13 @@ export async function GET(req: NextRequest) {
   }
 
   const taskId = req.nextUrl.searchParams.get("taskId");
+  const videoId = req.nextUrl.searchParams.get("videoId");
   if (!taskId) {
     return NextResponse.json({ error: "taskId is required" }, { status: 400 });
   }
 
   try {
-    const status = await getVideoStatus(taskId);
+    const status = await getVideoStatus(taskId, videoId || undefined);
     console.log("Video status for", taskId, ":", JSON.stringify(status));
 
     if (status.status === "completed" && status.url) {

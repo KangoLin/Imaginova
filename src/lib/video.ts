@@ -37,11 +37,25 @@ async function request(
   throw new Error("Unreachable");
 }
 
-export function createVideo(prompt: string, imageUrl?: string): Promise<{
+export interface VideoOptions {
+  width?: number;
+  height?: number;
+  num_frames?: number;
+  frame_rate?: number;
+}
+
+export function createVideo(prompt: string, imageUrl?: string, options?: VideoOptions): Promise<{
   task_id: string;
+  video_id?: string;
 }> {
   const reqBody: Record<string, unknown> = { model: "agnes-video-v2.0", prompt };
   if (imageUrl) reqBody.image = imageUrl;
+  if (options) {
+    if (options.width) reqBody.width = options.width;
+    if (options.height) reqBody.height = options.height;
+    if (options.num_frames) reqBody.num_frames = options.num_frames;
+    if (options.frame_rate) reqBody.frame_rate = options.frame_rate;
+  }
   return request(
     "/v1/videos",
     {
@@ -53,30 +67,44 @@ export function createVideo(prompt: string, imageUrl?: string): Promise<{
     if (res.status !== 200) {
       throw new Error(body.error?.message || `Video creation failed (${res.status})`);
     }
-    const taskId = body.task_id;
-    if (!taskId) throw new Error("No task_id in response");
-    return { task_id: taskId };
+    const taskId = body.task_id || body.id;
+    if (!taskId) throw new Error(`No task_id in response: ${res.body.slice(0, 500)}`);
+    return { task_id: taskId, video_id: body.video_id };
   });
 }
 
-export function getVideoStatus(taskId: string): Promise<{
+function extractVideoUrl(body: Record<string, unknown>): string | undefined {
+  return (
+    (body.url as string) ||
+    (body.video_url as string) ||
+    (body.remixed_from_video_id as string) ||
+    (body.metadata as Record<string, unknown>)?.url as string ||
+    (body.result as Record<string, unknown>)?.url as string ||
+    (body.result as Record<string, unknown>)?.video_url as string ||
+    (body.data as Record<string, unknown>[])?.find(Boolean)?.url as string ||
+    undefined
+  );
+}
+
+export function getVideoStatus(taskId: string, videoId?: string): Promise<{
   status: string;
   progress: number;
   url?: string;
   error?: string;
 }> {
-  return request(`/v1/videos/${taskId}`, { method: "GET" }).then(
+  const path = videoId ? `/agnesapi?video_id=${videoId}` : `/v1/videos/${taskId}`;
+  return request(path, { method: "GET" }).then(
     (res) => {
       const body = JSON.parse(res.body);
       if (res.status !== 200) {
         throw new Error(body.error?.message || `Status check failed (${res.status})`);
       }
-      const rawStatus = (body.status || "").toLowerCase();
+      const rawStatus = (body.status || body.state || "").toLowerCase();
       const mappedStatus =
-        rawStatus === "completed" ? "completed" :
+        rawStatus === "completed" || rawStatus === "success" || rawStatus === "succeeded" ? "completed" :
         rawStatus === "failed" ? "failed" : "processing";
       const progress = typeof body.progress === "number" ? body.progress : 0;
-      const url = body.url || body.metadata?.url || body.remixed_from_video_id || body.video_url || body.result?.url || undefined;
+      const url = extractVideoUrl(body);
       const errMsg = typeof body.error === "object" && body.error?.message
         ? body.error.message
         : typeof body.error === "string" ? body.error
@@ -88,22 +116,24 @@ export function getVideoStatus(taskId: string): Promise<{
 
 export async function generateVideo(
   prompt: string,
-  onProgress?: (progress: number) => void
+  onProgress?: (progress: number) => void,
+  options?: VideoOptions
 ): Promise<string> {
-  const { task_id } = await createVideo(prompt);
+  const { task_id, video_id } = await createVideo(prompt, undefined, options);
 
-  const maxAttempts = 120; // 120 * 5s = 10 minutes
+  const maxAttempts = 120;
   for (let i = 0; i < maxAttempts; i++) {
     await new Promise((r) => setTimeout(r, 5000));
-    const status = await getVideoStatus(task_id);
+    const status = await getVideoStatus(task_id, video_id);
 
     if (onProgress) onProgress(status.progress || 0);
 
     if (status.status === "completed") {
-      return status.url || "";
+      if (!status.url) throw new Error("Video generation completed but no URL returned");
+      return status.url;
     }
     if (status.status === "failed") {
-      throw new Error("Video generation failed");
+      throw new Error(status.error || "Video generation failed");
     }
   }
 

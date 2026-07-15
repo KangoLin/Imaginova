@@ -13,8 +13,8 @@ export async function GET(
 
   const { id } = await params;
   const video = db
-    .prepare("SELECT id, user_id, prompt, model, status, url, progress, created_at FROM videos WHERE id = ?")
-    .get(Number(id)) as Pick<VideoRow, "id" | "user_id" | "prompt" | "model" | "status" | "url" | "progress" | "created_at"> | undefined;
+    .prepare("SELECT id, user_id, prompt, model, status, url, progress, video_id, created_at FROM videos WHERE id = ?")
+    .get(Number(id)) as Pick<VideoRow, "id" | "user_id" | "prompt" | "model" | "status" | "url" | "progress" | "video_id" | "created_at"> | undefined;
 
   if (!video) {
     return NextResponse.json({ error: "Video not found" }, { status: 404 });

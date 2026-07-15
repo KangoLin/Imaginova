@@ -42,9 +42,10 @@ db.exec(`
   );
 `);
 
-// migrate: add task_id column if missing
+// migrate: add columns if missing
 try { db.exec("ALTER TABLE videos ADD COLUMN progress INTEGER NOT NULL DEFAULT 0"); } catch {}
 try { db.exec("ALTER TABLE videos ADD COLUMN task_id TEXT"); } catch {}
+try { db.exec("ALTER TABLE videos ADD COLUMN video_id TEXT"); } catch {}
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS credit_transactions (
@@ -102,6 +103,7 @@ export interface VideoRow {
   status: string;
   progress: number;
   task_id: string | null;
+  video_id: string | null;
   url: string | null;
   flagged: number;
   reported: number;

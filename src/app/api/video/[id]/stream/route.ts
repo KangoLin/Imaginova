@@ -16,8 +16,8 @@ export async function GET(
 
   const { id } = await params;
   const video = db
-    .prepare("SELECT id, user_id, prompt, task_id, status, progress, url FROM videos WHERE id = ?")
-    .get(Number(id)) as Pick<VideoRow, "id" | "user_id" | "task_id" | "status" | "progress" | "url"> | undefined;
+    .prepare("SELECT id, user_id, prompt, task_id, video_id, status, progress, url FROM videos WHERE id = ?")
+    .get(Number(id)) as Pick<VideoRow, "id" | "user_id" | "task_id" | "video_id" | "status" | "progress" | "url"> | undefined;
 
   if (!video) {
     return new Response("Not found", { status: 404 });
@@ -37,6 +37,7 @@ export async function GET(
   }
 
   const taskId: string = video.task_id;
+  const videoId: string | undefined = video.video_id || undefined;
   const encoder = new TextEncoder();
   let closed = false;
 
@@ -57,7 +58,7 @@ export async function GET(
         await new Promise((r) => setTimeout(r, 3000));
 
         try {
-          const status = await getVideoStatus(taskId);
+          const status = await getVideoStatus(taskId, videoId);
           const mappedStatus = status.status;
           const progress = status.progress || 0;
 
