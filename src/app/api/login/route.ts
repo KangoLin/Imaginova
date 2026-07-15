@@ -2,13 +2,37 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import db, { type UserRow } from "@/lib/db";
 import { setSessionCookie } from "@/lib/auth";
+import { validateEmail } from "@/lib/email-validation";
 
 export async function POST(request: NextRequest) {
-  const raw = await request.text();
-  const { email, password } = JSON.parse(raw);
+  const ct = request.headers.get("content-type") || "";
+  let email: string, password: string;
+  if (ct.includes("application/x-www-form-urlencoded")) {
+    const form = await request.formData();
+    email = form.get("email") as string;
+    password = form.get("password") as string;
+  } else {
+    const raw = await request.text();
+    const json = JSON.parse(raw);
+    email = json.email;
+    password = json.password;
+  }
+
+  const baseUrl = request.nextUrl.origin;
+  const redirectTo = request.nextUrl.searchParams.get("redirect") || "/dashboard";
+  const errRedirect = (errorKey: string) => {
+    const url = new URL("/login", baseUrl);
+    url.searchParams.set("error", errorKey);
+    return NextResponse.redirect(url, { status: 303 });
+  };
 
   if (!email || !password) {
-    return NextResponse.json({ error: "Email and password are required" }, { status: 400 });
+    return errRedirect("all_fields_required");
+  }
+
+  const emailError = await validateEmail(email);
+  if (emailError) {
+    return errRedirect("Invalid email or password");
   }
 
   const user = db.prepare(
@@ -16,15 +40,19 @@ export async function POST(request: NextRequest) {
   ).get(email) as Pick<UserRow, "id" | "name" | "email" | "password"> | undefined;
 
   if (!user) {
-    return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
+    return errRedirect("Invalid email or password");
   }
 
   const valid = await bcrypt.compare(password, user.password);
   if (!valid) {
-    return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
+    return errRedirect("Invalid email or password");
   }
 
   await setSessionCookie(user.id);
+
+  if (request.nextUrl.searchParams.has("redirect")) {
+    return NextResponse.redirect(new URL(redirectTo, request.url), { status: 303 });
+  }
 
   return NextResponse.json({ id: user.id, name: user.name, email: user.email });
 }

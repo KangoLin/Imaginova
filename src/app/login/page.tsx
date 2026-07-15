@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,43 +9,13 @@ import { useLocale } from "@/components/locale-provider";
 
 export default function LoginPage() {
   const { t } = useLocale();
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-  const navigatingRef = useRef(false);
-  const formRef = useRef<HTMLFormElement>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    if (navigatingRef.current) return;
-    setError("");
-    setLoading(true);
-
-    const form = new FormData(e.currentTarget);
-    try {
-      const res = await fetch("/api/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: form.get("email"),
-          password: form.get("password"),
-        }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(data.error || t("auth.loginFailed"));
-        setLoading(false);
-        return;
-      }
-
-      navigatingRef.current = true;
-      window.location.href = "/dashboard";
-    } catch {
-      setError(t("auth.loginFailed"));
-      setLoading(false);
-    }
-  }
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const e = params.get("error");
+    if (e) setError(e);
+  }, []);
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 relative">
@@ -59,7 +29,7 @@ export default function LoginPage() {
           <p className="text-center text-sm text-muted-foreground mt-0.5">{t("auth.signInSubtitle")}</p>
         </CardHeader>
         <CardContent>
-          <form ref={formRef} onSubmit={handleSubmit} className="space-y-4">
+          <form action="/api/login?redirect=/dashboard" method="POST" className="space-y-4">
             <div>
               <label htmlFor="email" className="block text-sm font-medium mb-1.5 text-foreground">{t("auth.email")}</label>
               <Input id="email" name="email" type="email" required placeholder={t("auth.emailPlaceholder")} />
@@ -70,8 +40,8 @@ export default function LoginPage() {
               <div className="text-right"><Link href="/forgot-password" className="text-xs text-muted-foreground hover:text-primary hover:underline">{t("auth.forgotPassword")}</Link></div>
             </div>
             {error && <p className="text-sm text-destructive">{error}</p>}
-            <Button type="submit" disabled={loading} className="w-full">
-              {loading ? t("auth.signingIn") : t("auth.signIn")}
+            <Button type="submit" className="w-full">
+              {t("auth.signIn")}
             </Button>
           </form>
         </CardContent>
