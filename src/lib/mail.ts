@@ -1,20 +1,28 @@
-import { Resend } from "resend";
+import nodemailer from "nodemailer";
 
-const resend = process.env.RESEND_API_KEY
-  ? new Resend(process.env.RESEND_API_KEY)
+const transporter = process.env.SMTP_HOST
+  ? nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: Number(process.env.SMTP_PORT) || 465,
+      secure: (process.env.SMTP_PORT || "465") === "465",
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
+      },
+    })
   : null;
 
-const FROM_ADDRESS = process.env.RESEND_FROM || "noreply@imaginova.online";
+const FROM_ADDRESS = process.env.SMTP_FROM || process.env.SMTP_USER || "noreply@imaginova.online";
 
 export async function sendVerificationCode(email: string, code: string): Promise<void> {
-  if (!resend) {
+  if (!transporter) {
     console.log(`[DEV] Verification code for ${email}: ${code}`);
     return;
   }
 
-  const { error } = await resend.emails.send({
+  await transporter.sendMail({
     from: `Imaginova <${FROM_ADDRESS}>`,
-    to: [email],
+    to: email,
     subject: "Imaginova 注册验证码 / Registration Code",
     html: `
       <div style="font-family: -apple-system, sans-serif; max-width: 480px; margin: 0 auto;">
@@ -28,6 +36,4 @@ export async function sendVerificationCode(email: string, code: string): Promise
       </div>
     `,
   });
-
-  if (error) throw new Error(error.message);
 }
