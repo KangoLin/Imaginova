@@ -18,7 +18,9 @@ export async function POST(request: NextRequest) {
     password = json.password;
   }
 
-  const baseUrl = request.nextUrl.origin;
+  const proto = request.headers.get("x-forwarded-proto") || "https";
+  const host = request.headers.get("host") || "imaginova.online";
+  const baseUrl = `${proto}://${host}`;
   const redirectTo = request.nextUrl.searchParams.get("redirect") || "/dashboard";
   const errRedirect = (errorKey: string) => {
     const url = new URL("/login", baseUrl);
@@ -51,7 +53,7 @@ export async function POST(request: NextRequest) {
   await setSessionCookie(user.id);
 
   if (request.nextUrl.searchParams.has("redirect")) {
-    return NextResponse.redirect(new URL(redirectTo, request.url), { status: 303 });
+    return NextResponse.redirect(new URL(redirectTo, baseUrl), { status: 303 });
   }
 
   return NextResponse.json({ id: user.id, name: user.name, email: user.email });
