@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
 
   const hashed = await bcrypt.hash(password, 10);
   const result = db.prepare(
-    "INSERT INTO users (name, email, password) VALUES (?, ?, ?)"
+    "INSERT INTO users (name, email, password, credits) VALUES (?, ?, ?, 50)"
   ).run(name, email, hashed);
 
   return NextResponse.json({ id: result.lastInsertRowid });
