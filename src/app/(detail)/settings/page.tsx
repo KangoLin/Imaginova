@@ -41,7 +41,7 @@ export default function SettingsPage() {
   return (
       <main className="container-narrow px-6 pt-24 pb-12 animate-slide-up">
         <div className="max-w-lg mx-auto">
-          <h1 className="text-3xl font-bold tracking-tight mb-1">{t("settings.title")}</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-1">{t("settings.title")}</h1>
           <p className="text-muted-foreground text-sm mb-8">{t("settings.subtitle")}</p>
 
           <Card>

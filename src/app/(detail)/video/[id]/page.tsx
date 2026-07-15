@@ -123,7 +123,7 @@ export default function VideoDetailPage() {
                 <video src={`/api/proxy/video?url=${encodeURIComponent(video.url!)}`} controls autoPlay className="max-w-full max-h-[65vh] rounded-lg" />
               ) : (
                 <div className="w-full aspect-video flex flex-col items-center justify-center text-muted-foreground gap-3">
-                  <div className="w-64 bg-muted rounded-full h-2 overflow-hidden">
+                  <div className="w-full max-w-xs bg-muted rounded-full h-2 overflow-hidden">
                     <div className="h-full rounded-full bg-primary transition-all duration-500" style={{ width: `${Math.max(video.progress, 5)}%` }} />
                   </div>
                   <span className="text-sm">{video.status === "processing" || video.status === "queued" ? (() => {
@@ -139,7 +139,7 @@ export default function VideoDetailPage() {
             </div>
             <div className="p-6 space-y-5">
               <h1 className="text-xl font-bold leading-snug">{video.prompt}</h1>
-              <div className="flex gap-4 text-sm">
+              <div className="flex flex-col sm:flex-row gap-3 text-sm">
                 <div className="bg-muted/50 rounded-lg px-3 py-2 flex-1">
                   <span className="text-muted-foreground text-xs block">{t("common.model")}</span>
                   <span className="font-medium">{video.model}</span>
@@ -153,7 +153,7 @@ export default function VideoDetailPage() {
                   <span className="font-medium capitalize">{video.status}</span>
                 </div>
               </div>
-              <div className="flex flex-wrap gap-3">
+              <div className="flex flex-wrap gap-2 sm:gap-3">
                 {isCompleted && <Button onClick={() => downloadFile(video.url!, `imaginova-${video.id}`)}>{t("common.download")}</Button>}
                 <Button variant="secondary" onClick={handleCopyLink} className="gap-2">
                   {copied ? <><svg className="w-4 h-4 text-green-500 animate-scale-in" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>{t("common.copied")}</> : t("common.copyLink")}
@@ -166,7 +166,7 @@ export default function VideoDetailPage() {
                 ) : (
                   <span className="text-xs text-muted-foreground">{t("admin.reported")}</span>
                 )}
-                <Button variant="destructive" onClick={handleDelete} disabled={deleting} className="gap-2 ml-auto">
+                <Button variant="destructive" onClick={handleDelete} disabled={deleting} className="gap-2 sm:ml-auto">
                   {deleting && <LoadingSpinner />}
                   {deleting ? t("common.deleting") : t("common.delete")}
                 </Button>

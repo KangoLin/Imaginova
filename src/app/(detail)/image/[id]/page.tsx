@@ -99,7 +99,7 @@ export default function ImageDetailPage() {
                   <span className="font-medium">{image.created_at}</span>
                 </div>
               </div>
-              <div className="flex flex-wrap gap-3">
+              <div className="flex flex-wrap gap-2 sm:gap-3">
                 <Button onClick={() => downloadFile(image.url, `imaginova-${image.id}`)}>{t("common.download")}</Button>
                 <Button variant="secondary" onClick={handleCopyLink} className="gap-2">
                   {copied ? <><svg className="w-4 h-4 text-green-500 animate-scale-in" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>{t("common.copied")}</> : t("common.copyLink")}
@@ -112,7 +112,7 @@ export default function ImageDetailPage() {
                 ) : (
                   <span className="text-xs text-muted-foreground">{t("admin.reported")}</span>
                 )}
-                <Button variant="destructive" onClick={handleDelete} disabled={deleting} className="gap-2 ml-auto">
+                <Button variant="destructive" onClick={handleDelete} disabled={deleting} className="gap-2 sm:ml-auto">
                   {deleting && <LoadingSpinner />}
                   {deleting ? t("common.deleting") : t("common.delete")}
                 </Button>

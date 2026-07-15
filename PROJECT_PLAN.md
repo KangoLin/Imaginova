@@ -289,3 +289,25 @@ e2e/                   — Playwright E2E 测试
 | ✅ | Dashboard 排序加 `useMemo` 缓存 | P2 | `src/app/(dashboard)/dashboard/page.tsx` |
 | ✅ | Toast 悬停暂停自动消失 + `aria-hidden` | P2 | `src/components/toast.tsx` |
 | ✅ | 创建 `.env.example` | P2 | `.env.example` |
+
+---
+
+## 移动端 UI 适配优化 (2026-07-15)
+
+| # | 问题 | 文件 | 修复内容 |
+|---|------|------|----------|
+| ✅ | **1. Home 导航栏无移动端菜单** | `src/components/home-content.tsx` | 添加汉堡菜单 + `hidden md:flex` |
+| ✅ | **2. Dashboard 统计网格 3 列过挤** | `src/app/(dashboard)/dashboard/page.tsx` | 缩小移动端 `gap-2`，标题行 `flex-col sm:flex-row` |
+| ✅ | **3. Admin 导航栏无移动端菜单** | `src/components/admin-navbar.tsx` | 添加汉堡菜单 + `hidden md:flex` + email 截断 |
+| ✅ | **4. 视频详情 3 列元信息过挤** | `src/app/(detail)/video/[id]/page.tsx` | `flex-col sm:flex-row` 垂直堆叠 |
+| ✅ | **5. Credits 余额数字无响应式** | `src/app/(detail)/credits/page.tsx` | `text-4xl sm:text-5xl lg:text-6xl` |
+| ✅ | **6. Admin 审核 Tabs 溢出** | `src/app/admin/moderation/page.tsx` | `flex-col sm:flex-row` 垂直堆叠 |
+| ✅ | **7. 图片详情按钮 3 行布局** | `src/app/(detail)/image/[id]/page.tsx` | `sm:ml-auto` 替换 `ml-auto`，缩小 `gap-2 sm:gap-3` |
+| ✅ | **8. Admin 用户行长邮箱溢出** | `src/app/admin/page.tsx` | `truncate` + `hidden sm:inline` |
+| ✅ | **9. Dashboard 搜索 + Tabs 过挤** | `src/app/(dashboard)/dashboard/page.tsx` | `flex-col sm:flex-row` + `w-full sm:max-w-56` |
+| ✅ | **10. 多页面标题 `text-3xl` 无响应式** | create/settings/dashboard | `text-2xl sm:text-3xl` |
+| ✅ | **11. 视频进度条固定 `w-64`** | `src/app/(detail)/video/[id]/page.tsx` | `w-full max-w-xs` |
+| ✅ | **12. Not Found `text-7xl`** | `src/app/not-found.tsx` | `text-6xl sm:text-7xl` |
+| ✅ | **13. Home Hero 行高过紧** | `src/components/home-content.tsx` | `leading-[1.2] sm:leading-[1.1]` |
+| ✅ | **14. iOS `dvh` 兼容性** | dashboard lightbox/video modal | `vh` → `dvh` 避免 Safari 地址栏问题 |
+| ✅ | **15. 视频详情按钮布局** | `src/app/(detail)/video/[id]/page.tsx` | 同步图片页按钮修复 |

@@ -66,12 +66,12 @@ function ImageLightbox({ img, images, onClose, onNavigate }: {
 
   return (
     <div ref={containerRef} tabIndex={-1} className={`fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-4 ${closing ? "animate-fade-out pointer-events-none" : "animate-fade-in"}`} onClick={handleClose}>
-      <div className={`relative max-w-4xl w-full max-h-[90vh] md:max-h-[90vh] flex flex-col overflow-hidden ${closing ? "animate-scale-out" : "animate-scale-in"}`} onClick={(e) => e.stopPropagation()}>
+      <div className={`relative max-w-4xl w-full max-h-[90dvh] md:max-h-[90dvh] flex flex-col overflow-hidden ${closing ? "animate-scale-out" : "animate-scale-in"}`} onClick={(e) => e.stopPropagation()}>
         <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-4 py-2 bg-gradient-to-b from-black/60 to-transparent rounded-t-xl">
           <span className="text-xs text-white/80">{idx + 1}/{images.length}</span>
           <button onClick={handleClose} className="size-8 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center hover:bg-white/40 transition-all" aria-label="Close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg></button>
         </div>
-        <div className="relative flex-1 flex items-center justify-center bg-black/40 min-h-[50vh] max-h-[70vh]">
+        <div className="relative flex-1 flex items-center justify-center bg-black/40 min-h-[50dvh] max-h-[70dvh]">
           <Image src={img.url} alt={img.prompt} fill className="object-contain" sizes="90vw" />
           {prev && <button onClick={() => onNavigate(prev)} className="absolute left-2 top-1/2 -translate-y-1/2 size-10 rounded-full bg-black/30 backdrop-blur-sm text-white flex items-center justify-center hover:bg-black/50 transition-all" aria-label="Previous"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6"/></svg></button>}
           {next && <button onClick={() => onNavigate(next)} className="absolute right-2 top-1/2 -translate-y-1/2 size-10 rounded-full bg-black/30 backdrop-blur-sm text-white flex items-center justify-center hover:bg-black/50 transition-all" aria-label="Next"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6-6-6"/></svg></button>}
@@ -127,13 +127,13 @@ function VideoModal({ vid, onClose }: { vid: VideoItem; onClose: () => void }) {
 
   return (
     <div ref={containerRef} tabIndex={-1} className={`fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-4 ${closing ? "animate-fade-out pointer-events-none" : "animate-fade-in"}`} onClick={handleClose}>
-      <div className={`relative max-w-3xl w-full max-h-[90vh] md:max-h-[90vh] flex flex-col overflow-hidden ${closing ? "animate-scale-out" : "animate-scale-in"}`} onClick={(e) => e.stopPropagation()}>
+      <div className={`relative max-w-3xl w-full max-h-[90dvh] md:max-h-[90dvh] flex flex-col overflow-hidden ${closing ? "animate-scale-out" : "animate-scale-in"}`} onClick={(e) => e.stopPropagation()}>
         <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-end px-4 py-2 bg-gradient-to-b from-black/60 to-transparent">
           <button onClick={handleClose} className="size-8 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center hover:bg-white/40 transition-all" aria-label="Close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg></button>
         </div>
-        <div className="relative flex-1 flex items-center justify-center bg-black/40 min-h-[50vh]">
+        <div className="relative flex-1 flex items-center justify-center bg-black/40 min-h-[50dvh]">
           {vid.status === "completed" && vid.url ? (
-            <video src={`/api/proxy/video?url=${encodeURIComponent(vid.url)}`} controls autoPlay className="max-w-full max-h-[70vh]" />
+            <video src={`/api/proxy/video?url=${encodeURIComponent(vid.url)}`} controls autoPlay className="max-w-full max-h-[70dvh]" />
           ) : (
             <div className="text-muted-foreground text-sm">{vid.status === "processing" ? t("video.processing", { progress: vid.progress }) : t("video.statusLabel", { status: vid.status })}</div>
           )}
@@ -334,15 +334,15 @@ export default function DashboardPage() {
         )}
         {selectedVideo && <VideoModal vid={selectedVideo} onClose={() => setSelectedVideo(null)} />}
 
-        <div className="flex items-start justify-between mb-8">
+        <div className="flex flex-col sm:flex-row items-start justify-between gap-3 mb-8">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight mb-1">{t("dashboard.title")}</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-1">{t("dashboard.title")}</h1>
             <p className="text-sm text-muted-foreground">{t("dashboard.subtitle")}</p>
           </div>
           <Button variant="outline" size="sm" onClick={handleCheckin} className="border-accent/30 text-accent hover:bg-accent/10 hover:text-accent">{t("dashboard.checkIn")}</Button>
         </div>
 
-        <div className="grid grid-cols-3 gap-3 mb-8">
+        <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-8">
           <div className="bg-card rounded-lg p-4 border border-border/60 border-l-chart-2 border-l-4">
             <p className="text-xs text-muted-foreground font-medium">{t("dashboard.images")}</p>
             <p className="text-xl font-bold mt-0.5 text-chart-2">{imageTotal}</p>
@@ -392,14 +392,14 @@ export default function DashboardPage() {
           </Card>
         )}
 
-        <div className="flex items-center gap-3 mb-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-6">
           <Tabs value={tab} onValueChange={(v) => { setTab(v as Tab); setSearch(""); }}>
             <TabsList variant="line">
               <TabsTrigger value="images">{t("dashboard.images")} ({imageTotal})</TabsTrigger>
               <TabsTrigger value="videos">{t("dashboard.videos")} ({videoTotal})</TabsTrigger>
             </TabsList>
           </Tabs>
-          <div className="relative ml-auto max-w-56">
+          <div className="relative w-full sm:max-w-56">
             <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
             <Input
               ref={searchRef}

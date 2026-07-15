@@ -129,13 +129,13 @@ export default function AdminPage() {
         <h2 className="text-sm font-semibold mb-4">{t("admin.topUsers")}</h2>
         <div className="space-y-2">
           {stats.topUsers.map((u, i) => (
-            <div key={u.id} className="flex items-center justify-between py-1.5 border-b border-border/40 last:border-0">
-              <div className="flex items-center gap-3">
-                <span className="w-5 text-xs text-muted-foreground font-medium">#{i + 1}</span>
-                <span className="text-sm font-medium">{u.name}</span>
-                <span className="text-xs text-muted-foreground">{u.email}</span>
+            <div key={u.id} className="flex items-center justify-between py-1.5 border-b border-border/40 last:border-0 gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <span className="w-5 text-xs text-muted-foreground font-medium shrink-0">#{i + 1}</span>
+                <span className="text-sm font-medium truncate">{u.name}</span>
+                <span className="text-xs text-muted-foreground truncate hidden sm:inline">{u.email}</span>
               </div>
-              <span className="text-sm text-muted-foreground">{u.generations} {t("admin.generations")}</span>
+              <span className="text-sm text-muted-foreground shrink-0">{u.generations} {t("admin.generations")}</span>
             </div>
           ))}
           {stats.topUsers.length === 0 && (

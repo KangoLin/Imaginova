@@ -102,7 +102,7 @@ export default function ModerationPage() {
         </div>
         <Button variant="outline" size="sm" onClick={loadItems} disabled={loading}>{t("admin.refresh")}</Button>
       </div>
-      <div className="flex items-center gap-3 mb-6">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-6">
         <Tabs value={filter} onValueChange={(v) => setFilter(v as typeof filter)}>
           <TabsList>
             <TabsTrigger value="unreviewed">{t("admin.unreviewed")}</TabsTrigger>

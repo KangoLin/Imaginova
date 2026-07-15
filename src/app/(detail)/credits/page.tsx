@@ -104,7 +104,7 @@ function CreditsContent() {
       <main className="container-narrow px-6 pt-24 pb-12 animate-slide-up">
         <div className="max-w-lg mx-auto text-center mb-10">
           <p className="text-sm text-muted-foreground font-medium mb-1">{t("credits.yourBalance")}</p>
-          <p className="text-6xl font-bold tracking-tight text-primary">{user.credits}</p>
+          <p className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-primary">{user.credits}</p>
           <p className="text-sm text-muted-foreground mt-1">{t("create.credits")}</p>
         </div>
 
