@@ -12,7 +12,9 @@ db.exec(`
     name TEXT NOT NULL,
     email TEXT NOT NULL UNIQUE,
     password TEXT NOT NULL,
-    credits INTEGER NOT NULL DEFAULT 10,
+    credits INTEGER NOT NULL DEFAULT 50,
+    checkin_streak INTEGER NOT NULL DEFAULT 0,
+    last_checkin_date TEXT,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
 
@@ -75,6 +77,8 @@ export interface UserRow {
   password: string;
   credits: number;
   role: string;
+  checkin_streak: number;
+  last_checkin_date: string | null;
   created_at: string;
 }
 
@@ -135,6 +139,21 @@ try { db.exec("ALTER TABLE images ADD COLUMN reviewed INTEGER NOT NULL DEFAULT 0
 try { db.exec("ALTER TABLE videos ADD COLUMN flagged INTEGER NOT NULL DEFAULT 0"); } catch {}
 try { db.exec("ALTER TABLE videos ADD COLUMN reported INTEGER NOT NULL DEFAULT 0"); } catch {}
 try { db.exec("ALTER TABLE videos ADD COLUMN reviewed INTEGER NOT NULL DEFAULT 0"); } catch {}
+
+// user_tasks table for onboarding tasks
+db.exec(`
+  CREATE TABLE IF NOT EXISTS user_tasks (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    task_key TEXT NOT NULL,
+    completed_at TEXT NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    UNIQUE(user_id, task_key)
+  );
+`);
+
+// migration: add has_reference to images
+try { db.exec("ALTER TABLE images ADD COLUMN has_reference INTEGER NOT NULL DEFAULT 0"); } catch {}
 
 // api_usage table for statistics
 db.exec(`

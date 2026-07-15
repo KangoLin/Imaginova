@@ -65,9 +65,10 @@ export async function POST(req: NextRequest) {
       imageUrl,
     });
 
+    const hasRef = imageUrl ? 1 : 0;
     const info = db.prepare(
-      "INSERT INTO images (user_id, prompt, url, model) VALUES (?, ?, ?, ?)"
-    ).run(userId, prompt, result.url, "agnes-image-2.1-flash");
+      "INSERT INTO images (user_id, prompt, url, model, has_reference) VALUES (?, ?, ?, ?, ?)"
+    ).run(userId, prompt, result.url, "agnes-image-2.1-flash", hasRef);
     db.prepare("UPDATE users SET credits = credits - 1 WHERE id = ?").run(userId);
     db.prepare("INSERT INTO api_usage (user_id, action, cost) VALUES (?, 'image_generation', ?)").run(userId, 1);
 

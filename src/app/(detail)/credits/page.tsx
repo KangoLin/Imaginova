@@ -15,6 +15,11 @@ interface Transaction {
 
 interface UserData { name: string; email: string; credits: number; }
 
+interface TaskItem {
+  key: string; reward: number; completed: boolean; conditionMet: boolean;
+  progress: { current: number; total: number };
+}
+
 const RECHARGE_AMOUNTS = [
   { credits: 5, price: 4.99 },
   { credits: 10, price: 9.99 },
@@ -43,41 +48,44 @@ function CreditsContent() {
   const { t } = useLocale();
   const [user, setUser] = useState<UserData | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [tasks, setTasks] = useState<TaskItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [recharging, setRecharging] = useState<number | null>(null);
+  const [claimingTask, setClaimingTask] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
-    const [me, txs] = await Promise.all([
+    const [me, txs, taskData] = await Promise.all([
       api.get<UserData>("/api/me"),
       api.get<Transaction[]>("/api/credits/transactions"),
+      api.get<TaskItem[]>("/api/tasks"),
     ]);
     setUser(me);
     setTransactions(txs);
+    setTasks(taskData);
   }, []);
 
   useEffect(() => {
     (async () => {
       try {
         await fetchData();
-        if (searchParams.get("success") === "1") toast(t("credits.paymentSuccess"), "success");
-        else if (searchParams.get("cancelled") === "1") toast(t("credits.paymentCancelled"), "info");
       } catch (err) {
         if (!(err instanceof ApiError && err.status === 401)) throw err;
       }
       setLoading(false);
     })();
-  }, [fetchData, searchParams, toast]);
+  }, [fetchData]);
 
-  const handleRecharge = async (credits: number) => {
-    setRecharging(credits);
+  async function handleClaimTask(taskKey: string) {
+    setClaimingTask(taskKey);
     try {
-      const { url } = await api.post<{ url: string }>("/api/credits/checkout", { credits });
-      window.location.href = url;
+      const data = await api.post<{ credits: number; reward: number }>("/api/tasks", { taskKey });
+      toast(t("toast.taskCompleted", { reward: data.reward }), "success");
+      setUser((prev) => prev ? { ...prev, credits: data.credits } : prev);
+      setTasks((prev) => prev.map((t) => t.key === taskKey ? { ...t, completed: true } : t));
     } catch (err) {
       if (err instanceof ApiError) toast(err.message, "error");
-      setRecharging(null);
     }
-  };
+    setClaimingTask(null);
+  }
 
   if (loading) {
     return (
@@ -106,14 +114,47 @@ function CreditsContent() {
             <CardContent>
               <div className="flex flex-wrap gap-2">
                 {RECHARGE_AMOUNTS.map((opt) => (
-                  <Button key={opt.credits} variant={recharging === opt.credits ? "default" : "outline"} onClick={() => handleRecharge(opt.credits)} disabled={recharging !== null} className="flex-1 min-w-[90px] gap-1.5 flex-col py-3 h-auto leading-tight">
-                    {recharging === opt.credits ? <LoadingSpinner size="sm" /> : <><span className="text-base font-bold">+{opt.credits}</span><span className="text-[10px] font-normal text-muted-foreground">${opt.price}</span></>}
+                  <Button key={opt.credits} variant="outline" disabled className="flex-1 min-w-[90px] gap-1.5 flex-col py-3 h-auto leading-tight opacity-50 cursor-not-allowed">
+                    <><span className="text-base font-bold">+{opt.credits}</span><span className="text-[10px] font-normal text-muted-foreground">${opt.price}</span></>
                   </Button>
                 ))}
               </div>
-              <p className="text-xs text-muted-foreground mt-3 text-center">{t("credits.securedBy")}</p>
+              <p className="text-xs text-muted-foreground mt-3 text-center">{t("credits.comingSoon")}</p>
             </CardContent>
           </Card>
+
+          {tasks.length > 0 && (
+            <Card>
+              <CardHeader><CardTitle>{t("tasks.title")}</CardTitle></CardHeader>
+              <CardContent className="space-y-2">
+                {tasks.map((task) => {
+                  const label = t(`tasks.${task.key}` as any);
+                  const desc = t(`tasks.${task.key}_desc` as any);
+                  return (
+                    <div key={task.key} className={`flex items-center justify-between py-2 px-3 rounded-lg transition-colors ${task.completed ? 'bg-muted/30 opacity-60' : 'hover:bg-muted/50'}`}>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-medium">{task.completed ? <span className="line-through">{label}</span> : label}</p>
+                          <span className="text-xs font-semibold text-primary">+{task.reward}</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {task.completed ? t("tasks.completed") : `${desc} (${task.progress.current}/${task.progress.total})`}
+                        </p>
+                      </div>
+                      {!task.completed && task.conditionMet && (
+                        <Button size="sm" variant="default" onClick={() => handleClaimTask(task.key)} disabled={claimingTask === task.key} className="ml-3 shrink-0">
+                          {claimingTask === task.key ? <LoadingSpinner size="sm" /> : t("tasks.claim")}
+                        </Button>
+                      )}
+                      {!task.completed && !task.conditionMet && (
+                        <span className="text-xs text-muted-foreground ml-3 shrink-0">{t("tasks.locked")}</span>
+                      )}
+                    </div>
+                  );
+                })}
+              </CardContent>
+            </Card>
+          )}
 
           <Card>
             <CardHeader><CardTitle>{t("credits.transactionHistory")}</CardTitle></CardHeader>

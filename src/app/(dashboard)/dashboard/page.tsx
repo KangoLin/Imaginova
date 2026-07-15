@@ -9,7 +9,7 @@ import { api, ApiError } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { LoadingSpinner } from "@/components/loading-spinner";
-import { Card } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLocale } from "@/components/locale-provider";
@@ -21,6 +21,7 @@ interface UserData { name: string; email: string; credits: number; }
 interface ImageItem { id: number; prompt: string; model: string; url: string; created_at: string; }
 interface VideoItem { id: number; prompt: string; model: string; status: string; url: string | null; progress: number; created_at: string; }
 interface PageData<T> { items: T[]; total: number; }
+interface TaskItem { key: string; reward: number; completed: boolean; conditionMet: boolean; progress: { current: number; total: number }; }
 
 function ImageLightbox({ img, images, onClose, onNavigate }: {
   img: ImageItem; images: ImageItem[]; onClose: () => void; onNavigate: (img: ImageItem) => void;
@@ -246,8 +247,8 @@ export default function DashboardPage() {
 
   const handleCheckin = async () => {
     try {
-      const data = await api.post<{ reward: number; credits: number }>("/api/credits/checkin");
-      toast(t("toast.checkedIn", { reward: data.reward }), "success");
+      const data = await api.post<{ reward: number; credits: number; streak: number }>("/api/credits/checkin");
+      toast(t("toast.checkedIn", { reward: data.reward, streak: data.streak }), "success");
       setUser((prev) => prev ? { ...prev, credits: data.credits } : prev);
     } catch (err) {
       if (err instanceof ApiError) toast(err.message, "error");
@@ -299,6 +300,28 @@ export default function DashboardPage() {
   const currentTotal = tab === "images" ? imageTotal : videoTotal;
   const hasMore = rawItems.length < currentTotal;
 
+  const [tasks, setTasks] = useState<TaskItem[]>([]);
+  const [claimingTask, setClaimingTask] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (user) {
+      api.get<TaskItem[]>("/api/tasks").then(setTasks).catch(() => {});
+    }
+  }, [user]);
+
+  async function handleClaimTask(taskKey: string) {
+    setClaimingTask(taskKey);
+    try {
+      const data = await api.post<{ credits: number; reward: number }>("/api/tasks", { taskKey });
+      toast(t("toast.taskCompleted", { reward: data.reward }), "success");
+      setUser((prev) => prev ? { ...prev, credits: data.credits } : prev);
+      setTasks((prev) => prev.map((t) => t.key === taskKey ? { ...t, completed: true } : t));
+    } catch (err) {
+      if (err instanceof ApiError) toast(err.message, "error");
+    }
+    setClaimingTask(null);
+  }
+
   return (
       <main className="container-narrow px-6 pt-24 pb-12 animate-fade-in">
         {showWelcome && <WelcomeModal onDismiss={() => { localStorage.setItem(ONBOARDING_KEY, "1"); setShowWelcome(false); }} />}
@@ -334,6 +357,41 @@ export default function DashboardPage() {
             <p className="text-xl font-bold mt-0.5 text-chart-5">{user.credits}</p>
           </Link>
         </div>
+
+        {tasks.length > 0 && (
+          <Card className="mb-8">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">{t("tasks.title")}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {tasks.map((task) => {
+                const label = t(`tasks.${task.key}` as any);
+                const desc = t(`tasks.${task.key}_desc` as any);
+                return (
+                  <div key={task.key} className={`flex items-center justify-between py-2 px-3 rounded-lg transition-colors ${task.completed ? 'bg-muted/30 opacity-60' : 'hover:bg-muted/50'}`}>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-medium">{task.completed ? <span className="line-through">{label}</span> : label}</p>
+                        <span className="text-xs font-semibold text-primary">+{task.reward}</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {task.completed ? t("tasks.completed") : `${desc} (${task.progress.current}/${task.progress.total})`}
+                      </p>
+                    </div>
+                    {!task.completed && task.conditionMet && (
+                      <Button size="sm" variant="default" onClick={() => handleClaimTask(task.key)} disabled={claimingTask === task.key} className="ml-3 shrink-0">
+                        {claimingTask === task.key ? <LoadingSpinner size="sm" /> : t("tasks.claim")}
+                      </Button>
+                    )}
+                    {!task.completed && !task.conditionMet && (
+                      <span className="text-xs text-muted-foreground ml-3 shrink-0">{t("tasks.locked")}</span>
+                    )}
+                  </div>
+                );
+              })}
+            </CardContent>
+          </Card>
+        )}
 
         <div className="flex items-center gap-3 mb-6">
           <Tabs value={tab} onValueChange={(v) => { setTab(v as Tab); setSearch(""); }}>

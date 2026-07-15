@@ -50,9 +50,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "User not found" }, { status: 404 });
   }
 
-  if (user.credits < 2) {
+    if (user.credits < 1) {
     return NextResponse.json(
-      { error: "Insufficient credits (need 2)", credits: user.credits },
+      { error: "Insufficient credits", credits: user.credits },
       { status: 402 }
     );
   }
@@ -63,13 +63,13 @@ export async function POST(req: NextRequest) {
     const info = db.prepare(
       "INSERT INTO videos (user_id, prompt, model, status, task_id) VALUES (?, ?, ?, ?, ?)"
     ).run(userId, prompt, "agnes-video-v2.0", "queued", task.task_id);
-    db.prepare("UPDATE users SET credits = credits - 2 WHERE id = ?").run(userId);
-    db.prepare("INSERT INTO api_usage (user_id, action, cost) VALUES (?, 'video_generation', ?)").run(userId, 2);
+    db.prepare("UPDATE users SET credits = credits - 1 WHERE id = ?").run(userId);
+    db.prepare("INSERT INTO api_usage (user_id, action, cost) VALUES (?, 'video_generation', ?)").run(userId, 1);
 
     return NextResponse.json({
       id: info.lastInsertRowid,
       task_id: task.task_id,
-      credits: user.credits - 2,
+      credits: user.credits - 1,
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Video creation failed";
