@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import db, { type UserRow } from "@/lib/db";
 import { setSessionCookie } from "@/lib/auth";
-import { validateEmail } from "@/lib/email-validation";
+import { EMAIL_REGEX } from "@/lib/email-validation";
 
 export async function POST(request: NextRequest) {
   const ct = request.headers.get("content-type") || "";
@@ -32,8 +32,7 @@ export async function POST(request: NextRequest) {
     return errRedirect("all_fields_required");
   }
 
-  const emailError = await validateEmail(email);
-  if (emailError) {
+  if (!EMAIL_REGEX.test(email)) {
     return errRedirect("Invalid email or password");
   }
 
