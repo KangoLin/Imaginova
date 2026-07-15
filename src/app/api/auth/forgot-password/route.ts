@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import db, { type UserRow } from "@/lib/db";
+import { validateEmail } from "@/lib/email-validation";
 
 export async function POST(req: NextRequest) {
   const raw = await req.text();
   const { email } = JSON.parse(raw);
-  if (!email) return NextResponse.json({ error: "Email is required" }, { status: 400 });
+  if (!email) return NextResponse.json({ error: "all_fields_required" }, { status: 400 });
+
+  const emailError = await validateEmail(email);
+  if (emailError) return NextResponse.json({ error: emailError }, { status: 400 });
 
   const user = db.prepare("SELECT id FROM users WHERE email = ?").get(email) as Pick<UserRow, "id"> | null;
   if (!user) return NextResponse.json({ error: "No account found with that email" }, { status: 404 });

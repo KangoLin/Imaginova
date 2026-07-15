@@ -109,6 +109,15 @@ export interface VideoRow {
   created_at: string;
 }
 
+export interface VerificationCodeRow {
+  id: number;
+  email: string;
+  code: string;
+  expires_at: string;
+  used: number;
+  created_at: string;
+}
+
 export interface CreditTransactionRow {
   id: number;
   user_id: number;
@@ -158,6 +167,18 @@ db.exec(`
 
 // migration: add has_reference to images
 try { db.exec("ALTER TABLE images ADD COLUMN has_reference INTEGER NOT NULL DEFAULT 0"); } catch {}
+
+// verification_codes table for email verification
+db.exec(`
+  CREATE TABLE IF NOT EXISTS verification_codes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    email TEXT NOT NULL,
+    code TEXT NOT NULL,
+    expires_at TEXT NOT NULL,
+    used INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+`);
 
 // api_usage table for statistics
 db.exec(`

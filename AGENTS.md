@@ -11,6 +11,10 @@ This version has breaking changes — APIs, conventions, and file structure may 
 ## Project Management
 - After completing any feature update (whether implementing new functionality, fixing bugs, or optimizing), always update `PROJECT_PLAN.md` to reflect the current status — move completed items to ✅, update progress, and adjust upcoming plans accordingly.
 
+## Developer Emails
+- `1264867171@qq.com`
+- `2633313990@qq.com`
+
 ## Deployment
 - **腾讯云服务器 IP**: `43.161.245.49`
 - SSH 登录方式：微信扫码认证（腾讯云 Cloud Shell）

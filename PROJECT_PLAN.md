@@ -43,7 +43,7 @@
 ### 进阶功能
 - ✅ **P1-P7**：图生图 / 图生视频 / 详情页 / 积分系统 / 设置 / UI/UX / 交互优化
 
-### Tier 1 — 安全 & 架构（5/5）
+### Tier 1 — 安全 & 架构（6/6）
 | # | 任务 | 说明 |
 |---|------|------|
 | ✅ | S1 下载代理安全性 | `user_id` 所有权校验 |
@@ -51,6 +51,7 @@
 | ✅ | S3 Dashboard 分页 | API `limit/offset` + Load More 按钮 |
 | ✅ | S4 Spinner 组件 | 提取 `LoadingSpinner`，替换内联 SVG |
 | ✅ | S5 API Client | `api.get/post/put/delete`，统一 401 跳转 |
+| ✅ | S6 邮箱验证 | 格式校验 + DNS MX + 验证码邮件 (nodemailer/QQ SMTP) + 60s 限频 |
 
 ### Tier 2 — 用户体验（7/7）
 | # | 任务 | 说明 |
