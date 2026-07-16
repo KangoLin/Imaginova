@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
+import { CheckCircle2, XCircle, Info, X } from "lucide-react";
 
 interface Toast {
   id: number;
@@ -20,9 +21,9 @@ let nextId = 0;
 
 function ToastIcon({ type }: { type: Toast["type"] }) {
   const shared = "w-4 h-4 shrink-0";
-  if (type === "success") return <svg className={shared} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg>;
-  if (type === "error") return <svg className={shared} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6"/><path d="M9 9l6 6"/></svg>;
-  return <svg className={shared} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>;
+  if (type === "success") return <CheckCircle2 className={shared} />;
+  if (type === "error") return <XCircle className={shared} />;
+  return <Info className={shared} />;
 }
 
 function ToastItem({ t, onRemove }: { t: Toast; onRemove: (id: number) => void }) {
@@ -51,7 +52,7 @@ function ToastItem({ t, onRemove }: { t: Toast; onRemove: (id: number) => void }
     >
       <ToastIcon type={t.type} />
       <span className="flex-1">{t.message}</span>
-      <button onClick={() => onRemove(t.id)} className="shrink-0 opacity-60 hover:opacity-100 transition-opacity" aria-label="Dismiss"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg></button>
+      <button onClick={() => onRemove(t.id)} className="shrink-0 opacity-60 hover:opacity-100 transition-opacity" aria-label="Dismiss"><X size={14} /></button>
     </div>
   );
 }

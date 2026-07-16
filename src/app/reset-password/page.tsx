@@ -11,7 +11,7 @@ import { useLocale } from "@/components/locale-provider";
 export default function ResetPasswordPage() {
   const { t } = useLocale();
   return (
-    <main className="min-h-screen flex items-center justify-center px-6">
+    <main className="min-h-dvh flex items-center justify-center px-6">
       <Suspense fallback={<div className="text-sm text-muted-foreground">{t("common.loading")}</div>}>
         <ResetForm />
       </Suspense>

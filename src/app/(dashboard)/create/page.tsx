@@ -9,7 +9,9 @@ import { Button } from "@/components/ui/button";
 import { LoadingSpinner } from "@/components/loading-spinner";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select } from "@/components/ui/select";
 import { useLocale } from "@/components/locale-provider";
+import { Wand2, X } from "lucide-react";
 
 type Tab = "image" | "video";
 
@@ -107,7 +109,6 @@ export default function CreatePage() {
         } else {
           data = await api.post("/api/generate/image", { prompt, model: "agnes-image-2.1-flash", size: imageSize });
         }
-
         router.push(`/image/${data.id}`);
         return;
       } else {
@@ -123,14 +124,10 @@ export default function CreatePage() {
           data = await api.post("/api/generate/video", formData);
         } else {
           data = await api.post("/api/generate/video", {
-            prompt,
-            width: videoWidth,
-            height: videoHeight,
-            num_frames: videoNumFrames,
-            frame_rate: videoFrameRate,
+            prompt, width: videoWidth, height: videoHeight,
+            num_frames: videoNumFrames, frame_rate: videoFrameRate,
           });
         }
-
         toast(t("create.videoStarted"), "info");
         pollStartRef.current = Date.now();
         startSSE(data.id);
@@ -143,231 +140,194 @@ export default function CreatePage() {
 
   function startSSE(videoId: number) {
     pollingRef.current = true;
-    const startTime = Date.now();
     const es = new EventSource(`/api/video/${videoId}/stream`);
-
     es.onmessage = (event) => {
       const data = JSON.parse(event.data);
       const p = data.progress || 0;
       setProgress(p);
-
       if (p <= 0) setProgressPhase(t("create.waitingInQueue"));
       else if (p < 100) setProgressPhase(t("create.generatingProgress", { progress: p }));
       else setProgressPhase(t("create.finalizing"));
-
-      if (data.status === "completed") {
-        es.close();
-        pollingRef.current = false;
-        router.push(`/video/${videoId}`);
-      } else if (data.status === "failed") {
-        es.close();
-        pollingRef.current = false;
-        setError(data.error || t("create.videoFailed"));
-        setLoading(false);
-      }
+      if (data.status === "completed") { es.close(); pollingRef.current = false; router.push(`/video/${videoId}`); }
+      else if (data.status === "failed") { es.close(); pollingRef.current = false; setError(data.error || t("create.videoFailed")); setLoading(false); }
     };
-
-    es.onerror = () => {
-      es.close();
-      pollingRef.current = false;
-      setError(t("create.statusCheckFailed"));
-      setLoading(false);
-    };
+    es.onerror = () => { es.close(); pollingRef.current = false; setError(t("create.statusCheckFailed")); setLoading(false); };
   }
 
   return (
-      <main className="container-narrow px-6 pt-24 pb-12 animate-slide-up">
-        <div className="max-w-xl mx-auto">
-          <div className="mb-10">
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-1">{t("create.title")}</h1>
-            <p className="text-muted-foreground text-sm">{t("create.subtitle")}</p>
-          </div>
+    <main className="max-w-xl mx-auto px-6 pt-24 pb-12 animate-fade-in">
+      <div className="mb-8">
+        <div className="flex items-center gap-2 text-primary mb-2">
+          <Wand2 size={16} />
+          <span className="text-xs font-medium uppercase tracking-wider">{t("create.badge")}</span>
+        </div>
+        <h1 className="text-xl sm:text-2xl font-bold tracking-tight mb-1">{t("create.title")}</h1>
+        <p className="text-sm text-muted-foreground">{t("create.subtitle")}</p>
+      </div>
 
-          {showHint && (
-            <div className="mb-6 bg-primary/5 border border-primary/10 rounded-xl p-4 text-sm animate-fade-in relative">
-              <button onClick={() => setShowHint(false)} className="absolute top-2 right-2 text-muted-foreground/40 hover:text-muted-foreground text-lg leading-none">&times;</button>
-              <p className="font-medium text-foreground mb-1.5">{t("create.tips")}</p>
-              <ul className="space-y-1 text-muted-foreground">
-                <li>&bull; {t("create.tip1")}</li>
-                <li>&bull; {t("create.tip2")}</li>
-                <li>&bull; {t("create.tip3")}</li>
-              </ul>
+      {showHint && (
+        <div className="mb-6 bg-primary/[0.04] border border-primary/10 rounded-xl p-4 text-sm animate-fade-in relative">
+          <button onClick={() => setShowHint(false)} className="absolute top-3 right-3 size-5 rounded-md flex items-center justify-center text-muted-foreground/40 hover:text-muted-foreground hover:bg-muted/50 transition-colors"><X size={13} /></button>
+          <p className="font-medium text-foreground mb-1.5">{t("create.tips")}</p>
+          <ul className="space-y-1 text-muted-foreground text-xs">
+            <li>{"\u2022"} {t("create.tip1")}</li>
+            <li>{"\u2022"} {t("create.tip2")}</li>
+            <li>{"\u2022"} {t("create.tip3")}</li>
+          </ul>
+        </div>
+      )}
+
+      <Tabs value={tab} onValueChange={(v) => { setTab(v as Tab); setImageFile(null); setImagePreview(null); if (fileInputRef.current) fileInputRef.current.value = ""; }}>
+        <TabsList variant="line" className="mb-6">
+          <TabsTrigger value="image">{t("create.image")}</TabsTrigger>
+          <TabsTrigger value="video">{t("create.video")}</TabsTrigger>
+        </TabsList>
+      </Tabs>
+
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <div>
+          <label htmlFor="prompt" className="block text-sm font-medium mb-1.5 text-foreground">{t("create.prompt")}</label>
+          <Textarea
+            ref={textareaRef}
+            id="prompt"
+            value={prompt}
+            onChange={(e) => { setPrompt(e.target.value); if (textareaRef.current) autoResize(textareaRef.current); }}
+            onKeyDown={(e) => { if ((e.metaKey || e.ctrlKey) && e.key === "Enter") handleSubmit(e); }}
+            placeholder={tab === "image" ? "A serene mountain landscape at sunset, volumetric lighting..." : "A cinematic drone shot flying over a forest canopy..."}
+            rows={3}
+            required
+            className="resize-none min-h-[76px] overflow-hidden"
+          />
+        </div>
+
+        {!prompt && (
+          <div>
+            <p className="text-xs text-muted-foreground mb-2">{t("create.tryExample")}</p>
+            <div className="flex flex-wrap gap-1.5">
+              {(tab === "image" ? (locale === "zh" ? IMAGE_EXAMPLES_ZH : IMAGE_EXAMPLES_EN) : (locale === "zh" ? VIDEO_EXAMPLES_ZH : VIDEO_EXAMPLES_EN)).map((ex) => (
+                <button
+                  key={ex}
+                  type="button"
+                  onClick={() => { setPrompt(ex); if (textareaRef.current) autoResize(textareaRef.current); }}
+                  className="text-xs bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground px-2.5 py-1 rounded-full border border-border/40 transition-all active:scale-[0.97]"
+                >
+                  {ex.length > 40 ? ex.slice(0, 40) + "..." : ex}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div>
+          <label className="block text-sm font-medium mb-1.5 text-foreground">{t("create.referenceImage")}</label>
+          {imagePreview ? (
+            <div className="relative inline-block group">
+              <Image src={imagePreview} alt="Reference" width={112} height={112} className="object-cover rounded-lg border border-border" unoptimized />
+              <button type="button" onClick={() => { setImageFile(null); setImagePreview(null); if (fileInputRef.current) fileInputRef.current.value = ""; }} className="absolute -top-2 -right-2 size-5 rounded-full bg-background border border-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-all text-[10px] opacity-0 group-hover:opacity-100">
+                x
+              </button>
+            </div>
+          ) : (
+            <div
+              onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+              onDragLeave={() => setDragOver(false)}
+              onDrop={(e) => { e.preventDefault(); setDragOver(false); const f = e.dataTransfer.files[0]; if (f) handleDragFile(f); }}
+              onClick={() => fileInputRef.current?.click()}
+              className={`w-full border-2 border-dashed rounded-xl py-8 text-sm text-muted-foreground transition-all cursor-pointer ${
+                dragOver ? "border-primary bg-primary/[0.04] scale-[1.01]" : "border-border/60 hover:border-primary/30 hover:text-foreground"
+              }`}
+            >
+              <div className="flex flex-col items-center gap-1.5">
+                <Wand2 size={18} className="text-muted-foreground/40" />
+                <span>{dragOver ? t("create.dropImage") : t("create.uploadImage")}</span>
+              </div>
             </div>
           )}
-
-          <Tabs value={tab} onValueChange={(v) => { setTab(v as Tab); setImageFile(null); setImagePreview(null); if (fileInputRef.current) fileInputRef.current.value = ""; }}>
-            <TabsList className="mb-6 w-full bg-muted/50 p-0.5">
-              <TabsTrigger value="image" className="flex-1">{t("create.image")}</TabsTrigger>
-              <TabsTrigger value="video" className="flex-1">{t("create.video")}</TabsTrigger>
-            </TabsList>
-          </Tabs>
-
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
-              <label htmlFor="prompt" className="block text-sm font-medium mb-1.5 text-foreground">{t("create.prompt")}</label>
-              <Textarea
-                ref={textareaRef}
-                id="prompt"
-                value={prompt}
-                onChange={(e) => { setPrompt(e.target.value); if (textareaRef.current) autoResize(textareaRef.current); }}
-                onKeyDown={(e) => { if ((e.metaKey || e.ctrlKey) && e.key === "Enter") handleSubmit(e); }}
-                placeholder={tab === "image" ? "A serene mountain landscape at sunset, volumetric lighting..." : "A cinematic drone shot flying over a forest canopy..."}
-                rows={3}
-                required
-                className="resize-none min-h-[76px] overflow-hidden"
-              />
-            </div>
-
-            {!prompt && (
-              <div>
-                <p className="text-xs text-muted-foreground mb-2">{t("create.tryExample")}</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {(tab === "image" ? (locale === "zh" ? IMAGE_EXAMPLES_ZH : IMAGE_EXAMPLES_EN) : (locale === "zh" ? VIDEO_EXAMPLES_ZH : VIDEO_EXAMPLES_EN)).map((ex) => (
-                    <button
-                      key={ex}
-                      type="button"
-                      onClick={() => { setPrompt(ex); if (textareaRef.current) autoResize(textareaRef.current); }}
-                      className="text-xs bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground px-2.5 py-1 rounded-full border border-border/40 transition-all active:scale-[0.97] focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-                    >
-                      {ex.length > 40 ? ex.slice(0, 40) + "..." : ex}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <div>
-              <label className="block text-sm font-medium mb-1.5 text-foreground">{t("create.referenceImage")}</label>
-              {imagePreview ? (
-                <div className="relative inline-block">
-                  <Image src={imagePreview} alt="Reference" width={112} height={112} className="object-cover rounded-lg border border-border" unoptimized />
-                  <button
-                    type="button"
-                    onClick={() => { setImageFile(null); setImagePreview(null); if (fileInputRef.current) fileInputRef.current.value = ""; }}
-                    className="absolute -top-2 -right-2 bg-muted-foreground/20 text-muted-foreground hover:bg-muted-foreground/40 hover:text-foreground rounded-full w-5 h-5 text-[10px] flex items-center justify-center transition-all cursor-pointer"
-                  >
-                    x
-                  </button>
-                </div>
-              ) : (
-                <div
-                  onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-                  onDragLeave={() => setDragOver(false)}
-                  onDrop={(e) => { e.preventDefault(); setDragOver(false); const f = e.dataTransfer.files[0]; if (f) handleDragFile(f); }}
-                  onClick={() => fileInputRef.current?.click()}
-                  className={`w-full border-2 border-dashed rounded-lg py-8 text-sm text-muted-foreground transition-all cursor-pointer bg-transparent focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 ${
-                    dragOver ? "border-primary bg-primary/5 scale-[1.02]" : "border-border hover:text-foreground hover:border-primary/30"
-                  }`}
-                >
-                  <div className="flex flex-col items-center gap-1.5">
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4v16m8-8H4" /></svg>
-                    <span>{dragOver ? t("create.dropImage") : t("create.uploadImage")}</span>
-                  </div>
-                </div>
-              )}
-              <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) { setImageFile(file); setImagePreview(URL.createObjectURL(file)); }
-              }} />
-            </div>
-
-            {tab === "image" && (
-              <div>
-                <label className="block text-sm font-medium mb-1.5 text-foreground">{t("create.imageSize")}</label>
-                <select
-                  value={imageSize}
-                  onChange={(e) => setImageSize(e.target.value)}
-                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-ring focus:ring-3 focus:ring-ring/50 outline-none"
-                >
-                  <option value="1024x1024">{t("create.size1024")}</option>
-                  <option value="1024x768">{t("create.size1024_768")}</option>
-                  <option value="768x1024">{t("create.size768_1024")}</option>
-                  <option value="1024x576">{t("create.size1024_576")}</option>
-                  <option value="576x1024">{t("create.size576_1024")}</option>
-                  <option value="2048x2048">{t("create.size2048")}</option>
-                </select>
-              </div>
-            )}
-
-            {tab === "video" && (
-              <div className="grid grid-cols-3 gap-3">
-                <div>
-                  <label className="block text-sm font-medium mb-1.5 text-foreground">{t("create.videoResolution")}</label>
-                  <select
-                    value={`${videoWidth}x${videoHeight}`}
-                    onChange={(e) => { const [w, h] = e.target.value.split("x").map(Number); setVideoWidth(w); setVideoHeight(h); }}
-                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-ring focus:ring-3 focus:ring-ring/50 outline-none"
-                  >
-                    <option value="854x480">{t("create.res480p")}</option>
-                    <option value="1280x720">{t("create.res720p")}</option>
-                    <option value="1920x1080">{t("create.res1080p")}</option>
-                    <option value="480x854">{t("create.res480pPortrait")}</option>
-                    <option value="720x1280">{t("create.res720pPortrait")}</option>
-                    <option value="1080x1920">{t("create.res1080pPortrait")}</option>
-                    <option value="480x480">{t("create.res480pSquare")}</option>
-                    <option value="720x720">{t("create.res720pSquare")}</option>
-                    <option value="1080x1080">{t("create.res1080pSquare")}</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1.5 text-foreground">{t("create.videoDuration")}</label>
-                  <select
-                    value={videoNumFrames}
-                    onChange={(e) => setVideoNumFrames(Number(e.target.value))}
-                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-ring focus:ring-3 focus:ring-ring/50 outline-none"
-                  >
-                    <option value={81}>{t("create.dur3s")}</option>
-                    <option value={121}>{t("create.dur5s")}</option>
-                    <option value={241}>{t("create.dur10s")}</option>
-                    <option value={441}>{t("create.dur18s")}</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1.5 text-foreground">{t("create.frameRate")}</label>
-                  <select
-                    value={videoFrameRate}
-                    onChange={(e) => setVideoFrameRate(Number(e.target.value))}
-                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-ring focus:ring-3 focus:ring-ring/50 outline-none"
-                  >
-                    <option value={24}>24 {t("create.fps")}</option>
-                    <option value={30}>30 {t("create.fps")}</option>
-                    <option value={60}>60 {t("create.fps")}</option>
-                  </select>
-                </div>
-              </div>
-            )}
-
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">{t("create.cost")}: {tab === "image" ? `1 ${t("create.credit")}` : `2 ${t("create.credits")}`}</span>
-            </div>
-
-            {error && <p className="text-sm text-destructive bg-destructive/5 rounded-lg p-3">{error}</p>}
-
-            <Button type="submit" disabled={loading || !prompt.trim()} className="w-full gap-2">
-              {loading && <LoadingSpinner />}
-              {loading ? tab === "video" ? t("create.generatingVideo", { progress }) : t("create.generating") : `${t("create.generate")} ${tab === "image" ? t("create.image") : t("create.video")}`}
-            </Button>
-          </form>
-
-          {loading && tab === "video" && (() => {
-            const elapsed = pollStartRef.current ? (Date.now() - pollStartRef.current) / 1000 : 0;
-            const eta = progress > 0 && progress < 100 && elapsed > 0
-              ? Math.round((elapsed / progress) * (100 - progress))
-              : 0;
-            const etaText = eta >= 60 ? `${Math.floor(eta / 60)}m ${eta % 60}s` : `${eta}s`;
-            return (
-              <div className="mt-6 animate-fade-in">
-                <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
-                  <div className="h-full rounded-full bg-primary transition-all duration-500" style={{ width: `${Math.max(progress, 5)}%` }} />
-                </div>
-                <p className="text-xs text-muted-foreground mt-2 text-center">
-                  {progressPhase || t("create.starting")}
-                  {eta > 0 && <span className="ml-2 text-muted-foreground/60">({t("create.remaining", { time: etaText })})</span>}
-                </p>
-              </div>
-            );
-          })()}
+          <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) { setImageFile(file); setImagePreview(URL.createObjectURL(file)); }
+          }} />
         </div>
-      </main>
+
+        {tab === "image" && (
+          <div>
+            <label className="block text-sm font-medium mb-1.5 text-foreground">{t("create.imageSize")}</label>
+            <Select value={imageSize} onChange={(e) => setImageSize(e.target.value)}>
+              <option value="1024x1024">{t("create.size1024")}</option>
+              <option value="1024x768">{t("create.size1024_768")}</option>
+              <option value="768x1024">{t("create.size768_1024")}</option>
+              <option value="1024x576">{t("create.size1024_576")}</option>
+              <option value="576x1024">{t("create.size576_1024")}</option>
+              <option value="2048x2048">{t("create.size2048")}</option>
+            </Select>
+          </div>
+        )}
+
+        {tab === "video" && (
+          <div className="grid grid-cols-3 gap-3">
+            <div>
+              <label className="block text-sm font-medium mb-1.5 text-foreground">{t("create.videoResolution")}</label>
+              <Select value={`${videoWidth}x${videoHeight}`} onChange={(e) => { const [w, h] = e.target.value.split("x").map(Number); setVideoWidth(w); setVideoHeight(h); }}>
+                <option value="854x480">{t("create.res480p")}</option>
+                <option value="1280x720">{t("create.res720p")}</option>
+                <option value="1920x1080">{t("create.res1080p")}</option>
+                <option value="480x854">{t("create.res480pPortrait")}</option>
+                <option value="720x1280">{t("create.res720pPortrait")}</option>
+                <option value="1080x1920">{t("create.res1080pPortrait")}</option>
+                <option value="480x480">{t("create.res480pSquare")}</option>
+                <option value="720x720">{t("create.res720pSquare")}</option>
+                <option value="1080x1080">{t("create.res1080pSquare")}</option>
+              </Select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1.5 text-foreground">{t("create.videoDuration")}</label>
+              <Select value={videoNumFrames} onChange={(e) => setVideoNumFrames(Number(e.target.value))}>
+                <option value={81}>{t("create.dur3s")}</option>
+                <option value={121}>{t("create.dur5s")}</option>
+                <option value={241}>{t("create.dur10s")}</option>
+                <option value={441}>{t("create.dur18s")}</option>
+              </Select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1.5 text-foreground">{t("create.frameRate")}</label>
+              <Select value={videoFrameRate} onChange={(e) => setVideoFrameRate(Number(e.target.value))}>
+                <option value={24}>24 {t("create.fps")}</option>
+                <option value={30}>30 {t("create.fps")}</option>
+                <option value={60}>60 {t("create.fps")}</option>
+              </Select>
+            </div>
+          </div>
+        )}
+
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-muted-foreground">{t("create.cost")}: {tab === "image" ? `1 ${t("create.credit")}` : `2 ${t("create.credits")}`}</span>
+        </div>
+
+        {error && <p className="text-sm text-destructive bg-destructive/5 rounded-lg p-3">{error}</p>}
+
+        <Button type="submit" disabled={loading || !prompt.trim()} className="w-full gap-2 h-11 text-base">
+          {loading && <LoadingSpinner />}
+          {loading ? tab === "video" ? t("create.generatingVideo", { progress }) : t("create.generating") : `${t("create.generate")} ${tab === "image" ? t("create.image") : t("create.video")}`}
+        </Button>
+      </form>
+
+      {loading && tab === "video" && (() => {
+        const elapsed = pollStartRef.current ? (Date.now() - pollStartRef.current) / 1000 : 0;
+        const eta = progress > 0 && progress < 100 && elapsed > 0
+          ? Math.round((elapsed / progress) * (100 - progress)) : 0;
+        const etaText = eta >= 60 ? `${Math.floor(eta / 60)}m ${eta % 60}s` : `${eta}s`;
+        return (
+          <div className="mt-6 animate-fade-in">
+            <div className="w-full bg-muted rounded-full h-1.5 overflow-hidden">
+              <div className="h-full rounded-full bg-primary transition-all duration-500" style={{ width: `${Math.max(progress, 5)}%` }} />
+            </div>
+            <p className="text-xs text-muted-foreground mt-2 text-center">
+              {progressPhase || t("create.starting")}
+              {eta > 0 && <span className="ml-2 text-muted-foreground/60">({t("create.remaining", { time: etaText })})</span>}
+            </p>
+          </div>
+        );
+      })()}
+    </main>
   );
 }

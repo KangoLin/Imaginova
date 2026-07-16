@@ -29,7 +29,7 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center px-6">
+    <main className="min-h-dvh flex items-center justify-center px-6">
       <div className="w-full max-w-sm animate-slide-up">
         <div className="text-center mb-8">
           <Link href="/" className="text-xl font-bold tracking-tight text-primary">Imaginova</Link>

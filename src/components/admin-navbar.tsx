@@ -5,23 +5,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useLocale } from "@/components/locale-provider";
 
+import { Menu, X } from "lucide-react";
+
 function HamburgerIcon({ open }: { open: boolean }) {
-  return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="transition-transform duration-200">
-      {open ? (
-        <>
-          <path d="M5 5L15 15" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-          <path d="M15 5L5 15" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-        </>
-      ) : (
-        <>
-          <path d="M3 6H17" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-          <path d="M3 10H17" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-          <path d="M3 14H17" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-        </>
-      )}
-    </svg>
-  );
+  return open ? <X size={20} className="transition-transform duration-200" /> : <Menu size={20} className="transition-transform duration-200" />;
 }
 
 export function AdminNavbar() {
@@ -49,7 +36,7 @@ export function AdminNavbar() {
   ];
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background/85 backdrop-blur-xl shadow-sm border-b border-border">
+    <header className="fixed top-0 left-0 right-0 z-50 glass border-b border-border/40 pt-[env(safe-area-inset-top)]">
       <div className="container-narrow px-4 md:px-6 h-14 flex items-center justify-between">
         <div className="flex items-center gap-4 md:gap-6 min-w-0">
           <Link href="/admin" className="text-lg font-bold tracking-tight text-primary shrink-0">Imaginova <span className="text-xs font-normal text-muted-foreground">Admin</span></Link>

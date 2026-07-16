@@ -62,7 +62,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="min-h-screen flex flex-col transition-theme">
+      <body className="min-h-dvh flex flex-col transition-theme">
         <Suspense fallback={null}>
           <RouteProgress />
         </Suspense>

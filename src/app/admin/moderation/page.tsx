@@ -8,6 +8,7 @@ import { useLocale } from "@/components/locale-provider";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { LoadingSpinner } from "@/components/loading-spinner";
+import { X } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface Item {
@@ -147,11 +148,11 @@ export default function ModerationPage() {
         <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 animate-fade-in" onClick={() => setPreview(null)}>
           <div className="relative max-w-4xl w-full max-h-[90vh] rounded-xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
             <button onClick={() => setPreview(null)} className="absolute top-2 right-2 z-10 size-8 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center hover:bg-destructive hover:text-destructive-foreground transition-all">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg>
+              <X size={14} />
             </button>
             {preview.url ? (
               preview.status !== undefined ? (
-                <video src={`/api/proxy/video?url=${encodeURIComponent(preview.url)}`} controls autoPlay className="max-w-full max-h-[90vh] mx-auto" />
+                <video src={`/api/proxy/video?url=${encodeURIComponent(preview.url)}`} controls autoPlay playsInline muted className="max-w-full max-h-[90dvh] mx-auto" />
               ) : (
                 <Image src={preview.url} alt={preview.prompt} width={1024} height={768} className="max-w-full max-h-[90vh] object-contain mx-auto" />
               )

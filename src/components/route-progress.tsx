@@ -20,7 +20,7 @@ export function RouteProgress() {
   }, [pathname, searchParams]);
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-[100] h-[3px] pointer-events-none">
+    <div className="fixed top-[env(safe-area-inset-top)] left-0 right-0 z-[100] h-[3px] pointer-events-none">
       <div
         className={`h-full bg-primary transition-all duration-500 ease-out ${loading ? "w-full opacity-100" : "w-0 opacity-0"}`}
         style={{ transitionDuration: loading ? "2s" : "0.3s" }}

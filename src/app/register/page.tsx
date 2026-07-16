@@ -35,24 +35,14 @@ export default function RegisterPage() {
   const countdownRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
 
   function getErrorMessage(err: unknown): string {
-    if (err instanceof ApiError) {
-      const code = err.message;
-      const key = ERROR_MAP[code];
-      if (key) return t(key);
-    }
+    if (err instanceof ApiError) { const code = err.message; const key = ERROR_MAP[code]; if (key) return t(key); }
     return t("auth.registrationFailed");
   }
 
   function startCountdown() {
     setCountdown(60);
     countdownRef.current = setInterval(() => {
-      setCountdown((prev) => {
-        if (prev <= 1) {
-          clearInterval(countdownRef.current);
-          return 0;
-        }
-        return prev - 1;
-      });
+      setCountdown((prev) => { if (prev <= 1) { clearInterval(countdownRef.current); return 0; } return prev - 1; });
     }, 1000);
   }
 
@@ -60,60 +50,34 @@ export default function RegisterPage() {
     const form = document.querySelector<HTMLFormElement>("form");
     if (!form) return;
     const email = new FormData(form).get("email") as string;
-
-    if (!CLIENT_EMAIL_REGEX.test(email)) {
-      setError(t("auth.invalidEmailFormat"));
-      return;
-    }
-
-    setSendingCode(true);
-    setError("");
-    try {
-      await api.post("/api/auth/send-code", { email });
-      startCountdown();
-    } catch (err) {
-      setError(getErrorMessage(err));
-    } finally {
-      setSendingCode(false);
-    }
+    if (!CLIENT_EMAIL_REGEX.test(email)) { setError(t("auth.invalidEmailFormat")); return; }
+    setSendingCode(true); setError("");
+    try { await api.post("/api/auth/send-code", { email }); startCountdown(); }
+    catch (err) { setError(getErrorMessage(err)); }
+    finally { setSendingCode(false); }
   }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setError("");
-
+    e.preventDefault(); setError("");
     const form = new FormData(e.currentTarget);
     const email = form.get("email") as string;
-
-    if (!CLIENT_EMAIL_REGEX.test(email)) {
-      setError(t("auth.invalidEmailFormat"));
-      return;
-    }
-
+    if (!CLIENT_EMAIL_REGEX.test(email)) { setError(t("auth.invalidEmailFormat")); return; }
     setLoading(true);
     try {
-      await api.post("/api/register", {
-        name: form.get("name"),
-        email,
-        password: form.get("password"),
-        code: form.get("code"),
-      });
+      await api.post("/api/register", { name: form.get("name"), email, password: form.get("password"), code: form.get("code") });
       router.push("/login");
-    } catch (err) {
-      setError(getErrorMessage(err));
-      setLoading(false);
-    }
+    } catch (err) { setError(getErrorMessage(err)); setLoading(false); }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 relative">
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--primary)_0%,_transparent_60%)] opacity-8 pointer-events-none" />
-      <div className="absolute top-8 left-8">
-        <Link href="/" className="text-xl font-bold tracking-tight text-primary">Imaginova</Link>
+    <main className="min-h-dvh flex items-center justify-center px-4 relative">
+      <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.04] via-transparent to-transparent pointer-events-none" />
+      <div className="absolute top-6 left-6">
+        <Link href="/" className="text-lg font-bold tracking-tight text-primary">Imaginova</Link>
       </div>
-      <Card className="w-full max-w-sm animate-scale-in shadow-lg">
+      <Card className="w-full max-w-sm animate-fade-in">
         <CardHeader className="pb-4">
-          <CardTitle className="text-center text-xl font-bold">{t("auth.createAccount")}</CardTitle>
+          <CardTitle className="text-center text-lg font-bold">{t("auth.createAccount")}</CardTitle>
           <p className="text-center text-sm text-muted-foreground mt-0.5">{t("auth.createAccountSubtitle")}</p>
         </CardHeader>
         <CardContent>
@@ -122,7 +86,7 @@ export default function RegisterPage() {
               <label htmlFor="email" className="block text-sm font-medium mb-1.5 text-foreground">{t("auth.email")}</label>
               <div className="flex gap-2">
                 <Input id="email" name="email" type="email" required placeholder={t("auth.emailPlaceholder")} className="flex-1" />
-                <Button type="button" variant="outline" onClick={handleSendCode} disabled={sendingCode || countdown > 0} className="shrink-0">
+                <Button type="button" variant="outline" onClick={handleSendCode} disabled={sendingCode || countdown > 0} className="shrink-0 text-sm">
                   {countdown > 0 ? `${countdown}s` : sendingCode ? t("auth.sending") : t("auth.sendCode")}
                 </Button>
               </div>
@@ -140,9 +104,7 @@ export default function RegisterPage() {
               <Input id="password" name="password" type="password" required minLength={6} placeholder={t("auth.passwordMinPlaceholder")} />
             </div>
             {error && <p className="text-sm text-destructive">{error}</p>}
-            <Button type="submit" disabled={loading} className="w-full">
-              {loading ? t("auth.creating") : t("auth.createAccount")}
-            </Button>
+            <Button type="submit" disabled={loading} className="w-full">{loading ? t("auth.creating") : t("auth.createAccount")}</Button>
           </form>
         </CardContent>
         <CardFooter className="justify-center pb-6">
@@ -152,6 +114,6 @@ export default function RegisterPage() {
           </p>
         </CardFooter>
       </Card>
-    </div>
+    </main>
   );
 }

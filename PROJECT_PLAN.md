@@ -1,3 +1,13 @@
+## 📦 近期线上修复 (2026-07-15)
+
+| # | 问题 | 严重度 | 状态 | 修复 |
+|---|------|--------|------|------|
+| 1 | **邮箱验证码邮件不显示数字** — QQ 邮箱 HTML 被屏蔽，纯文本备选缺失 | P0 | ✅ 已修复 | `src/lib/mail.ts` 添加 `text` 属性，与 HTML 共存 |
+| 2 | **视频生成 URL 提取不到** — 上游 API 返回 `metadata.url` 而非顶级 `url` | P0 | ✅ 已修复 | `src/lib/video.ts` 兜底读取 `body.metadata?.url` |
+| 3 | **`POST /api/auth/send-code` 冷启动 500** — Docker 构建未清除 `.next` 缓存 | P0 | ✅ 已修复 | `docker compose up -d --build --no-cache` 强制重建 |
+| 4 | **`POST /api/auth/send-code` 误判为 500** — PowerShell curl.exe 转义导致 malformed JSON | P1 | ❌ 伪异常 | 用 Python 请求确认正常返回 200 |
+| 5 | **设置页修改密码失败** — `req.json()` 冷启动问题 | P0 | ✅ 已修复 | 改为 `req.text()` + `JSON.parse()` |
+
 # Imaginova — AI 图像与视频生成平台
 
 ## 技术栈
@@ -254,9 +264,21 @@ e2e/                   — Playwright E2E 测试
 | 🔲 | T7 内容审核页面 (图片/视频列表 + 审核操作) | 🔲 |
 | 🔲 | T8 访问控制中间件 + 管理员角色守卫 | 🔲 |
 
+### UI 视觉重塑 (2026-07-16)
+
+| # | 任务 | 说明 | 状态 |
+|---|------|------|------|
+| ✅ | **V1 组件库扩展** | 添加 shadcn dialog/sheet/dropdown-menu/command/input-group | ✅ |
+| ✅ | **V2 framer-motion** | 安装 framer-motion，Dashboard 加入 stagger 动画 | ✅ |
+| ✅ | **V3 组件替换** | 手动 Lightbox/Modal → shadcn Dialog | ✅ |
+| ✅ | **V4 增强 globals.css** | 新增 shimmer/breathe/border-glow 动画 + text-gradient/glass 工具类 | ✅ |
+| ✅ | **V5 Taste/Impeccable Skills** | 安装 Taste（7 个设计质量 profile）+ Impeccable（像素级执行）skills | ✅ |
+| ✅ | **V6 React Bits** | 安装 8 个动画组件：Aurora/SplitText/BlurText/ShinyText/FadeContent/DotField/TiltedCard/SpotlightCard | ✅ |
+| ✅ | **V7 UI 迭代应用** | Home：Aurora 背景 + SplitText 标题 + BlurText 段落 + FadeContent 滚动 + SpotlightCard 卡片 + ShinyText 高亮。Dashboard：SpotlightCard 统计卡片 + FadeContent 区域。Detail：FadeContent 入场。 | ✅ |
+
 ## 构建状态
 
-- `npm run build -- --webpack` — 零错误，零警告 ✅
+- `npm run build` — 零错误，零警告 ✅
 - `npm test` — 2/2 passed ✅
 
 ## 🐛 线上问题记录 (2026-07-13)
@@ -312,3 +334,48 @@ e2e/                   — Playwright E2E 测试
 | ✅ | **13. Home Hero 行高过紧** | `src/components/home-content.tsx` | `leading-[1.2] sm:leading-[1.1]` |
 | ✅ | **14. iOS `dvh` 兼容性** | dashboard lightbox/video modal | `vh` → `dvh` 避免 Safari 地址栏问题 |
 | ✅ | **15. 视频详情按钮布局** | `src/app/(detail)/video/[id]/page.tsx` | 同步图片页按钮修复 |
+
+---
+
+## UI 综合优化方案 (2026-07-16)
+
+> 基于 UI Skills (baseline-ui + improve-ui) 审计，详见 `design-plans/ui-optimization-plan.md`
+
+### P0 — 关键问题 ✅ 全部完成
+
+| # | 问题 | 方案 | 状态 |
+|---|------|------|------|
+| 1.1 | 设计文档 `MASTER.md` 色板与实际代码不一致（紫色→青绿） | 更新 MASTER.md 色板 | ✅ |
+| 1.2 | 受保护页面未登录暴露骨架屏闪屏 | 添加 `src/middleware.ts` 路由保护 | ✅ |
+| 1.3 | 视频生成轮询阻塞，离页面后无提示 | Toast 提示（locale 已存在） | ✅ |
+| 4.1.1 | iOS `min-h-screen` 底部被地址栏遮挡（10处） | 全部改为 `min-h-dvh` | ✅ |
+| 4.3.3 | 微信视频自动播放受限 | 添加 `playsInline` + `muted` | ✅ |
+| 4.2.5 | Android select 各厂商差异大 | 引入 `Select` 组件 | ✅ |
+
+### P1 — 中等问题 ✅ 全部完成
+
+| # | 问题 | 方案 | 状态 |
+|---|------|------|------|
+| 2.1 | 登录后跳首页而非 Dashboard | 已存在 `redirect=/dashboard` | ✅ |
+| 2.2 | Toast 系统未统一使用 | 关键页面已用 useToast，auth 页 inline 更合理 | ✅ |
+| 2.3 | Logout 使用原生 form 全页刷新 | 已改为 fetch + router.refresh | ✅ |
+| 2.4 | `@theme inline` 超长单行 | 拆为多行 | ✅ |
+| 2.5 | HTML 语义化（main/heading 层级） | login/register/not-found/error → `<main>` | ✅ |
+| 4.1.4 | iOS 表单字号 <16px 自动缩放 | Input 已有 text-base，Select 已更新 | ✅ |
+| 4.1.7 | Lightbox 缺少 overscroll-behavior | 添加 `overscrollBehavior: "none"` | ✅ |
+| 4.2.3 | 部分浏览器 300ms 点击延迟 | 全局 `touch-action: manipulation` | ✅ |
+
+### P2 — 优化建议 ✅ 全部完成
+
+| # | 问题 | 方案 | 状态 |
+|---|------|------|------|
+| 3.2 | 固定元素缺少 `safe-area-inset` | 添加 env() 值到 navbar/home-content/admin-navbar/route-progress | ✅ |
+| 3.3 | 图片详情按钮移动端 3 行布局 | `grid grid-cols-2 sm:flex sm:flex-wrap` | ✅ |
+| 3.4 | Video 详情页不自动刷新状态 | SSE + 轮询 fallback + 组件卸载清理 | ✅ |
+| 3.5 | Credits recharge 重复更新闪烁 | 手动 setUser 替换为 refetch（credits + dashboard） | ✅ |
+| 3.6 | 动画属性合规检查 | 主要 `transition-all` → 具体属性（dashboard cards, navbar links, buttons） | ✅ |
+| 3.7 | 内联 SVG 替换为 lucide-react | 替换 20+ 处 SVG 为 lucide 图标（all pages） | ✅ |
+| 4.1.5 | Clipboard API 缺少 fallback | 添加 `document.execCommand('copy')` 兜底 | ✅ |
+| 4.1.2 | backdrop-filter 低端设备卡顿 | 添加 `@supports not (backdrop-filter)` 降级（globals.css） | ✅ |
+| 4.5.2 | `transition-all` 触发重排 | 审查并替换关键路径（navbar links, dashboard cards） | ✅ |
+| 4.5.3 | iOS 触摸滚动优化 | 全局 `-webkit-overflow-scrolling: touch` | ✅ |

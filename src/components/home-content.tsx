@@ -1,207 +1,127 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useRef } from "react";
 import Link from "next/link";
-import { LanguageSwitcher } from "@/components/language-switcher";
 import { useLocale } from "@/components/locale-provider";
-import { SignOutButton } from "@/components/sign-out-button";
-
-function HamburgerIcon({ open }: { open: boolean }) {
-  return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="transition-transform duration-200">
-      {open ? (
-        <>
-          <path d="M5 5L15 15" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-          <path d="M15 5L5 15" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-        </>
-      ) : (
-        <>
-          <path d="M3 6H17" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-          <path d="M3 10H17" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-          <path d="M3 14H17" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-        </>
-      )}
-    </svg>
-  );
-}
+import { Navbar } from "@/components/navbar";
+import { Button } from "@/components/ui/button";
+import SplitText from "@/components/SplitText";
+import { ArrowRight, Sparkles, Image, Video, Wand2 } from "lucide-react";
 
 const features = [
-  { key: "text", icon: "M" },
-  { key: "image", icon: "I" },
-  { key: "video", icon: "V" },
-  { key: "multimodal", icon: "M" },
-];
-
-const steps = [
-  { key: "step1" },
-  { key: "step2" },
-  { key: "step3" },
+  { key: "text", icon: Wand2 },
+  { key: "image", icon: Image },
+  { key: "video", icon: Video },
+  { key: "multimodal", icon: Sparkles },
 ];
 
 export function HomeContent({ user }: { user: { name: string } | null }) {
-  const { t, locale } = useLocale();
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const mobileMenuRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (mobileMenuRef.current && !mobileMenuRef.current.contains(e.target as Node)) {
-        setMobileOpen(false);
-      }
-    }
-    if (mobileOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-      return () => document.removeEventListener("mousedown", handleClickOutside);
-    }
-  }, [mobileOpen]);
+  const { t } = useLocale();
+  const featuresRef = useRef<HTMLElement>(null);
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-50 bg-background/85 backdrop-blur-xl border-b border-border">
-        <div className="container-narrow px-4 md:px-6 h-14 md:h-16 flex items-center justify-between">
-          <Link href="/" className="text-xl font-bold tracking-tight text-primary">Imaginova</Link>
-          <nav className="hidden md:flex items-center gap-6 text-sm">
-            {user ? (
-              <>
-                <Link href="/create" className="text-muted-foreground hover:text-foreground transition-all">{t("nav.create")}</Link>
-                <Link href="/dashboard" className="text-muted-foreground hover:text-foreground transition-all">{t("nav.dashboard")}</Link>
-                <span className="text-muted-foreground/70">{user.name}</span>
-                <SignOutButton className="text-muted-foreground hover:text-foreground transition-all" />
-              </>
-            ) : (
-              <>
-                <Link href="/login" className="text-muted-foreground hover:text-foreground transition-all">{t("nav.signIn")}</Link>
-                <Link href="/register" className="inline-flex h-9 items-center justify-center rounded-lg bg-primary px-5 text-sm font-medium text-primary-foreground hover:opacity-90 transition-all">{t("nav.getStarted")}</Link>
-              </>
-            )}
-            <LanguageSwitcher />
-          </nav>
-          <div ref={mobileMenuRef} className="relative md:hidden">
-            <button
-              onClick={() => setMobileOpen(!mobileOpen)}
-              className="p-2 text-muted-foreground hover:text-foreground transition-colors"
-              aria-label="Toggle menu"
-            >
-              <HamburgerIcon open={mobileOpen} />
-            </button>
-            {mobileOpen && (
-              <div className="absolute right-0 top-full mt-2 w-48 rounded-xl border border-border bg-background shadow-lg py-2 animate-in fade-in slide-in-from-top-2 duration-200">
-                {user ? (
-                  <>
-                    <Link href="/create" className="block px-4 py-2.5 text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors" onClick={() => setMobileOpen(false)}>{t("nav.create")}</Link>
-                    <Link href="/dashboard" className="block px-4 py-2.5 text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors" onClick={() => setMobileOpen(false)}>{t("nav.dashboard")}</Link>
-                    <div className="border-t border-border my-1" />
-                    <div className="px-4 py-2.5 text-sm text-muted-foreground">{user.name}</div>
-                    <div className="border-t border-border my-1" />
-                    <div className="px-4 py-2.5"><LanguageSwitcher /></div>
-                    <div className="px-4 py-2.5"><SignOutButton className="text-sm" /></div>
-                  </>
-                ) : (
-                  <>
-                    <Link href="/login" className="block px-4 py-2.5 text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors" onClick={() => setMobileOpen(false)}>{t("nav.signIn")}</Link>
-                    <Link href="/register" className="block px-4 py-2.5 text-sm text-foreground font-medium hover:bg-muted transition-colors" onClick={() => setMobileOpen(false)}>{t("nav.getStarted")}</Link>
-                  </>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-      </header>
-
-      <main className="min-h-screen">
-        <section className="relative overflow-hidden pt-32 pb-24 sm:pt-40 sm:pb-32">
-          <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent pointer-events-none" />
-          <div className="absolute top-20 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-3xl pointer-events-none" />
+      <Navbar variant="home" user={user} />
+      <main className="min-h-dvh">
+        <section className="relative min-h-[90dvh] flex items-center justify-center overflow-hidden pt-16">
+          <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.06] via-transparent to-transparent pointer-events-none" />
+          <div className="absolute top-1/4 left-1/3 w-[600px] h-[600px] bg-primary/[0.04] rounded-full blur-[120px] pointer-events-none" />
+          <div className="absolute bottom-1/4 right-1/3 w-[400px] h-[400px] bg-accent/[0.03] rounded-full blur-[100px] pointer-events-none" />
 
           <div className="container-narrow px-6 text-center relative">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-sm font-medium text-primary mb-8">
-              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full glass text-xs font-medium text-primary mb-8 animate-fade-in">
+              <span className="size-1.5 rounded-full bg-primary animate-pulse" />
               {t("home.badge")}
             </div>
 
-            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.2] sm:leading-[1.1] mb-6 max-w-4xl mx-auto">
-              {t("home.title1")}{" "}
-              <span className="text-primary">{t("home.title2")}</span>
-              <br />
-              <span className="text-3xl sm:text-4xl lg:text-5xl font-semibold text-muted-foreground/80">
-                {t("home.title3")}
-              </span>
-            </h1>
+            <SplitText
+              text={`${t("home.title1")} ${t("home.title2")}`}
+              className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.1] mb-6 max-w-4xl mx-auto"
+              splitType="words"
+              delay={25}
+              duration={0.8}
+              from={{ opacity: 0, y: 30 }}
+              to={{ opacity: 1, y: 0 }}
+              tag="h1"
+              textAlign="center"
+            />
 
-            <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
+            <p className="text-base text-muted-foreground max-w-xl mx-auto mb-10 leading-relaxed animate-fade-in" style={{ animationDelay: "0.3s" }}>
               {t("home.subtitle")}
             </p>
 
-            <div className="flex items-center justify-center gap-4 flex-wrap">
-              <Link
-                href={user ? "/create" : "/register"}
-                className="inline-flex h-12 items-center justify-center rounded-lg bg-primary px-8 text-base font-medium text-primary-foreground hover:opacity-90 hover:shadow-lg hover:shadow-primary/25 transition-all"
-              >
-                {t("home.cta")}
+            <div className="flex items-center justify-center gap-3 animate-slide-up" style={{ animationDelay: "0.4s" }}>
+              <Link href={user ? "/create" : "/register"}>
+                <Button size="lg" className="gap-2 text-base h-11 px-7">
+                  {t("home.cta")}
+                  <ArrowRight size={16} />
+                </Button>
               </Link>
-              <a
-                href="#features"
-                className="inline-flex h-12 items-center justify-center rounded-lg border border-border px-8 text-base font-medium text-foreground hover:bg-muted transition-all"
-              >
+              <Button variant="outline" size="lg" className="h-11 px-7" onClick={() => featuresRef.current?.scrollIntoView({ behavior: "smooth" })}>
                 {t("home.learnMore")}
-              </a>
+              </Button>
             </div>
           </div>
         </section>
 
-        <section id="features" className="py-24 border-t border-border/40">
+        <section ref={featuresRef} id="features" className="py-20 border-t border-border/50">
           <div className="container-narrow px-6">
-            <div className="text-center mb-16">
-              <h2 className="text-2xl sm:text-4xl font-bold tracking-tight mb-4">{t("home.featuresTitle")}</h2>
-              <p className="text-muted-foreground max-w-xl mx-auto">{t("home.featuresSub")}</p>
+            <div className="text-center mb-12 animate-slide-up">
+              <h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-2">{t("home.featuresTitle")}</h2>
+              <p className="text-sm text-muted-foreground">{t("home.featuresSub")}</p>
             </div>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {features.map((f) => (
-                <div key={f.key} className="rounded-xl border border-border/60 bg-card p-6 hover:shadow-md hover:border-primary/20 transition-all">
-                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary font-bold text-lg mb-4">{f.icon}</div>
-                  <h3 className="font-semibold mb-2">{t(`home.feature${f.key}Title`)}</h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">{t(`home.feature${f.key}Desc`)}</p>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {features.map((f, i) => {
+                const Icon = f.icon;
+                return (
+                  <div key={f.key} className="group rounded-xl bg-card border border-border/60 p-5 hover:border-primary/30 hover:-translate-y-0.5 transition-all duration-300 animate-slide-up" style={{ animationDelay: `${i * 0.08}s` }}>
+                    <div className="size-9 rounded-lg bg-primary/10 flex items-center justify-center text-primary mb-3 group-hover:bg-primary/15 transition-colors">
+                      <Icon size={16} />
+                    </div>
+                    <h3 className="font-semibold text-sm mb-1.5">{t(`home.feature${f.key}Title`)}</h3>
+                    <p className="text-xs text-muted-foreground leading-relaxed">{t(`home.feature${f.key}Desc`)}</p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
+        <section className="py-20 bg-gradient-to-b from-transparent via-muted/30 to-transparent border-y border-border/50">
+          <div className="container-narrow px-6">
+            <div className="text-center mb-12 animate-slide-up">
+              <h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-2">{t("home.howItWorks")}</h2>
+              <p className="text-sm text-muted-foreground">{t("home.howItWorksSub")}</p>
+            </div>
+            <div className="grid sm:grid-cols-3 gap-8 max-w-3xl mx-auto">
+              {[1, 2, 3].map((n) => (
+                <div key={n} className="text-center animate-slide-up" style={{ animationDelay: `${(n - 1) * 0.1}s` }}>
+                  <div className="size-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-lg mx-auto mb-3">{n}</div>
+                  <h3 className="font-semibold text-sm mb-1.5">{t(`home.step${n}Title`)}</h3>
+                  <p className="text-xs text-muted-foreground leading-relaxed">{t(`home.step${n}Desc`)}</p>
                 </div>
               ))}
             </div>
           </div>
         </section>
 
-        <section className="py-24 bg-muted/30 border-y border-border/40">
-          <div className="container-narrow px-6">
-            <div className="text-center mb-16">
-              <h2 className="text-2xl sm:text-4xl font-bold tracking-tight mb-4">{t("home.howItWorks")}</h2>
-              <p className="text-muted-foreground max-w-xl mx-auto">{t("home.howItWorksSub")}</p>
-            </div>
-            <div className="grid sm:grid-cols-3 gap-8 max-w-4xl mx-auto">
-              {steps.map((s, i) => (
-                <div key={s.key} className="text-center">
-                  <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xl mx-auto mb-4">{i + 1}</div>
-                  <h3 className="font-semibold mb-2">{t(`home.${s.key}Title`)}</h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">{t(`home.${s.key}Desc`)}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section className="py-24">
-          <div className="container-narrow px-6 text-center">
-            <h2 className="text-2xl sm:text-4xl font-bold tracking-tight mb-4">{t("home.readyTitle")}</h2>
-            <p className="text-muted-foreground max-w-xl mx-auto mb-10">{t("home.readySub")}</p>
-            <Link
-              href={user ? "/create" : "/register"}
-              className="inline-flex h-12 items-center justify-center rounded-lg bg-primary px-10 text-base font-medium text-primary-foreground hover:opacity-90 hover:shadow-lg hover:shadow-primary/25 transition-all"
-            >
-              {t("home.cta")}
+        <section className="py-20 text-center">
+          <div className="container-narrow px-6 animate-slide-up">
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-2">{t("home.readyTitle")}</h2>
+            <p className="text-sm text-muted-foreground max-w-lg mx-auto mb-8">{t("home.readySub")}</p>
+            <Link href={user ? "/create" : "/register"}>
+              <Button size="lg" className="gap-2 text-base h-11 px-8">
+                {t("home.cta")}
+                <ArrowRight size={16} />
+              </Button>
             </Link>
           </div>
         </section>
       </main>
 
-      <footer className="border-t border-border py-8 text-center text-xs text-muted-foreground/60">
+      <footer className="border-t border-border/50 py-6 text-center text-xs text-muted-foreground/50">
         <div className="container-narrow px-6">
-          <span className="text-primary font-bold">Imaginova</span> &mdash; {t("home.footer")}
+          <span className="text-gradient font-semibold">Imaginova</span> &mdash; {t("home.footer")}
         </div>
       </footer>
     </>

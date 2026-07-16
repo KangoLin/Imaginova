@@ -1,6 +1,7 @@
 # Imaginova GUI 使用逻辑问题清单
 
 > 识别日期：2026-07-09
+> 关联优化方案：`design-plans/ui-optimization-plan.md`（2026-07-16 更新）
 
 ---
 
