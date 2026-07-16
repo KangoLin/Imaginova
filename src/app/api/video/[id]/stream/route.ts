@@ -3,7 +3,7 @@ import db, { type VideoRow } from "@/lib/db";
 import { getSessionUserId } from "@/lib/auth";
 import { getVideoStatus } from "@/lib/video";
 
-export const maxDuration = 300;
+export const maxDuration = 500;
 
 export async function GET(
   _req: NextRequest,
@@ -52,7 +52,7 @@ export async function GET(
         }
       };
 
-      const maxAttempts = 60;
+      const maxAttempts = 160;
       for (let i = 0; i < maxAttempts; i++) {
         if (closed) return;
         await new Promise((r) => setTimeout(r, 3000));

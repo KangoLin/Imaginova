@@ -40,26 +40,22 @@ const SplitText: React.FC<SplitTextProps> = ({
   const ref = useRef<HTMLParagraphElement>(null);
   const animationCompletedRef = useRef(false);
   const onCompleteRef = useRef(onLetterAnimationComplete);
-  const [fontsLoaded, setFontsLoaded] = useState<boolean>(false);
+  const [ready, setReady] = useState(false);
 
-  // Keep callback ref updated
   useEffect(() => {
     onCompleteRef.current = onLetterAnimationComplete;
   }, [onLetterAnimationComplete]);
 
   useEffect(() => {
-    if (document.fonts.status === 'loaded') {
-      setFontsLoaded(true);
-    } else {
-      document.fonts.ready.then(() => {
-        setFontsLoaded(true);
-      });
-    }
+    Promise.all([
+      new Promise<void>((resolve) => requestAnimationFrame(() => resolve())),
+      document.fonts.ready,
+    ]).then(() => setReady(true));
   }, []);
 
   useGSAP(
     () => {
-      if (!ref.current || !text || !fontsLoaded) return;
+      if (!ref.current || !text || !ready) return;
       // Prevent re-animation if already completed
       if (animationCompletedRef.current) return;
       const el = ref.current as HTMLElement & {
@@ -149,7 +145,7 @@ const SplitText: React.FC<SplitTextProps> = ({
         JSON.stringify(to),
         threshold,
         rootMargin,
-        fontsLoaded
+        ready
       ],
       scope: ref
     }
