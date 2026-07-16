@@ -24,6 +24,7 @@ export async function sendVerificationCode(email: string, code: string): Promise
     from: `Imaginova <${FROM_ADDRESS}>`,
     to: email,
     subject: "Imaginova 注册验证码 / Registration Code",
+    text: `您的验证码: ${code}\n验证码 10 分钟内有效，请勿泄露给他人。\n\nYour verification code: ${code}\nValid for 10 minutes. Do not share this code.`,
     html: `
       <div style="font-family: -apple-system, sans-serif; max-width: 480px; margin: 0 auto;">
         <h2 style="color: #0d9488;">Imaginova</h2>
