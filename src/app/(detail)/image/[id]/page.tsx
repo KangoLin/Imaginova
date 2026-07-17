@@ -1,36 +1,62 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { api, ApiError } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { LoadingSpinner } from "@/components/loading-spinner";
-import { Check, ArrowLeft } from "lucide-react";
+import { Check, ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
 import { downloadFile } from "@/lib/utils";
 import { useLocale } from "@/components/locale-provider";
 
-interface ImageData { id: number; prompt: string; model: string; url: string; created_at: string; }
+interface ImageItem { id: number; prompt: string; model: string; url: string; created_at: string; }
 
 export default function ImageDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { t } = useLocale();
-  const [image, setImage] = useState<ImageData | null>(null);
+  const [image, setImage] = useState<ImageItem | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [deleting, setDeleting] = useState(false);
   const [copied, setCopied] = useState(false);
   const [reported, setReported] = useState(false);
+  const [allImages, setAllImages] = useState<ImageItem[]>([]);
+
+  const currentIndex = allImages.findIndex((i) => i.id === Number(params.id));
+  const prevImage = currentIndex > 0 ? allImages[currentIndex - 1] : null;
+  const nextImage = currentIndex >= 0 && currentIndex < allImages.length - 1 ? allImages[currentIndex + 1] : null;
+
+  const navigateTo = useCallback((id: number) => {
+    router.push(`/image/${id}`);
+  }, [router]);
 
   useEffect(() => {
     (async () => {
-      try { setImage(await api.get<ImageData>(`/api/image/${params.id}`)); }
-      catch (err) { if (err instanceof ApiError) setError(err.message); }
+      try {
+        const [data, listData] = await Promise.all([
+          api.get<ImageItem>(`/api/image/${params.id}`),
+          api.get<{ items: ImageItem[] }>("/api/me/images?limit=200&offset=0"),
+        ]);
+        setImage(data);
+        setAllImages(listData.items || []);
+      } catch (err) {
+        if (err instanceof ApiError) setError(err.message);
+      }
       setLoading(false);
     })();
   }, [params.id]);
+
+  useEffect(() => {
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === "ArrowLeft" && prevImage) navigateTo(prevImage.id);
+      if (e.key === "ArrowRight" && nextImage) navigateTo(nextImage.id);
+    }
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [prevImage, nextImage, navigateTo]);
 
   if (loading) return (
     <main className="max-w-4xl mx-auto px-6 pt-24 pb-12">
@@ -71,8 +97,23 @@ export default function ImageDetailPage() {
         <ArrowLeft size={13} /> {t("common.backToDashboard")}
       </Link>
       <div className="bg-card rounded-xl overflow-hidden border border-border/60">
-        <div className="bg-muted relative flex items-center justify-center" style={{ minHeight: "65vh", maxHeight: "85vh" }}>
+        <div className="bg-muted relative flex items-center justify-center group" style={{ minHeight: "65vh", maxHeight: "85vh" }}>
           <Image src={image.url} alt={image.prompt} fill className="object-contain" sizes="(max-width: 768px) 100vw, 1024px" />
+          {prevImage && (
+            <button onClick={() => navigateTo(prevImage.id)} className="absolute left-3 top-1/2 -translate-y-1/2 size-10 rounded-full bg-background/80 border border-border/50 text-muted-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-background hover:text-foreground transition-all duration-200" aria-label="Previous image">
+              <ChevronLeft size={18} />
+            </button>
+          )}
+          {nextImage && (
+            <button onClick={() => navigateTo(nextImage.id)} className="absolute right-3 top-1/2 -translate-y-1/2 size-10 rounded-full bg-background/80 border border-border/50 text-muted-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-background hover:text-foreground transition-all duration-200" aria-label="Next image">
+              <ChevronRight size={18} />
+            </button>
+          )}
+          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+            <span className="text-xs text-muted-foreground bg-background/80 px-2.5 py-1 rounded-full border border-border/50">
+              {currentIndex >= 0 ? `${currentIndex + 1} / ${allImages.length}` : ""}
+            </span>
+          </div>
         </div>
         <div className="p-5 space-y-4">
           <h1 className="text-lg font-bold leading-snug">{image.prompt}</h1>

@@ -75,10 +75,18 @@ function CreditsContent() {
 
   return (
     <main className="max-w-lg mx-auto px-6 pt-24 pb-12 animate-fade-in">
-      <div className="text-center mb-8">
-        <p className="text-xs text-muted-foreground font-medium mb-1">{t("credits.yourBalance")}</p>
-        <p className="text-4xl sm:text-5xl font-bold tracking-tight text-primary">{user.credits}</p>
-        <p className="text-xs text-muted-foreground mt-0.5">{t("create.credits")}</p>
+      <div className="text-center mb-10">
+        <p className="text-xs text-muted-foreground font-medium mb-4">{t("credits.yourBalance")}</p>
+        <div className="relative inline-flex items-center justify-center">
+          <svg width="120" height="120" viewBox="0 0 120 120" className="-rotate-90">
+            <circle cx="60" cy="60" r="52" fill="none" stroke="var(--muted)" strokeWidth="6" />
+            <circle cx="60" cy="60" r="52" fill="none" stroke="var(--primary)" strokeWidth="6" strokeDasharray={`${2 * Math.PI * 52}`} strokeDashoffset={`${2 * Math.PI * 52 * (1 - Math.min(user.credits / 100, 1))}`} strokeLinecap="round" className="transition-all duration-1000" />
+          </svg>
+          <div className="absolute inset-0 flex flex-col items-center justify-center">
+            <p className="text-3xl sm:text-4xl font-bold tracking-tight text-primary">{user.credits}</p>
+            <p className="text-[10px] text-muted-foreground">{t("create.credits")}</p>
+          </div>
+        </div>
       </div>
 
       <div className="space-y-5">
@@ -87,10 +95,10 @@ function CreditsContent() {
           <CardContent>
             <div className="grid grid-cols-4 gap-2">
               {RECHARGE_AMOUNTS.map((opt) => (
-                <Button key={opt.credits} variant="outline" disabled className="flex-col py-3 h-auto leading-tight opacity-50 cursor-not-allowed">
-                  <span className="text-base font-bold">+{opt.credits}</span>
-                  <span className="text-[10px] font-normal text-muted-foreground">${opt.price}</span>
-                </Button>
+                <div key={opt.credits} className="flex flex-col items-center rounded-xl border border-border/40 bg-card py-4 px-2 opacity-50 cursor-not-allowed">
+                  <span className="text-lg font-bold text-foreground">+{opt.credits}</span>
+                  <span className="text-[10px] text-muted-foreground mt-0.5">${opt.price}</span>
+                </div>
               ))}
             </div>
             <p className="text-xs text-muted-foreground mt-3 text-center">{t("credits.comingSoon")}</p>

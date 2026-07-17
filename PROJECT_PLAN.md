@@ -276,6 +276,27 @@ e2e/                   — Playwright E2E 测试
 | ✅ | **V6 React Bits** | 安装 8 个动画组件：Aurora/SplitText/BlurText/ShinyText/FadeContent/DotField/TiltedCard/SpotlightCard | ✅ |
 | ✅ | **V7 UI 迭代应用** | Home：Aurora 背景 + SplitText 标题 + BlurText 段落 + FadeContent 滚动 + SpotlightCard 卡片 + ShinyText 高亮。Dashboard：SpotlightCard 统计卡片 + FadeContent 区域。Detail：FadeContent 入场。 | ✅ |
 
+### Phase 1 UI 对标迭代 (2026-07-17)
+
+| # | 任务 | 说明 | 状态 |
+|---|------|------|------|
+| ✅ | **P1.1 颜色系统重塑** | 深色背景加深（`oklch(0.012)`），新增 `--card-elevated`、`--radius-pill` token，暗色 primary 提亮 | ✅ |
+| ✅ | **P1.2 Landing Page 重构** | Hero 白 CTA pill + 生成物展示 Bento Grid + Logo 信任墙 + 特性 Bento 卡片 + 3 步工作流视觉升级 + 滚动箭头指示 | ✅ |
+| ✅ | **P1.3 圆角体系** | 三分法：8px（功能元素）/ 14px（弹窗/特殊容器）/ 9999px（CTA pill） | ✅ |
+| ✅ | **P1.4 设计文档更新** | MASTER.md 色板、圆角、CTA 规范、Style Guidelines 全部同步 | ✅ |
+| ✅ | **P2 Dashboard 重构** | stat 卡片可视化 + 网格间距 + shimmer skeleton | ✅ |
+| ✅ | **P3 Create 页优化** | 布局放宽 + drop zone 重做 + Select 统一 | ✅ |
+| ✅ | **P4 Credits/Detail** | 余额环状进度 + 图片详情上下张导航 + 键盘快捷键 | ✅ |
+| ✅ | **P5 动效升级** | 按钮 hover scale-102 + active press-down + 阴影增强 | ✅ |
+
+### Image Detail 导航增强 (2026-07-17)
+
+| # | 功能 | 文件 | 说明 |
+|---|------|------|------|
+| ✅ | N1 上下张导航按钮 | `src/app/(detail)/image/[id]/page.tsx` | 图片 hover 时左右箭头 + 位置指示器 |
+| ✅ | N2 键盘快捷键 | `src/app/(detail)/image/[id]/page.tsx` | ← 上一张 / → 下一张 |
+| ✅ | N3 并行加载 | `src/app/(detail)/image/[id]/page.tsx` | `Promise.all` 同时获取当前图片 + 列表 |
+
 ## 构建状态
 
 - `npm run build` — 零错误，零警告 ✅

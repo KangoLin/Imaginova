@@ -155,7 +155,7 @@ export default function CreatePage() {
   }
 
   return (
-    <main className="max-w-xl mx-auto px-6 pt-24 pb-12 animate-fade-in">
+    <main className="max-w-2xl mx-auto px-6 pt-24 pb-12 animate-fade-in">
       <div className="mb-8">
         <div className="flex items-center gap-2 text-primary mb-2">
           <Wand2 size={16} />
@@ -196,7 +196,7 @@ export default function CreatePage() {
             placeholder={tab === "image" ? "A serene mountain landscape at sunset, volumetric lighting..." : "A cinematic drone shot flying over a forest canopy..."}
             rows={3}
             required
-            className="resize-none min-h-[76px] overflow-hidden"
+            className="resize-none min-h-[76px] overflow-hidden text-base"
           />
         </div>
 
@@ -233,13 +233,18 @@ export default function CreatePage() {
               onDragLeave={() => setDragOver(false)}
               onDrop={(e) => { e.preventDefault(); setDragOver(false); const f = e.dataTransfer.files[0]; if (f) handleDragFile(f); }}
               onClick={() => fileInputRef.current?.click()}
-              className={`w-full border-2 border-dashed rounded-xl py-8 text-sm text-muted-foreground transition-all cursor-pointer ${
-                dragOver ? "border-primary bg-primary/[0.04] scale-[1.01]" : "border-border/60 hover:border-primary/30 hover:text-foreground"
+              className={`w-full border-2 border-dashed rounded-xl py-10 text-sm text-muted-foreground transition-all duration-300 cursor-pointer group ${
+                dragOver ? "border-primary bg-primary/[0.06] scale-[1.02]" : "border-border/40 hover:border-primary/30 hover:bg-primary/[0.03]"
               }`}
             >
-              <div className="flex flex-col items-center gap-1.5">
-                <Wand2 size={18} className="text-muted-foreground/40" />
-                <span>{dragOver ? t("create.dropImage") : t("create.uploadImage")}</span>
+              <div className="flex flex-col items-center gap-2">
+                <div className={`size-10 rounded-xl flex items-center justify-center transition-all duration-300 ${
+                  dragOver ? "bg-primary/20 text-primary scale-110" : "bg-muted/50 text-muted-foreground/40 group-hover:text-primary/50"
+                }`}>
+                  <Wand2 size={18} />
+                </div>
+                <span className={dragOver ? "text-primary font-medium" : ""}>{dragOver ? t("create.dropImage") : t("create.uploadImage")}</span>
+                <span className="text-xs text-muted-foreground/40">{t("create.dragHint") || "支持拖放图片到此处"}</span>
               </div>
             </div>
           )}

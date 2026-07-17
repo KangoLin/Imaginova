@@ -1,5 +1,5 @@
 export function Skeleton({ className = "" }: { className?: string }) {
-  return <div className={`animate-pulse rounded-md bg-muted ${className}`} />;
+  return <div className={`rounded-md bg-muted ${className}`} style={{ backgroundImage: "linear-gradient(90deg, var(--muted) 25%, color-mix(in oklch, var(--muted) 70%, var(--muted-foreground)) 50%, var(--muted) 75%)", backgroundSize: "200% 100%", animation: "shimmer 2s linear infinite" }} />;
 }
 
 export function CardSkeleton() {

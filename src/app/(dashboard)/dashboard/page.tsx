@@ -241,20 +241,33 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <motion.div className="grid grid-cols-3 gap-3 mb-8" variants={containerVariants} initial="hidden" animate="visible">
+      <motion.div className="grid grid-cols-3 gap-4 mb-8" variants={containerVariants} initial="hidden" animate="visible">
         {[
-          { label: t("dashboard.images"), value: imageTotal, color: "text-purple-400" },
-          { label: t("dashboard.videos"), value: videoTotal, color: "text-cyan-400" },
-        ].map((s, i) => (
-          <motion.div key={s.label} variants={itemVariants} className="bg-card border border-border/60 rounded-xl p-4">
-            <p className="text-xs text-muted-foreground">{s.label}</p>
-            <p className={`text-2xl font-bold mt-1 ${s.color}`}>{s.value}</p>
-          </motion.div>
-        ))}
+          { label: t("dashboard.images"), value: imageTotal, icon: ImageIcon, accent: "text-primary" },
+          { label: t("dashboard.videos"), value: videoTotal, icon: Video, accent: "text-accent" },
+        ].map((s, i) => {
+          const Icon = s.icon;
+          return (
+            <motion.div key={s.label} variants={itemVariants} className="bg-card border border-border/60 rounded-[14px] p-5 hover:border-primary/20 transition-colors duration-300">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-xs text-muted-foreground font-medium">{s.label}</p>
+                <div className={`size-8 rounded-lg bg-current/10 flex items-center justify-center ${s.accent}`}>
+                  <Icon size={14} />
+                </div>
+              </div>
+              <p className={`text-2xl sm:text-3xl font-bold tracking-tight ${s.accent}`}>{s.value}</p>
+            </motion.div>
+          );
+        })}
         <motion.div variants={itemVariants}>
-          <Link href="/credits" className="block bg-card border border-border/60 rounded-xl p-4 hover:border-primary/30 transition-colors">
-            <p className="text-xs text-muted-foreground">{t("dashboard.credits")}</p>
-            <p className="text-2xl font-bold mt-1 text-amber-400">{user.credits}</p>
+          <Link href="/credits" className="block bg-card border border-border/60 rounded-[14px] p-5 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 group">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-xs text-muted-foreground font-medium">{t("dashboard.credits")}</p>
+              <div className="size-8 rounded-lg bg-accent/10 flex items-center justify-center text-accent group-hover:bg-accent/15 transition-colors">
+                <Sparkles size={14} />
+              </div>
+            </div>
+            <p className="text-2xl sm:text-3xl font-bold tracking-tight text-accent">{user.credits}</p>
           </Link>
         </motion.div>
       </motion.div>
@@ -302,19 +315,19 @@ export default function DashboardPage() {
       </div>
 
       {tab === "images" && (
-        <motion.div className="grid grid-cols-2 sm:grid-cols-3 gap-3" variants={containerVariants} initial="hidden" animate="visible">
+        <motion.div className="grid grid-cols-2 sm:grid-cols-3 gap-4" variants={containerVariants} initial="hidden" animate="visible">
           {sortedImages.filter((i) => i.prompt.toLowerCase().includes(query)).map((img) => (
             <motion.div key={img.id} variants={itemVariants}>
-              <div className="group relative bg-card border border-border/60 rounded-xl overflow-hidden cursor-pointer hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300" onClick={() => setSelectedImage(img)}>
+              <div className="group relative bg-card border border-border/50 rounded-[14px] overflow-hidden cursor-pointer hover:border-primary/25 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-0.5 transition-all duration-300" onClick={() => setSelectedImage(img)}>
                 <div className="aspect-[4/3] bg-muted relative overflow-hidden">
-                  <Image src={img.url} alt={img.prompt} fill className="object-cover group-hover:scale-105 transition-transform duration-300" sizes="(max-width: 640px) 50vw, 33vw" />
+                  <Image src={img.url} alt={img.prompt} fill className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="(max-width: 640px) 50vw, 33vw" />
                 </div>
                 <button onClick={(e) => handleDeleteItem(img.id, "images", e)} disabled={deletingItems.has(img.id)} className="absolute top-2 right-2 size-7 rounded-full bg-background/80 border border-border/50 flex items-center justify-center md:opacity-0 md:group-hover:opacity-100 transition-opacity hover:bg-destructive hover:text-destructive-foreground disabled:opacity-50">
                   {deletingItems.has(img.id) ? <LoadingSpinner size="sm" /> : <Trash2 size={11} />}
                 </button>
-                <div className="p-2.5">
+                <div className="p-3">
                   <p className="text-xs font-medium truncate">{img.prompt}</p>
-                  <div className="flex items-center gap-2 mt-1">
+                  <div className="flex items-center gap-2 mt-1.5">
                     <Badge variant="outline" className="text-[10px] px-1.5 py-0 font-normal">{img.model}</Badge>
                     <span className="text-[10px] text-muted-foreground">{img.created_at}</span>
                   </div>
@@ -333,21 +346,21 @@ export default function DashboardPage() {
       )}
 
       {tab === "videos" && (
-        <motion.div className="grid grid-cols-2 sm:grid-cols-3 gap-3" variants={containerVariants} initial="hidden" animate="visible">
+        <motion.div className="grid grid-cols-2 sm:grid-cols-3 gap-4" variants={containerVariants} initial="hidden" animate="visible">
           {sortedVideos.filter((v) => v.prompt.toLowerCase().includes(query)).map((vid) => (
             <motion.div key={vid.id} variants={itemVariants}>
-              <div className="group relative bg-card border border-border/60 rounded-xl overflow-hidden cursor-pointer hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300" onClick={() => setSelectedVideo(vid)}>
+              <div className="group relative bg-card border border-border/50 rounded-[14px] overflow-hidden cursor-pointer hover:border-primary/25 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-0.5 transition-all duration-300" onClick={() => setSelectedVideo(vid)}>
                 {vid.status === "completed" && vid.url ? (
-                  <div className="aspect-[4/3] bg-muted overflow-hidden"><video src={`/api/proxy/video?url=${encodeURIComponent(vid.url)}`} preload="metadata" muted playsInline className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" /></div>
+                  <div className="aspect-[4/3] bg-muted overflow-hidden"><video src={`/api/proxy/video?url=${encodeURIComponent(vid.url)}`} preload="metadata" muted playsInline className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" /></div>
                 ) : (
                   <div className="aspect-[4/3] bg-muted flex items-center justify-center text-muted-foreground text-xs">{vid.status === "processing" ? `Processing (${vid.progress}%)` : vid.status}</div>
                 )}
                 <button onClick={(e) => handleDeleteItem(vid.id, "videos", e)} disabled={deletingItems.has(vid.id)} className="absolute top-2 right-2 size-7 rounded-full bg-background/80 border border-border/50 flex items-center justify-center md:opacity-0 md:group-hover:opacity-100 transition-opacity hover:bg-destructive hover:text-destructive-foreground disabled:opacity-50">
                   {deletingItems.has(vid.id) ? <LoadingSpinner size="sm" /> : <Trash2 size={11} />}
                 </button>
-                <div className="p-2.5">
+                <div className="p-3">
                   <p className="text-xs font-medium truncate">{vid.prompt}</p>
-                  <div className="flex items-center gap-2 mt-1">
+                  <div className="flex items-center gap-2 mt-1.5">
                     <Badge variant="outline" className="text-[10px] px-1.5 py-0 font-normal">{vid.model}</Badge>
                     <span className="text-[10px] text-muted-foreground">{vid.created_at}</span>
                     {vid.status !== "completed" && <Badge variant="outline" className="text-[10px] px-1.5 py-0">{vid.status}</Badge>}

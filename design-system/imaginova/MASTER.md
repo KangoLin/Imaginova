@@ -7,7 +7,7 @@
 ---
 
 **Project:** Imaginova
-**Generated:** 2026-07-09 13:52:58
+**Generated:** 2026-07-17 (Phase 1 UI Redesign)
 **Category:** Generative Art Platform
 
 ---
@@ -16,26 +16,41 @@
 
 ### Color Palette
 
-> 颜色系统使用 OKLCH 色彩空间，通过 CSS 变量定义。暗色模式下各值相应调整（见 `src/app/globals.css`）。
+> 颜色系统使用 OKLCH 色彩空间，通过 CSS 变量定义（见 `src/app/globals.css`）。
+> **关键设计原则：暗色模式下背景接近纯黑（`oklch(0.012)`），让 AI 生成物成为视觉主角。CTA 使用纯白填充，是页面上最亮的元素。**
 
-| Role | Light (OKLCH) | CSS Variable | 视觉描述 |
-|------|---------------|--------------|----------|
-| Primary | `oklch(0.55 0.13 185)` | `--color-primary` | 青绿 (Teal) |
-| On Primary | `oklch(0.98 0 0)` | `--color-primary-foreground` | 近白色 |
-| Secondary | `oklch(0.92 0.01 70)` | `--color-secondary` | 暖灰 |
-| Secondary Foreground | `oklch(0.35 0.015 40)` | `--color-secondary-foreground` | 深灰 |
-| Accent/CTA | `oklch(0.72 0.14 75)` | `--color-accent` | 琥珀 (Amber) |
-| Accent Foreground | `oklch(0.15 0.02 40)` | `--color-accent-foreground` | 近黑 |
-| Background | `oklch(0.985 0.002 65)` | `--color-background` | 暖白 |
-| Foreground | `oklch(0.21 0.015 40)` | `--color-foreground` | 深棕灰 |
-| Muted | `oklch(0.96 0.005 65)` | `--color-muted` | 浅暖灰 |
-| Muted Foreground | `oklch(0.55 0.01 40)` | `--color-muted-foreground` | 中灰 |
-| Border | `oklch(0.91 0.005 65)` | `--color-border` | 浅灰 |
-| Destructive | `oklch(0.58 0.2 25)` | `--color-destructive` | 红 |
-| Ring/Focus | `oklch(0.55 0.13 185)` | `--color-ring` | 青绿 (同 Primary) |
-| Radius | `0.75rem` / `12px` | `--radius` | 基础圆角 |
+#### Light Mode
 
-**Color Notes:** 青绿(Teal)主色 + 琥珀(Amber)强调色 — 科技感 + 温暖
+| Role | OKLCH | Visual |
+|------|-------|--------|
+| Background | `oklch(0.97 0.005 260)` | 暖白 |
+| Foreground | `oklch(0.1 0.02 280)` | 深紫灰 |
+| Card | `oklch(0.99 0 0)` | 纯白 |
+| Card Elevated | `oklch(0.96 0.005 260)` | 浅灰（hover/悬浮态） |
+| Primary | `oklch(0.5 0.22 280)` | 青紫 |
+| Accent | `oklch(0.55 0.2 200)` | 青绿 |
+| Muted | `oklch(0.94 0.005 260)` | 浅灰 |
+| Border | `oklch(0.85 0.01 260)` | 灰 |
+
+#### Dark Mode（新 — 对标 Krea.ai 暗色画布）
+
+| Role | OKLCH | Visual |
+|------|-------|--------|
+| Background | `oklch(0.012 0.003 280)` | 近纯黑 |
+| Foreground | `oklch(0.93 0.006 260)` | 亮白灰 |
+| Card | `oklch(0.03 0.006 280)` | 极深灰（几乎不可见） |
+| Card Elevated | `oklch(0.05 0.008 280)` | 微亮卡片（hover/悬浮） |
+| Primary | `oklch(0.62 0.22 280)` | 亮青紫（在深底色上醒目） |
+| Accent | `oklch(0.65 0.18 200)` | 亮青绿 |
+| Muted | `oklch(0.06 0.006 280)` | 极深灰 |
+| Muted Foreground | `oklch(0.42 0.008 260)` | 中灰 |
+| Border | `oklch(0.1 0.008 280)` | 深灰 |
+| Ring/Focus | `oklch(0.62 0.22 280)` | 同 Primary |
+
+**CTA 规范：**
+- **Primary CTA**：纯白填充（`#ffffff`） + 圆角 pill（9999px）+ 微阴影
+- **Secondary CTA**：透明 + 白色边框 1px + 白色文字
+- **常规按钮**：使用 `--primary` 渐变（`from-primary to-accent`）
 
 ### Typography
 
@@ -97,21 +112,23 @@ const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 - 使用 `cn()` 工具函数（`clsx` + `tailwind-merge`）合并类名
 - 使用 `class-variance-authority` (cva) 定义组件变体
 - 图标统一使用 `lucide-react`
-- 固定圆角基础值 `--radius: 0.75rem`，衍生值 `--radius-sm/md/lg/xl/2xl/3xl/4xl`
+- 固定圆角系统（三分法）：`--radius: 8px`（功能元素/卡片/输入框），`--radius-md: 14px`（弹窗/特殊容器），`--radius-pill: 9999px`（仅 CTA main CTA）
 
 ---
 
 ## Style Guidelines
 
-**Style:** 极简 + 科技暖色
+**Style:** 暗色画布 + 极简科技（对标 Krea.ai / Linear）
 
-**Keywords:** Clean minimalism, teal + amber warmth, generous whitespace, rounded corners, subtle glassmorphism
+**Keywords:** Dark canvas, zero chromatic noise, pure white CTA, product-imagery-first, generous whitespace, pill + 8px geometry
 
 **Key CSS Tokens:**
-- `--radius: 0.75rem` — 基础圆角（12px）
-- `transition-theme` — 主题切换过渡（bg/text/border 200ms）
+- `--radius: 8px` — 功能元素/卡片圆角
+- `--radius-md: 14px` — 弹窗/特殊容器圆角
+- `--radius-pill: 9999px` — 仅 CTA 主按钮
+- `--card-elevated` — 悬浮态卡片背景
 - `container-narrow` — 内容区最大宽 1120px 居中
-- 动画使用 `tw-animate-css` + 自定 keyframes（`slide-up`, `fade-in/out`, `scale-in/out`）
+- 动画使用 `tw-animate-css` + 自定 keyframes（`slide-up`, `fade-in/out`, `shimmer`）
 
 ---
 
