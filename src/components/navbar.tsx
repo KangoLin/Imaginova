@@ -41,7 +41,7 @@ export function Navbar({ variant = "app", user }: NavbarProps) {
   const showUser = user && variant !== "detail";
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background/70 backdrop-blur-2xl border-b border-border/50 pt-[env(safe-area-inset-top)]">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-background/70 backdrop-blur-2xl border-b border-border/30 dark:border-border/40 dark:shadow-[0_1px_0_0_rgba(255,255,255,0.02)] pt-[env(safe-area-inset-top)]">
       <div className="flex items-center justify-between h-14 md:h-16 px-4 md:px-6 max-w-6xl mx-auto">
         <Link href="/" className="text-lg font-bold tracking-tight text-primary">Imaginova</Link>
 

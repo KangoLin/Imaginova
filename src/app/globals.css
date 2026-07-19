@@ -34,8 +34,12 @@
 @utility animate-shimmer { animation: shimmer 2s linear infinite; background-size: 200% 100%; }
 @utility text-gradient { background: linear-gradient(135deg, var(--primary), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
 @utility glass { background: color-mix(in oklch, var(--card) 60%, transparent); backdrop-filter: blur(20px) saturate(1.3); -webkit-backdrop-filter: blur(20px) saturate(1.3); }
+@utility glass-dark { background: color-mix(in oklch, var(--card-elevated) 40%, transparent); backdrop-filter: blur(24px) saturate(1.5); -webkit-backdrop-filter: blur(24px) saturate(1.5); border: 1px solid var(--border); }
 @utility pill { border-radius: 9999px; }
 @utility card-elevated { background: var(--card-elevated); border: 1px solid var(--border); border-radius: var(--radius-lg); }
+@utility glow-primary { box-shadow: 0 0 20px color-mix(in oklch, var(--primary) 15%, transparent), 0 0 60px color-mix(in oklch, var(--primary) 5%, transparent); }
+@utility glow-accent { box-shadow: 0 0 20px color-mix(in oklch, var(--accent) 15%, transparent), 0 0 60px color-mix(in oklch, var(--accent) 5%, transparent); }
+@utility noise { background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); background-repeat: repeat; background-size: 256px 256px; }
 
 :root {
   --background: oklch(0.97 0.005 260);
@@ -62,33 +66,44 @@
 }
 
 .dark {
-  --background: oklch(0.012 0.003 280);
-  --foreground: oklch(0.93 0.006 260);
-  --card: oklch(0.03 0.006 280);
-  --card-elevated: oklch(0.05 0.008 280);
-  --card-foreground: oklch(0.93 0.006 260);
-  --popover: oklch(0.04 0.006 280);
-  --popover-foreground: oklch(0.93 0.006 260);
-  --primary: oklch(0.62 0.22 280);
+  --background: oklch(0.022 0.004 270);
+  --foreground: oklch(0.95 0.006 270);
+  --card: oklch(0.055 0.008 270);
+  --card-elevated: oklch(0.085 0.012 270);
+  --card-foreground: oklch(0.93 0.006 270);
+  --popover: oklch(0.065 0.01 270);
+  --popover-foreground: oklch(0.93 0.006 270);
+  --primary: oklch(0.68 0.25 280);
   --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.08 0.008 280);
-  --secondary-foreground: oklch(0.93 0.006 260);
-  --muted: oklch(0.06 0.006 280);
-  --muted-foreground: oklch(0.42 0.008 260);
-  --accent: oklch(0.65 0.18 200);
+  --secondary: oklch(0.12 0.01 270);
+  --secondary-foreground: oklch(0.9 0.006 270);
+  --muted: oklch(0.08 0.008 270);
+  --muted-foreground: oklch(0.56 0.015 260);
+  --accent: oklch(0.72 0.2 200);
   --accent-foreground: oklch(0.02 0 0);
-  --destructive: oklch(0.55 0.22 25);
-  --border: oklch(0.1 0.008 280);
-  --input: oklch(0.08 0.008 280);
-  --ring: oklch(0.62 0.22 280);
+  --destructive: oklch(0.6 0.22 25);
+  --border: oklch(0.18 0.012 270);
+  --input: oklch(0.12 0.01 270);
+  --ring: oklch(0.68 0.25 280);
   --radius-pill: 9999px;
 }
-
-
 
 body {
   font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
   transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.dark body,
+body.dark {
+  background-image:
+    radial-gradient(ellipse 80% 60% at 50% -20%, color-mix(in oklch, var(--primary) 8%, transparent), transparent),
+    radial-gradient(ellipse 60% 50% at 80% 80%, color-mix(in oklch, var(--accent) 5%, transparent), transparent),
+    radial-gradient(ellipse 50% 40% at 20% 70%, color-mix(in oklch, var(--primary) 4%, transparent), transparent);
+}
+
+.dark .card-elevated,
+.dark [class*="bg-card"] {
+  box-shadow: 0 1px 2px rgba(0,0,0,0.3), 0 1px 3px rgba(0,0,0,0.15);
 }
 
 @theme inline {
@@ -117,7 +132,69 @@ body {
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) * 1.4);
   --radius-pill: 9999px;
-}
+  --animate-marquee: marquee var(--duration) infinite linear;
+  --animate-marquee-vertical: marquee-vertical var(--duration) linear infinite;
+  @keyframes marquee {
+  from {
+    transform: translateX(0);
+    }
+  to {
+    transform: translateX(calc(-100% - var(--gap)));
+    }
+  }
+  @keyframes marquee-vertical {
+  from {
+    transform: translateY(0);
+    }
+  to {
+    transform: translateY(calc(-100% - var(--gap)));
+    }
+  }
+  --animate-shine: shine var(--duration) infinite linear
+;
+  @keyframes shine {
+  0% {
+    background-position: 0% 0%;
+    }
+  50% {
+    background-position: 100% 100%;
+    }
+  to {
+    background-position: 0% 0%;
+    }
+  }
+  --animate-meteor: meteor 5s linear infinite;
+  @keyframes meteor {
+  0% {
+    transform: rotate(var(--angle)) translateX(0);
+    opacity: 1;
+    }
+  70% {
+    opacity: 1;
+    }
+  100% {
+    transform: rotate(var(--angle)) translateX(-500px);
+    opacity: 0;
+    }
+  }
+  --animate-ripple: ripple var(--duration,2s) ease calc(var(--i, 0)*.2s) infinite;
+  @keyframes ripple {
+  0%, 100% {
+    transform: translate(-50%, -50%) scale(1);
+    }
+  50% {
+    transform: translate(-50%, -50%) scale(0.9);
+    }
+  }
+  --animate-shiny-text: shiny-text 8s infinite;
+  @keyframes shiny-text {
+  0%, 90%, 100% {
+    background-position: calc(-100% - var(--shiny-width)) 0;
+    }
+  30%, 60% {
+    background-position: calc(100% + var(--shiny-width)) 0;
+    }
+  }}
 
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }

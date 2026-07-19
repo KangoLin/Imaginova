@@ -57,3 +57,5 @@ function Button({
 }
 
 export { Button, buttonVariants }
+
+export type ButtonProps = ButtonPrimitive.Props & VariantProps<typeof buttonVariants>

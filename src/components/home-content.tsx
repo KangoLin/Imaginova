@@ -16,10 +16,10 @@ const features = [
 ];
 
 const showcaseItems = [
-  { id: 1, span: "lg:col-span-2 lg:row-span-2", gradient: "conic-gradient(from 230deg at 50% 50%, #a78bfa, #6366f1, #06b6d4, #a78bfa)", label: "AI Image Generation" },
-  { id: 2, span: "", gradient: "linear-gradient(160deg, #f59e0b, #ec4899, #8b5cf6)", label: "Style Transfer" },
-  { id: 3, span: "", gradient: "linear-gradient(135deg, #06b6d4, #3b82f6, #8b5cf6)", label: "Video Creation" },
-  { id: 4, span: "lg:col-span-2", gradient: "linear-gradient(120deg, #8b5cf6, #6366f1, #06b6d4, #14b8a6)", label: "Multimodal AI" },
+  { id: 1, span: "lg:col-span-2 lg:row-span-2", gradient: "conic-gradient(from 230deg at 50% 50%, #c084fc, #818cf8, #22d3ee, #c084fc)", label: "AI Image Generation" },
+  { id: 2, span: "", gradient: "linear-gradient(160deg, #fbbf24, #f472b6, #a78bfa)", label: "Style Transfer" },
+  { id: 3, span: "", gradient: "linear-gradient(135deg, #22d3ee, #60a5fa, #a78bfa)", label: "Video Creation" },
+  { id: 4, span: "lg:col-span-2", gradient: "linear-gradient(120deg, #a78bfa, #818cf8, #22d3ee, #2dd4bf)", label: "Multimodal AI" },
 ];
 
 const logos = ["OpenAI", "Anthropic", "Google", "Meta", "Stability", "Runway"];
@@ -88,7 +88,7 @@ export function HomeContent({ user }: { user: { name: string } | null }) {
               <Link href={user ? "/create" : "/register"}>
                 <Button
                   size="lg"
-                  className="gap-2 text-base h-12 px-8 rounded-full bg-white text-black hover:bg-white/90 shadow-lg shadow-white/10 hover:shadow-white/20 transition-all duration-300 active:scale-[0.97] font-medium"
+                  className="gap-2 text-base h-12 px-8 rounded-full bg-white text-black hover:bg-white/90 shadow-lg shadow-white/10 hover:shadow-white/20 transition-all duration-300 active:scale-[0.97] font-medium dark:shadow-primary/20 dark:hover:shadow-primary/30"
                 >
                   {t("home.cta")}
                   <ArrowRight size={16} />
@@ -97,7 +97,7 @@ export function HomeContent({ user }: { user: { name: string } | null }) {
               <Button
                 variant="outline"
                 size="lg"
-                className="h-12 px-8 rounded-full border-white/20 text-foreground hover:bg-white/5 hover:border-white/30 transition-all duration-300"
+                className="h-12 px-8 rounded-full border-white/20 dark:border-primary/20 text-foreground hover:bg-white/5 dark:hover:bg-primary/5 hover:border-white/30 dark:hover:border-primary/30 transition-all duration-300"
                 onClick={() => featuresRef.current?.scrollIntoView({ behavior: "smooth" })}
               >
                 {t("home.learnMore")}
