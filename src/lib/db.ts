@@ -2,7 +2,11 @@ import Database from "better-sqlite3";
 import path from "path";
 
 const dbPath = process.env.DATABASE_PATH || path.join(process.cwd(), "data.db");
-const db = new Database(dbPath);
+
+// Direct path to native binding to avoid `bindings` package resolution issue in Next.js bundle
+const db = new Database(dbPath, {
+  nativeBinding: path.join(process.cwd(), "node_modules/better-sqlite3/build/Release/better_sqlite3.node"),
+});
 
 db.pragma("journal_mode = WAL");
 
