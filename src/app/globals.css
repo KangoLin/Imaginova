@@ -82,8 +82,8 @@
   --accent: oklch(0.72 0.2 200);
   --accent-foreground: oklch(0.02 0 0);
   --destructive: oklch(0.6 0.22 25);
-  --border: oklch(0.18 0.012 270);
-  --input: oklch(0.12 0.01 270);
+  --border: oklch(0.35 0.02 270);
+  --input: oklch(0.28 0.02 270);
   --ring: oklch(0.68 0.25 280);
   --radius-pill: 9999px;
 }

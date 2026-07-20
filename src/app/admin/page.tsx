@@ -111,7 +111,7 @@ export default function AdminPage() {
         <h2 className="text-sm font-semibold mb-4">{t("admin.keyUsage")}</h2>
         <div className="space-y-2">
           {stats.keyUsage.map((k) => (
-            <div key={k.action} className="flex items-center justify-between py-1.5 border-b border-border/40 last:border-0">
+            <div key={k.action} className="flex items-center justify-between py-1.5 border-b border-border/60 last:border-0">
               <span className="text-sm">{actionLabels[k.action] || k.action}</span>
               <div className="flex items-center gap-4 text-sm">
                 <span className="text-muted-foreground">{k.count} {t("admin.times")}</span>
@@ -129,7 +129,7 @@ export default function AdminPage() {
         <h2 className="text-sm font-semibold mb-4">{t("admin.topUsers")}</h2>
         <div className="space-y-2">
           {stats.topUsers.map((u, i) => (
-            <div key={u.id} className="flex items-center justify-between py-1.5 border-b border-border/40 last:border-0 gap-3">
+            <div key={u.id} className="flex items-center justify-between py-1.5 border-b border-border/60 last:border-0 gap-3">
               <div className="flex items-center gap-3 min-w-0">
                 <span className="w-5 text-xs text-muted-foreground font-medium shrink-0">#{i + 1}</span>
                 <span className="text-sm font-medium truncate">{u.name}</span>

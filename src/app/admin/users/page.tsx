@@ -57,7 +57,7 @@ export default function AdminUsersPage() {
               </thead>
               <tbody>
                 {users.map((u) => (
-                  <tr key={u.id} className="border-b border-border/40 hover:bg-muted/50 transition-colors">
+                  <tr key={u.id} className="border-b border-border/60 hover:bg-muted/50 transition-colors">
                     <td className="p-3 text-muted-foreground text-xs">{u.id}</td>
                     <td className="p-3 font-medium">{u.name}</td>
                     <td className="p-3 text-muted-foreground">{u.email}</td>

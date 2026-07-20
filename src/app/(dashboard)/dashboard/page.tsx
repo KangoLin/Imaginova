@@ -318,11 +318,11 @@ export default function DashboardPage() {
         <motion.div className="grid grid-cols-2 sm:grid-cols-3 gap-4" variants={containerVariants} initial="hidden" animate="visible">
           {sortedImages.filter((i) => i.prompt.toLowerCase().includes(query)).map((img) => (
             <motion.div key={img.id} variants={itemVariants}>
-              <div className="group relative bg-card border border-border/50 rounded-[14px] overflow-hidden cursor-pointer hover:border-primary/25 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-0.5 transition-all duration-300" onClick={() => setSelectedImage(img)}>
+              <div className="group relative bg-card border border-border/60 rounded-[14px] overflow-hidden cursor-pointer hover:border-primary/25 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-0.5 transition-all duration-300" onClick={() => setSelectedImage(img)}>
                 <div className="aspect-[4/3] bg-muted relative overflow-hidden">
                   <Image src={img.url} alt={img.prompt} fill className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="(max-width: 640px) 50vw, 33vw" />
                 </div>
-                <button onClick={(e) => handleDeleteItem(img.id, "images", e)} disabled={deletingItems.has(img.id)} className="absolute top-2 right-2 size-7 rounded-full bg-background/80 border border-border/50 flex items-center justify-center md:opacity-0 md:group-hover:opacity-100 transition-opacity hover:bg-destructive hover:text-destructive-foreground disabled:opacity-50">
+                <button onClick={(e) => handleDeleteItem(img.id, "images", e)} disabled={deletingItems.has(img.id)} className="absolute top-2 right-2 size-7 rounded-full bg-background/80 border border-border/60 flex items-center justify-center md:opacity-0 md:group-hover:opacity-100 transition-opacity hover:bg-destructive hover:text-destructive-foreground disabled:opacity-50">
                   {deletingItems.has(img.id) ? <LoadingSpinner size="sm" /> : <Trash2 size={11} />}
                 </button>
                 <div className="p-3">
@@ -349,13 +349,13 @@ export default function DashboardPage() {
         <motion.div className="grid grid-cols-2 sm:grid-cols-3 gap-4" variants={containerVariants} initial="hidden" animate="visible">
           {sortedVideos.filter((v) => v.prompt.toLowerCase().includes(query)).map((vid) => (
             <motion.div key={vid.id} variants={itemVariants}>
-              <div className="group relative bg-card border border-border/50 rounded-[14px] overflow-hidden cursor-pointer hover:border-primary/25 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-0.5 transition-all duration-300" onClick={() => setSelectedVideo(vid)}>
+              <div className="group relative bg-card border border-border/60 rounded-[14px] overflow-hidden cursor-pointer hover:border-primary/25 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-0.5 transition-all duration-300" onClick={() => setSelectedVideo(vid)}>
                 {vid.status === "completed" && vid.url ? (
                   <div className="aspect-[4/3] bg-muted overflow-hidden"><video src={`/api/proxy/video?url=${encodeURIComponent(vid.url)}`} preload="metadata" muted playsInline className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" /></div>
                 ) : (
                   <div className="aspect-[4/3] bg-muted flex items-center justify-center text-muted-foreground text-xs">{vid.status === "processing" ? `Processing (${vid.progress}%)` : vid.status}</div>
                 )}
-                <button onClick={(e) => handleDeleteItem(vid.id, "videos", e)} disabled={deletingItems.has(vid.id)} className="absolute top-2 right-2 size-7 rounded-full bg-background/80 border border-border/50 flex items-center justify-center md:opacity-0 md:group-hover:opacity-100 transition-opacity hover:bg-destructive hover:text-destructive-foreground disabled:opacity-50">
+                <button onClick={(e) => handleDeleteItem(vid.id, "videos", e)} disabled={deletingItems.has(vid.id)} className="absolute top-2 right-2 size-7 rounded-full bg-background/80 border border-border/60 flex items-center justify-center md:opacity-0 md:group-hover:opacity-100 transition-opacity hover:bg-destructive hover:text-destructive-foreground disabled:opacity-50">
                   {deletingItems.has(vid.id) ? <LoadingSpinner size="sm" /> : <Trash2 size={11} />}
                 </button>
                 <div className="p-3">

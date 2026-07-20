@@ -59,8 +59,9 @@ export default function CreatePage() {
   const [error, setError] = useState("");
   const [progress, setProgress] = useState(0);
   const [progressPhase, setProgressPhase] = useState("");
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [videoMode, setVideoMode] = useState<"standard" | "keyframes">("standard");
   const pollingRef = useRef(false);
   const pollStartRef = useRef(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -78,7 +79,15 @@ export default function CreatePage() {
   }, []);
 
   function handleDragFile(file: File) {
-    if (file.type.startsWith("image/")) { setImageFile(file); setImagePreview(URL.createObjectURL(file)); }
+    if (file.type.startsWith("image/")) {
+      if (tab === "video" && videoMode === "standard") {
+        setImageFiles([file]);
+        setImagePreviews([URL.createObjectURL(file)]);
+      } else {
+        setImageFiles((prev) => [...prev, file]);
+        setImagePreviews((prev) => [...prev, URL.createObjectURL(file)]);
+      }
+    }
   }
 
   function autoResize(el: HTMLTextAreaElement) {
@@ -98,36 +107,30 @@ export default function CreatePage() {
 
     try {
       if (tab === "image") {
-        let data: { id: number };
-        if (imageFile) {
-          const formData = new FormData();
-          formData.append("prompt", prompt);
-          formData.append("model", "agnes-image-2.1-flash");
-          formData.append("image", imageFile);
-          formData.append("size", imageSize);
-          data = await api.post("/api/generate/image", formData);
-        } else {
-          data = await api.post("/api/generate/image", { prompt, model: "agnes-image-2.1-flash", size: imageSize });
-        }
+        const formData = new FormData();
+        formData.append("prompt", prompt);
+        formData.append("model", "agnes-image-2.1-flash");
+        formData.append("size", imageSize);
+        for (const file of imageFiles) formData.append("image", file);
+        const data = (imageFiles.length > 0
+          ? await api.post("/api/generate/image", formData)
+          : await api.post("/api/generate/image", { prompt, model: "agnes-image-2.1-flash", size: imageSize })) as { id: number };
         router.push(`/image/${data.id}`);
         return;
       } else {
-        let data: { id: number; task_id: string };
-        if (imageFile) {
-          const formData = new FormData();
-          formData.append("prompt", prompt);
-          formData.append("image", imageFile);
-          formData.append("width", String(videoWidth));
-          formData.append("height", String(videoHeight));
-          formData.append("num_frames", String(videoNumFrames));
-          formData.append("frame_rate", String(videoFrameRate));
-          data = await api.post("/api/generate/video", formData);
-        } else {
-          data = await api.post("/api/generate/video", {
-            prompt, width: videoWidth, height: videoHeight,
-            num_frames: videoNumFrames, frame_rate: videoFrameRate,
-          });
+        const formData = new FormData();
+        formData.append("prompt", prompt);
+        if (videoMode === "keyframes") {
+          formData.append("mode", "keyframes");
+          for (const file of imageFiles) formData.append("image", file);
+        } else if (imageFiles.length > 0) {
+          formData.append("image", imageFiles[0]);
         }
+        formData.append("width", String(videoWidth));
+        formData.append("height", String(videoHeight));
+        formData.append("num_frames", String(videoNumFrames));
+        formData.append("frame_rate", String(videoFrameRate));
+        const data = (await api.post("/api/generate/video", formData)) as { id: number; task_id: string };
         toast(t("create.videoStarted"), "info");
         pollStartRef.current = Date.now();
         startSSE(data.id);
@@ -177,7 +180,7 @@ export default function CreatePage() {
         </div>
       )}
 
-      <Tabs value={tab} onValueChange={(v) => { setTab(v as Tab); setImageFile(null); setImagePreview(null); if (fileInputRef.current) fileInputRef.current.value = ""; }}>
+      <Tabs value={tab} onValueChange={(v) => { setTab(v as Tab); setImageFiles([]); setImagePreviews([]); if (fileInputRef.current) fileInputRef.current.value = ""; }}>
         <TabsList variant="line" className="mb-6">
           <TabsTrigger value="image">{t("create.image")}</TabsTrigger>
           <TabsTrigger value="video">{t("create.video")}</TabsTrigger>
@@ -209,7 +212,7 @@ export default function CreatePage() {
                   key={ex}
                   type="button"
                   onClick={() => { setPrompt(ex); if (textareaRef.current) autoResize(textareaRef.current); }}
-                  className="text-xs bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground px-2.5 py-1 rounded-full border border-border/40 transition-all active:scale-[0.97]"
+                  className="text-xs bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground px-2.5 py-1 rounded-full border border-border/60 transition-all active:scale-[0.97]"
                 >
                   {ex.length > 40 ? ex.slice(0, 40) + "..." : ex}
                 </button>
@@ -220,37 +223,51 @@ export default function CreatePage() {
 
         <div>
           <label className="block text-sm font-medium mb-1.5 text-foreground">{t("create.referenceImage")}</label>
-          {imagePreview ? (
-            <div className="relative inline-block group">
-              <Image src={imagePreview} alt="Reference" width={112} height={112} className="object-cover rounded-lg border border-border" unoptimized />
-              <button type="button" onClick={() => { setImageFile(null); setImagePreview(null); if (fileInputRef.current) fileInputRef.current.value = ""; }} className="absolute -top-2 -right-2 size-5 rounded-full bg-background border border-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-all text-[10px] opacity-0 group-hover:opacity-100">
-                x
-              </button>
-            </div>
-          ) : (
-            <div
-              onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-              onDragLeave={() => setDragOver(false)}
-              onDrop={(e) => { e.preventDefault(); setDragOver(false); const f = e.dataTransfer.files[0]; if (f) handleDragFile(f); }}
-              onClick={() => fileInputRef.current?.click()}
-              className={`w-full border-2 border-dashed rounded-xl py-10 text-sm text-muted-foreground transition-all duration-300 cursor-pointer group ${
-                dragOver ? "border-primary bg-primary/[0.06] scale-[1.02]" : "border-border/40 hover:border-primary/30 hover:bg-primary/[0.03]"
-              }`}
-            >
-              <div className="flex flex-col items-center gap-2">
-                <div className={`size-10 rounded-xl flex items-center justify-center transition-all duration-300 ${
-                  dragOver ? "bg-primary/20 text-primary scale-110" : "bg-muted/50 text-muted-foreground/40 group-hover:text-primary/50"
-                }`}>
-                  <Wand2 size={18} />
+          {imagePreviews.length > 0 ? (
+            <div className="flex flex-wrap gap-2 mb-3">
+              {imagePreviews.map((preview, idx) => (
+                <div key={idx} className="relative inline-block group">
+                  <Image src={preview} alt={`Reference ${idx + 1}`} width={96} height={96} className="object-cover rounded-lg border border-border size-24" unoptimized />
+                  <button type="button" onClick={() => {
+                    setImageFiles((prev) => prev.filter((_, i) => i !== idx));
+                    setImagePreviews((prev) => prev.filter((_, i) => i !== idx));
+                  }} className="absolute -top-2 -right-2 size-5 rounded-full bg-background border border-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-all text-[10px] opacity-0 group-hover:opacity-100">x</button>
                 </div>
-                <span className={dragOver ? "text-primary font-medium" : ""}>{dragOver ? t("create.dropImage") : t("create.uploadImage")}</span>
-                <span className="text-xs text-muted-foreground/40">{t("create.dragHint") || "支持拖放图片到此处"}</span>
-              </div>
+              ))}
             </div>
-          )}
-          <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (file) { setImageFile(file); setImagePreview(URL.createObjectURL(file)); }
+          ) : null}
+          <div
+            onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+            onDragLeave={() => setDragOver(false)}
+            onDrop={(e) => { e.preventDefault(); setDragOver(false); const f = e.dataTransfer.files[0]; if (f) handleDragFile(f); }}
+            onClick={() => fileInputRef.current?.click()}
+            className={`w-full border-2 border-dashed rounded-xl py-6 text-sm text-muted-foreground transition-all duration-300 cursor-pointer group ${
+                dragOver ? "border-primary bg-primary/[0.06] scale-[1.02]" : "border-border/60 hover:border-primary/30 hover:bg-primary/[0.03]"
+            }`}
+          >
+            <div className="flex flex-col items-center gap-2">
+              <div className={`size-10 rounded-xl flex items-center justify-center transition-all duration-300 ${
+                dragOver ? "bg-primary/20 text-primary scale-110" : "bg-muted/50 text-muted-foreground/40 group-hover:text-primary/50"
+              }`}>
+                <Wand2 size={18} />
+              </div>
+              <span className={dragOver ? "text-primary font-medium" : ""}>{imagePreviews.length > 0 ? (tab === "video" && videoMode === "standard" ? t("create.replaceImage") || "替换图片" : t("create.addMoreImages") || "添加更多图片") : dragOver ? t("create.dropImage") : t("create.uploadImage")}</span>
+              <span className="text-xs text-muted-foreground/40">{tab === "video" && videoMode === "standard" ? (t("create.singleImageHint") || "标准模式仅支持一张参考图") : (t("create.dragHint") || "支持拖放图片到此处")}</span>
+            </div>
+          </div>
+          <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden" onChange={(e) => {
+            const files = e.target.files;
+            if (files) {
+              const isSingle = tab === "video" && videoMode === "standard";
+              const newFiles = Array.from(files).filter((f) => f.type.startsWith("image/"));
+              if (isSingle && newFiles.length > 0) {
+                setImageFiles([newFiles[0]]);
+                setImagePreviews([URL.createObjectURL(newFiles[0])]);
+              } else {
+                setImageFiles((prev) => [...prev, ...newFiles]);
+                setImagePreviews((prev) => [...prev, ...newFiles.map((f) => URL.createObjectURL(f))]);
+              }
+            }
           }} />
         </div>
 
@@ -269,7 +286,21 @@ export default function CreatePage() {
         )}
 
         {tab === "video" && (
-          <div className="grid grid-cols-3 gap-3">
+          <div>
+            <div className="mb-3">
+              <label className="block text-sm font-medium mb-1.5 text-foreground">{t("create.videoMode") || "视频模式"}</label>
+              <div className="flex gap-2">
+                <button type="button" onClick={() => { setVideoMode("standard"); if (imageFiles.length > 1) { setImageFiles([imageFiles[0]]); setImagePreviews([imagePreviews[0]]); } }} className={`flex-1 px-3 py-2 text-xs rounded-lg border transition-all text-left ${videoMode === "standard" ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:border-primary/30"}`}>
+                  <div className="font-medium mb-0.5">{t("create.modeStandard") || "标准图生视频"}</div>
+                  <div className="opacity-60 font-normal">{t("create.modeStandardDesc") || "上传一张参考图，AI 生成延续该画面的视频"}</div>
+                </button>
+                <button type="button" onClick={() => setVideoMode("keyframes")} className={`flex-1 px-3 py-2 text-xs rounded-lg border transition-all text-left ${videoMode === "keyframes" ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:border-primary/30"}`}>
+                  <div className="font-medium mb-0.5">{t("create.modeKeyframes") || "关键帧动画"}</div>
+                  <div className="opacity-60 font-normal">{t("create.modeKeyframesDesc") || "上传多张参考图作为关键帧，AI 生成连贯过渡动画"}</div>
+                </button>
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-3">
             <div>
               <label className="block text-sm font-medium mb-1.5 text-foreground">{t("create.videoResolution")}</label>
               <Select value={`${videoWidth}x${videoHeight}`} onChange={(e) => { const [w, h] = e.target.value.split("x").map(Number); setVideoWidth(w); setVideoHeight(h); }}>
@@ -301,6 +332,7 @@ export default function CreatePage() {
                 <option value={60}>60 {t("create.fps")}</option>
               </Select>
             </div>
+          </div>
           </div>
         )}
 

@@ -4,7 +4,7 @@ async function request(
   path: string,
   opts: { method: string; body?: string },
   timeoutMs = 90000,
-  retries = 1
+  retries = 3
 ): Promise<{ status: number; body: string }> {
   const key = process.env.OPENAI_API_KEY || "";
   for (let attempt = 0; attempt <= retries; attempt++) {
@@ -24,6 +24,12 @@ async function request(
           signal: controller.signal,
         });
         const body = await res.text();
+        if (res.status === 503 && attempt < retries) {
+          const delay = Math.min(2000 * Math.pow(2, attempt), 15000);
+          console.error(`Video request got 503 (attempt ${attempt + 1}/${retries + 1}), retrying in ${delay}ms`);
+          await new Promise((r) => setTimeout(r, delay));
+          continue;
+        }
         return { status: res.status, body };
       } finally {
         clearTimeout(timer);
@@ -31,7 +37,7 @@ async function request(
     } catch (e) {
       console.error(`Video request attempt ${attempt + 1}/${retries + 1} failed:`, (e as Error).message);
       if (attempt === retries) throw e;
-      await new Promise((r) => setTimeout(r, 1000));
+      await new Promise((r) => setTimeout(r, 1000 * Math.pow(2, attempt)));
     }
   }
   throw new Error("Unreachable");
@@ -44,7 +50,7 @@ export interface VideoOptions {
   frame_rate?: number;
 }
 
-export function createVideo(prompt: string, imageUrl?: string, options?: VideoOptions): Promise<{
+export function createVideo(prompt: string, imageUrl?: string, options?: VideoOptions & { imageUrls?: string[]; mode?: string }): Promise<{
   task_id: string;
   video_id?: string;
 }> {
@@ -55,6 +61,11 @@ export function createVideo(prompt: string, imageUrl?: string, options?: VideoOp
     if (options.height) reqBody.height = options.height;
     if (options.num_frames) reqBody.num_frames = options.num_frames;
     if (options.frame_rate) reqBody.frame_rate = options.frame_rate;
+    if (options.mode) reqBody.mode = options.mode;
+    if (options.imageUrls && options.imageUrls.length > 0) {
+      reqBody.extra_body = { image: options.imageUrls };
+      if (options.mode) (reqBody.extra_body as Record<string, unknown>).mode = options.mode;
+    }
   }
   return request(
     "/v1/videos",

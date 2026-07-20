@@ -297,6 +297,17 @@ e2e/                   — Playwright E2E 测试
 | ✅ | N2 键盘快捷键 | `src/app/(detail)/image/[id]/page.tsx` | ← 上一张 / → 下一张 |
 | ✅ | N3 并行加载 | `src/app/(detail)/image/[id]/page.tsx` | `Promise.all` 同时获取当前图片 + 列表 |
 
+## 多参考图 / 关键帧动画 (2026-07-20)
+
+| # | 功能 | 文件 | 说明 |
+|---|------|------|------|
+| ✅ | M1 图片生成支持多参考图 | `src/lib/image.ts` | `imageUrl` → `imageUrls: string[]`，传给 `extra_body.image` 数组 |
+| ✅ | M2 图片 API 多文件上传 | `src/app/api/generate/image/route.ts` | FormData 解析多个 `image` 字段 |
+| ✅ | M3 视频关键帧模式 | `src/lib/video.ts` | 新增 `imageUrls` + `mode` 参数，传给 `extra_body` |
+| ✅ | M4 视频 API 多文件上传 | `src/app/api/generate/video/route.ts` | FormData 解析多个 `image` + `mode` 字段 |
+| ✅ | M5 前端多图上传 UI | `src/app/(dashboard)/create/page.tsx` | 支持多文件选择/拖放/预览/删除，视频模式选择器 |
+| ✅ | M6 中英 i18n 文案 | `src/locales/en.json`、`src/locales/zh.json` | `addMoreImages`、`videoMode`、`modeStandard`、`modeKeyframes` |
+
 ## 构建状态
 
 - `npm run build` — 零错误，零警告 ✅

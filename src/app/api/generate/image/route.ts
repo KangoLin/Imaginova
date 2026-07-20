@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
   }
 
   let prompt: string;
-  let imageUrl: string | undefined;
+  let imageUrls: string[] = [];
   let size: string | undefined;
 
   const ct = req.headers.get("content-type") || "";
@@ -24,12 +24,14 @@ export async function POST(req: NextRequest) {
     }
     prompt = p;
     size = typeof formData.get("size") === "string" ? formData.get("size") as string : undefined;
-    const file = formData.get("image");
-    if (file && typeof file === "object" && "size" in file && file.size > 0 && "arrayBuffer" in file) {
-      const buf = Buffer.from(await file.arrayBuffer());
-      const b64 = buf.toString("base64");
-      const mime = file.type || "image/png";
-      imageUrl = `data:${mime};base64,${b64}`;
+    const files = formData.getAll("image");
+    for (const file of files) {
+      if (typeof file === "object" && "size" in file && file.size > 0 && "arrayBuffer" in file) {
+        const buf = Buffer.from(await file.arrayBuffer());
+        const b64 = buf.toString("base64");
+        const mime = file.type || "image/png";
+        imageUrls.push(`data:${mime};base64,${b64}`);
+      }
     }
   } else {
     const raw = await req.text();
@@ -38,7 +40,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Prompt is required" }, { status: 400 });
     }
     prompt = body.prompt;
-    imageUrl = body.imageUrl;
+    imageUrls = Array.isArray(body.imageUrls) ? body.imageUrls : (body.imageUrl ? [body.imageUrl] : []);
     size = body.size;
   }
 
@@ -62,10 +64,10 @@ export async function POST(req: NextRequest) {
       prompt,
       model: "agnes-image-2.1-flash",
       size,
-      imageUrl,
+      imageUrls: imageUrls.length > 0 ? imageUrls : undefined,
     });
 
-    const hasRef = imageUrl ? 1 : 0;
+    const hasRef = imageUrls.length > 0 ? 1 : 0;
     const info = db.prepare(
       "INSERT INTO images (user_id, prompt, url, model, has_reference) VALUES (?, ?, ?, ?, ?)"
     ).run(userId, prompt, result.url, "agnes-image-2.1-flash", hasRef);

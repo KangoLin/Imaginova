@@ -13,6 +13,8 @@ export async function POST(req: NextRequest) {
 
   let prompt: string;
   let imageUrl: string | undefined;
+  let imageUrls: string[] = [];
+  let mode: string | undefined;
   let width: number | undefined;
   let height: number | undefined;
   let num_frames: number | undefined;
@@ -26,6 +28,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Prompt is required" }, { status: 400 });
     }
     prompt = p;
+    mode = typeof formData.get("mode") === "string" ? formData.get("mode") as string : undefined;
     const w = formData.get("width");
     const h = formData.get("height");
     const nf = formData.get("num_frames");
@@ -34,16 +37,16 @@ export async function POST(req: NextRequest) {
     if (h) height = Number(h);
     if (nf) num_frames = Number(nf);
     if (fr) frame_rate = Number(fr);
-    const file = formData.get("image");
-    if (file && typeof file === "object" && "size" in file && file.size > 0 && "arrayBuffer" in file) {
-      const buf = Buffer.from(await file.arrayBuffer());
-      const b64 = buf.toString("base64");
-      const mime = file.type || "image/png";
-      imageUrl = `data:${mime};base64,${b64}`;
-      console.log("Video FormData: image processed, size:", file.size, "mime:", mime);
-    } else {
-      console.log("Video FormData: no image file found, type:", typeof file, file ? Object.keys(file).join(",") : "null");
+    const files = formData.getAll("image");
+    for (const file of files) {
+      if (typeof file === "object" && "size" in file && file.size > 0 && "arrayBuffer" in file) {
+        const buf = Buffer.from(await file.arrayBuffer());
+        const b64 = buf.toString("base64");
+        const mime = file.type || "image/png";
+        imageUrls.push(`data:${mime};base64,${b64}`);
+      }
     }
+    imageUrl = imageUrls.length === 1 ? imageUrls[0] : undefined;
   } else {
     const raw = await req.text();
     const body = JSON.parse(raw);
@@ -51,7 +54,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Prompt is required" }, { status: 400 });
     }
     prompt = body.prompt;
-    imageUrl = body.imageUrl;
+    mode = body.mode;
+    imageUrls = Array.isArray(body.imageUrls) ? body.imageUrls : (body.imageUrl ? [body.imageUrl] : []);
+    imageUrl = imageUrls.length === 1 ? imageUrls[0] : undefined;
     width = body.width ? Number(body.width) : undefined;
     height = body.height ? Number(body.height) : undefined;
     num_frames = body.num_frames ? Number(body.num_frames) : undefined;
@@ -74,7 +79,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const task = await createVideo(prompt, imageUrl, { width, height, num_frames, frame_rate });
+    const task = await createVideo(prompt, imageUrl, { width, height, num_frames, frame_rate, imageUrls: imageUrls.length > 0 ? imageUrls : undefined, mode });
 
     const info = db.prepare(
       "INSERT INTO videos (user_id, prompt, model, status, task_id, video_id) VALUES (?, ?, ?, ?, ?, ?)"

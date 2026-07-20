@@ -100,17 +100,17 @@ export default function ImageDetailPage() {
         <div className="bg-muted relative flex items-center justify-center group" style={{ minHeight: "65vh", maxHeight: "85vh" }}>
           <Image src={image.url} alt={image.prompt} fill className="object-contain" sizes="(max-width: 768px) 100vw, 1024px" />
           {prevImage && (
-            <button onClick={() => navigateTo(prevImage.id)} className="absolute left-3 top-1/2 -translate-y-1/2 size-10 rounded-full bg-background/80 border border-border/50 text-muted-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-background hover:text-foreground transition-all duration-200" aria-label="Previous image">
+            <button onClick={() => navigateTo(prevImage.id)} className="absolute left-3 top-1/2 -translate-y-1/2 size-10 rounded-full bg-background/80 border border-border/60 text-muted-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-background hover:text-foreground transition-all duration-200" aria-label="Previous image">
               <ChevronLeft size={18} />
             </button>
           )}
           {nextImage && (
-            <button onClick={() => navigateTo(nextImage.id)} className="absolute right-3 top-1/2 -translate-y-1/2 size-10 rounded-full bg-background/80 border border-border/50 text-muted-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-background hover:text-foreground transition-all duration-200" aria-label="Next image">
+            <button onClick={() => navigateTo(nextImage.id)} className="absolute right-3 top-1/2 -translate-y-1/2 size-10 rounded-full bg-background/80 border border-border/60 text-muted-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-background hover:text-foreground transition-all duration-200" aria-label="Next image">
               <ChevronRight size={18} />
             </button>
           )}
           <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-            <span className="text-xs text-muted-foreground bg-background/80 px-2.5 py-1 rounded-full border border-border/50">
+            <span className="text-xs text-muted-foreground bg-background/80 px-2.5 py-1 rounded-full border border-border/60">
               {currentIndex >= 0 ? `${currentIndex + 1} / ${allImages.length}` : ""}
             </span>
           </div>

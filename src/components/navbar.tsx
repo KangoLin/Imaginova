@@ -77,13 +77,13 @@ export function Navbar({ variant = "app", user }: NavbarProps) {
                   ))}
                   {user ? (
                     <>
-                      <div className="border-t border-border/50 my-2" />
+                      <div className="border-t border-border/60 my-2" />
                       <span className="px-3 py-1 text-xs text-muted-foreground">{user.name}</span>
                       <SignOutButton className="px-3 py-2 text-sm text-muted-foreground hover:text-foreground rounded-md hover:bg-muted/50 transition-colors text-left" />
                     </>
                   ) : (
                     <>
-                      <div className="border-t border-border/50 my-2" />
+                      <div className="border-t border-border/60 my-2" />
                       <Link href="/login" className="px-3 py-2 text-sm text-muted-foreground hover:text-foreground rounded-md hover:bg-muted/50 transition-colors">{t("nav.signIn")}</Link>
                       <Link href="/register" className="px-3 py-2 text-sm text-foreground font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">{t("nav.register")}</Link>
                     </>
@@ -98,7 +98,7 @@ export function Navbar({ variant = "app", user }: NavbarProps) {
   }
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background/70 backdrop-blur-2xl border-b border-border/30 dark:border-border/40 dark:shadow-[0_1px_0_0_rgba(255,255,255,0.02)] pt-[env(safe-area-inset-top)]">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-background/70 backdrop-blur-2xl border-b border-border/40 dark:border-border/60 dark:shadow-[0_1px_0_0_rgba(255,255,255,0.02)] pt-[env(safe-area-inset-top)]">
       <div className="flex items-center justify-between h-14 md:h-16 px-4 md:px-6 max-w-6xl mx-auto">
         <Link href="/" className="text-lg font-bold tracking-tight text-primary">Imaginova</Link>
 
@@ -128,12 +128,12 @@ export function Navbar({ variant = "app", user }: NavbarProps) {
                 ))}
                 {showUser && (
                   <>
-                    <div className="border-t border-border/50 my-2" />
+                    <div className="border-t border-border/60 my-2" />
                     <span className="px-3 py-1 text-xs text-muted-foreground">{user!.name}</span>
                     <SignOutButton className="px-3 py-2 text-sm text-muted-foreground hover:text-foreground rounded-md hover:bg-muted/50 transition-colors text-left" />
                   </>
                 )}
-                <div className="border-t border-border/50 my-2" />
+                <div className="border-t border-border/60 my-2" />
                 <LanguageSwitcher />
               </div>
             </SheetContent>

@@ -4,7 +4,7 @@ async function makeRequest(
   urlStr: string,
   opts: { method: string; headers: Record<string, string>; body?: string },
   timeoutMs = 180000,
-  retries = 1
+  retries = 3
 ): Promise<{ status: number; body: string }> {
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
@@ -18,6 +18,12 @@ async function makeRequest(
           signal: controller.signal,
         });
         const body = await res.text();
+        if (res.status === 503 && attempt < retries) {
+          const delay = Math.min(2000 * Math.pow(2, attempt), 15000);
+          console.error(`Image request got 503 (attempt ${attempt + 1}/${retries + 1}), retrying in ${delay}ms`);
+          await new Promise((r) => setTimeout(r, delay));
+          continue;
+        }
         return { status: res.status, body };
       } finally {
         clearTimeout(timer);
@@ -25,13 +31,13 @@ async function makeRequest(
     } catch (e) {
       console.error(`Image request attempt ${attempt + 1}/${retries + 1} failed:`, (e as Error).message);
       if (attempt === retries) throw e;
-      await new Promise((r) => setTimeout(r, 1000));
+      await new Promise((r) => setTimeout(r, 1000 * Math.pow(2, attempt)));
     }
   }
   throw new Error("Unreachable");
 }
 
-export async function generateImage(params: { prompt: string; model: string; size?: string; imageUrl?: string }) {
+export async function generateImage(params: { prompt: string; model: string; size?: string; imageUrls?: string[] }) {
   const key = process.env.OPENAI_API_KEY || "";
   const reqBody: Record<string, unknown> = {
     model: params.model || "agnes-image-2.1-flash",
@@ -39,9 +45,9 @@ export async function generateImage(params: { prompt: string; model: string; siz
     size: params.size || "1024x1024",
     n: 1,
   };
-  if (params.imageUrl) {
+  if (params.imageUrls && params.imageUrls.length > 0) {
     reqBody.extra_body = {
-      image: [params.imageUrl],
+      image: params.imageUrls,
       response_format: "url",
     };
   }

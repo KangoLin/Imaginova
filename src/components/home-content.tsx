@@ -45,7 +45,7 @@ export function HomeContent({ user }: { user: { name: string } | null }) {
   const LogoIcon = ({ name, index }: { name: string; index: number }) => {
     const colors = ["text-primary", "text-accent", "text-foreground", "text-muted-foreground", "text-primary/70", "text-accent/70"];
     return (
-      <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-card border border-border/40 hover:border-primary/20 transition-colors">
+      <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-card border border-border/60 hover:border-primary/20 transition-colors">
         <div className={`size-6 rounded-full ${colors[index % colors.length]} bg-current/10 flex items-center justify-center`}>
           <span className="text-[8px] font-bold text-background">{name[0]}</span>
         </div>
@@ -154,7 +154,7 @@ export function HomeContent({ user }: { user: { name: string } | null }) {
           </div>
         </section>
 
-        <section className="py-16 border-y border-border/40 relative">
+        <section className="py-16 border-y border-border/60 relative">
           <div className="absolute inset-0 bg-gradient-to-r from-primary/[0.02] via-transparent to-accent/[0.02] pointer-events-none" />
           <div className="container-narrow px-6 relative">
             <p className="text-xs text-muted-foreground text-center mb-6 font-medium tracking-wider uppercase">{t("home.featuresTitle")}</p>
@@ -178,7 +178,7 @@ export function HomeContent({ user }: { user: { name: string } | null }) {
                 return (
                   <div
                     key={f.key}
-                    className="group relative rounded-[14px] bg-card border border-border/40 p-6 hover:border-primary/25 hover:-translate-y-0.5 transition-all duration-300 animate-slide-up overflow-hidden"
+                    className="group relative rounded-[14px] bg-card border border-border/60 p-6 hover:border-primary/25 hover:-translate-y-0.5 transition-all duration-300 animate-slide-up overflow-hidden"
                     style={{ animationDelay: `${i * 0.08}s` }}
                   >
                     <div className={`absolute inset-0 bg-gradient-to-br ${f.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
@@ -196,7 +196,7 @@ export function HomeContent({ user }: { user: { name: string } | null }) {
           </div>
         </section>
 
-        <section className="py-24 bg-gradient-to-b from-transparent via-primary/[0.02] to-transparent border-y border-border/40">
+        <section className="py-24 bg-gradient-to-b from-transparent via-primary/[0.02] to-transparent border-y border-border/60">
           <div className="container-narrow px-6">
             <div className="text-center mb-14 animate-slide-up">
               <p className="text-xs font-medium text-primary tracking-widest uppercase mb-3">{t("home.howItWorks")}</p>
@@ -246,7 +246,7 @@ export function HomeContent({ user }: { user: { name: string } | null }) {
         </section>
       </main>
 
-      <footer className="border-t border-border/40 py-8 text-center">
+      <footer className="border-t border-border/60 py-8 text-center">
         <div className="container-narrow px-6">
           <p className="text-xs text-muted-foreground/40">
             <span className="text-gradient font-semibold">Imaginova</span> &mdash; {t("home.footer")}

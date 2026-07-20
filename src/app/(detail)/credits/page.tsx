@@ -95,7 +95,7 @@ function CreditsContent() {
           <CardContent>
             <div className="grid grid-cols-4 gap-2">
               {RECHARGE_AMOUNTS.map((opt) => (
-                <div key={opt.credits} className="flex flex-col items-center rounded-xl border border-border/40 bg-card py-4 px-2 opacity-50 cursor-not-allowed">
+                <div key={opt.credits} className="flex flex-col items-center rounded-xl border border-border/60 bg-card py-4 px-2 opacity-50 cursor-not-allowed">
                   <span className="text-lg font-bold text-foreground">+{opt.credits}</span>
                   <span className="text-[10px] text-muted-foreground mt-0.5">${opt.price}</span>
                 </div>
