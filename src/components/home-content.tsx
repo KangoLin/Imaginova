@@ -2,6 +2,7 @@
 
 import { useRef, useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useLocale } from "@/components/locale-provider";
 import { Navbar } from "@/components/navbar";
 import { Button } from "@/components/ui/button";
@@ -16,10 +17,10 @@ const features = [
 ];
 
 const showcaseItems = [
-  { id: 1, span: "lg:col-span-2 lg:row-span-2", gradient: "conic-gradient(from 230deg at 50% 50%, #c084fc, #818cf8, #22d3ee, #c084fc)", labelKey: "home.showcaseImg", imageUrl: "https://platform-outputs.agnes-ai.space/images/t2i/b12c3fee43ce47ecb65f5c8f84ac1895.png" },
-  { id: 2, span: "", gradient: "linear-gradient(160deg, #fbbf24, #f472b6, #a78bfa)", labelKey: "home.showcaseStyle", imageUrl: "https://platform-outputs.agnes-ai.space/images/t2i/f4fc71cfd5604d02949d3d9632e2f7ec.png" },
-  { id: 3, span: "", gradient: "linear-gradient(135deg, #22d3ee, #60a5fa, #a78bfa)", labelKey: "home.showcaseVideo", imageUrl: "https://platform-outputs.agnes-ai.space/images/t2i/93fef743b813406180b3b4d355aeebed.png" },
-  { id: 4, span: "lg:col-span-2", gradient: "linear-gradient(120deg, #a78bfa, #818cf8, #22d3ee, #2dd4bf)", labelKey: "home.showcaseMulti", imageUrl: "https://platform-outputs.agnes-ai.space/images/t2i/8a67dbe05c9f4cec8e2a865294e63c19.png" },
+  { id: 1, span: "lg:col-span-2 lg:row-span-2", gradient: "conic-gradient(from 230deg at 50% 50%, #c084fc, #818cf8, #22d3ee, #c084fc)", labelKey: "home.showcaseImg", imageUrl: "/images/showcase/ai-image-generation.jpg" },
+  { id: 2, span: "", gradient: "linear-gradient(160deg, #fbbf24, #f472b6, #a78bfa)", labelKey: "home.showcaseStyle", imageUrl: "/images/showcase/style-transfer.jpg" },
+  { id: 3, span: "", gradient: "linear-gradient(135deg, #22d3ee, #60a5fa, #a78bfa)", labelKey: "home.showcaseVideo", imageUrl: "/images/showcase/video-creation.jpg" },
+  { id: 4, span: "lg:col-span-2", gradient: "linear-gradient(120deg, #a78bfa, #818cf8, #22d3ee, #2dd4bf)", labelKey: "home.showcaseMulti", imageUrl: "/images/showcase/multimodal.jpg" },
 ];
 
 const logos = ["OpenAI", "Anthropic", "Google", "Meta", "Stability", "Runway"];
@@ -130,9 +131,12 @@ export function HomeContent({ user }: { user: { name: string } | null }) {
                   style={{ animationDelay: `${i * 0.1}s` }}
                 >
                   {item.imageUrl && (
-                    <div
-                      className="absolute inset-0 bg-cover bg-center group-hover:scale-105 transition-transform duration-700"
-                      style={{ backgroundImage: `url(${item.imageUrl})` }}
+                    <Image
+                      src={item.imageUrl}
+                      alt=""
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-700"
+                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 20vw"
                     />
                   )}
                   <div
