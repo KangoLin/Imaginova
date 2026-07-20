@@ -32,13 +32,70 @@ export function Navbar({ variant = "app", user }: NavbarProps) {
   const navLinks = variant === "home"
     ? (user
       ? [{ href: "/create", label: t("nav.create") }, { href: "/dashboard", label: t("nav.dashboard") }]
-      : [{ href: "/login", label: t("nav.signIn") }])
+      : [])
     : variant === "detail"
     ? [{ href: "/dashboard", label: t("nav.backToDashboard") }]
     : [{ href: "/dashboard", label: t("nav.dashboard") }, { href: "/settings", label: t("nav.settings") }, ...(isAdmin ? [{ href: "/admin", label: t("nav.admin") }] : [])];
 
   const showCreate = variant === "app";
   const showUser = user && variant !== "detail";
+
+  if (variant === "home") {
+    return (
+      <header className="fixed top-0 left-0 right-0 z-50 pt-[env(safe-area-inset-top)]">
+        <div className="mx-auto max-w-6xl px-6 py-4 flex items-center justify-between">
+          <Link href="/" className="text-lg font-bold tracking-tight text-primary">Imaginova</Link>
+
+          <div className="hidden md:flex items-center gap-2">
+            {user ? (
+              <>
+                <Button size="sm" onClick={() => router.push("/create")} className="gap-1.5 rounded-full"><Sparkles size={14} />{t("nav.create")}</Button>
+                <ThemeToggle />
+                <LanguageSwitcher />
+                <SignOutButton className="text-xs text-muted-foreground hover:text-foreground transition-colors" />
+              </>
+            ) : (
+              <>
+                <ThemeToggle />
+                <LanguageSwitcher />
+                <Button size="sm" variant="ghost" nativeButton={false} render={<Link href="/login" />} className="rounded-full text-muted-foreground hover:text-foreground">{t("nav.signIn")}</Button>
+                <Button size="sm" nativeButton={false} render={<Link href="/register" />} className="rounded-full">{t("nav.register")}</Button>
+              </>
+            )}
+          </div>
+
+          <div className="flex md:hidden items-center gap-2">
+            <ThemeToggle />
+            <LanguageSwitcher />
+            <Sheet>
+              <SheetTrigger className="p-2 text-muted-foreground hover:text-foreground rounded-md transition-colors" aria-label="Menu"><Menu size={20} /></SheetTrigger>
+              <SheetContent side="right" className="w-64 p-4 pt-12">
+                <div className="flex flex-col gap-1">
+                  {user && <Button size="sm" className="w-full justify-start mb-2" onClick={() => router.push("/create")}><Sparkles size={14} className="mr-2" />{t("nav.create")}</Button>}
+                  {navLinks.map(l => (
+                    <Link key={l.href} href={l.href} className="px-3 py-2 text-sm text-muted-foreground hover:text-foreground rounded-md hover:bg-muted/50 transition-colors">{l.label}</Link>
+                  ))}
+                  {user ? (
+                    <>
+                      <div className="border-t border-border/50 my-2" />
+                      <span className="px-3 py-1 text-xs text-muted-foreground">{user.name}</span>
+                      <SignOutButton className="px-3 py-2 text-sm text-muted-foreground hover:text-foreground rounded-md hover:bg-muted/50 transition-colors text-left" />
+                    </>
+                  ) : (
+                    <>
+                      <div className="border-t border-border/50 my-2" />
+                      <Link href="/login" className="px-3 py-2 text-sm text-muted-foreground hover:text-foreground rounded-md hover:bg-muted/50 transition-colors">{t("nav.signIn")}</Link>
+                      <Link href="/register" className="px-3 py-2 text-sm text-foreground font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">{t("nav.register")}</Link>
+                    </>
+                  )}
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
+        </div>
+      </header>
+    );
+  }
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/70 backdrop-blur-2xl border-b border-border/30 dark:border-border/40 dark:shadow-[0_1px_0_0_rgba(255,255,255,0.02)] pt-[env(safe-area-inset-top)]">

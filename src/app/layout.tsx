@@ -7,6 +7,7 @@ import { ErrorBoundary } from "@/components/error-boundary";
 import { RouteProgress } from "@/components/route-progress";
 import { Inter } from "next/font/google";
 import { Suspense } from "react";
+import { cookies } from "next/headers";
 import { cn } from "@/lib/utils";
 
 const inter = Inter({subsets:['latin'],variable:'--font-sans'});
@@ -35,13 +36,16 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const cookieStore = await cookies();
+  const locale = (cookieStore.get("imaginova-locale")?.value as "en" | "zh" | undefined) || "zh";
+
   return (
-    <html lang="zh-CN" suppressHydrationWarning className={cn("font-sans", inter.variable)}>
+    <html lang={locale === "en" ? "en" : "zh-CN"} suppressHydrationWarning className={cn("font-sans", inter.variable)}>
       <head>
         <script
           dangerouslySetInnerHTML={{
@@ -55,6 +59,7 @@ export default function RootLayout({
                   var l = localStorage.getItem('imaginova-locale');
                   if (l === 'zh' || l === 'en') {
                     document.documentElement.lang = l;
+                    document.cookie = 'imaginova-locale=' + l + ';path=/;max-age=31536000;SameSite=Lax';
                   }
                 } catch(e) {}
               })();
@@ -68,7 +73,7 @@ export default function RootLayout({
         </Suspense>
         <ErrorBoundary>
           <ThemeProvider>
-            <LocaleProvider>
+            <LocaleProvider initialLocale={locale}>
               <ToastProvider>
                 {children}
               </ToastProvider>

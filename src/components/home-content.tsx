@@ -6,20 +6,20 @@ import { useLocale } from "@/components/locale-provider";
 import { Navbar } from "@/components/navbar";
 import { Button } from "@/components/ui/button";
 import SplitText from "@/components/SplitText";
-import { ArrowRight, Sparkles, Image, Video, Wand2, Layers, Users, Zap, Check } from "lucide-react";
+import { ArrowRight, Sparkles, Image as ImageIcon, Video, Wand2, Layers, Users, Zap, Check } from "lucide-react";
 
 const features = [
   { key: "text", icon: Wand2, gradient: "from-primary/15 via-primary/5 to-transparent" },
-  { key: "image", icon: Image, gradient: "from-accent/15 via-accent/5 to-transparent" },
+  { key: "image", icon: ImageIcon, gradient: "from-accent/15 via-accent/5 to-transparent" },
   { key: "video", icon: Video, gradient: "from-primary/10 via-accent/5 to-transparent" },
   { key: "multimodal", icon: Layers, gradient: "from-accent/15 via-primary/5 to-transparent" },
 ];
 
 const showcaseItems = [
-  { id: 1, span: "lg:col-span-2 lg:row-span-2", gradient: "conic-gradient(from 230deg at 50% 50%, #c084fc, #818cf8, #22d3ee, #c084fc)", label: "AI Image Generation" },
-  { id: 2, span: "", gradient: "linear-gradient(160deg, #fbbf24, #f472b6, #a78bfa)", label: "Style Transfer" },
-  { id: 3, span: "", gradient: "linear-gradient(135deg, #22d3ee, #60a5fa, #a78bfa)", label: "Video Creation" },
-  { id: 4, span: "lg:col-span-2", gradient: "linear-gradient(120deg, #a78bfa, #818cf8, #22d3ee, #2dd4bf)", label: "Multimodal AI" },
+  { id: 1, span: "lg:col-span-2 lg:row-span-2", gradient: "conic-gradient(from 230deg at 50% 50%, #c084fc, #818cf8, #22d3ee, #c084fc)", labelKey: "home.showcaseImg", imageUrl: "https://platform-outputs.agnes-ai.space/images/t2i/b12c3fee43ce47ecb65f5c8f84ac1895.png" },
+  { id: 2, span: "", gradient: "linear-gradient(160deg, #fbbf24, #f472b6, #a78bfa)", labelKey: "home.showcaseStyle", imageUrl: "https://platform-outputs.agnes-ai.space/images/t2i/f4fc71cfd5604d02949d3d9632e2f7ec.png" },
+  { id: 3, span: "", gradient: "linear-gradient(135deg, #22d3ee, #60a5fa, #a78bfa)", labelKey: "home.showcaseVideo", imageUrl: "https://platform-outputs.agnes-ai.space/images/t2i/93fef743b813406180b3b4d355aeebed.png" },
+  { id: 4, span: "lg:col-span-2", gradient: "linear-gradient(120deg, #a78bfa, #818cf8, #22d3ee, #2dd4bf)", labelKey: "home.showcaseMulti", imageUrl: "https://platform-outputs.agnes-ai.space/images/t2i/8a67dbe05c9f4cec8e2a865294e63c19.png" },
 ];
 
 const logos = ["OpenAI", "Anthropic", "Google", "Meta", "Stability", "Runway"];
@@ -63,9 +63,11 @@ export function HomeContent({ user }: { user: { name: string } | null }) {
           <div className="absolute bottom-1/4 right-1/3 w-[500px] h-[500px] bg-accent/[0.03] rounded-full blur-[120px] pointer-events-none" />
 
           <div className="container-narrow px-6 text-center relative z-10">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass text-xs font-medium text-primary mb-8 animate-fade-in border border-primary/10">
-              <span className="size-1.5 rounded-full bg-primary animate-pulse" />
-              {t("home.badge")}
+            <div className="flex justify-center mb-8 animate-fade-in">
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass text-xs font-medium text-primary border border-primary/10">
+                <span className="size-1.5 rounded-full bg-primary animate-pulse" />
+                {t("home.badge")}
+              </div>
             </div>
 
             <SplitText
@@ -117,8 +119,8 @@ export function HomeContent({ user }: { user: { name: string } | null }) {
           <div className="container-narrow px-6 relative">
             <div className="text-center mb-14 animate-slide-up">
               <p className="text-xs font-medium text-primary tracking-widest uppercase mb-3">{t("home.badge")}</p>
-              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight mb-3">See what Imaginova creates</h2>
-              <p className="text-sm text-muted-foreground max-w-lg mx-auto">From photorealistic portraits to cinematic video — push your creativity further.</p>
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight mb-3">{t("home.showcaseTitle")}</h2>
+              <p className="text-sm text-muted-foreground max-w-lg mx-auto">{t("home.showcaseDesc")}</p>
             </div>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 auto-rows-[160px] lg:auto-rows-[200px]">
               {showcaseItems.map((item, i) => (
@@ -127,14 +129,20 @@ export function HomeContent({ user }: { user: { name: string } | null }) {
                   className={`relative rounded-[14px] overflow-hidden group cursor-pointer ${item.span} animate-slide-up`}
                   style={{ animationDelay: `${i * 0.1}s` }}
                 >
+                  {item.imageUrl && (
+                    <div
+                      className="absolute inset-0 bg-cover bg-center group-hover:scale-105 transition-transform duration-700"
+                      style={{ backgroundImage: `url(${item.imageUrl})` }}
+                    />
+                  )}
                   <div
-                    className="absolute inset-0 opacity-60 group-hover:opacity-80 transition-opacity duration-500"
+                    className={`absolute inset-0 transition-opacity duration-500 ${item.imageUrl ? "opacity-40 group-hover:opacity-60" : "opacity-60 group-hover:opacity-80"}`}
                     style={{ background: item.gradient }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                   <div className="absolute inset-0 ring-1 ring-white/[0.06] rounded-[14px]" />
                   <div className="absolute bottom-0 left-0 right-0 p-4">
-                    <p className="text-sm font-medium text-white drop-shadow-sm">{item.label}</p>
+                    <p className="text-sm font-medium text-white drop-shadow-sm">{t(item.labelKey)}</p>
                   </div>
                 </div>
               ))}

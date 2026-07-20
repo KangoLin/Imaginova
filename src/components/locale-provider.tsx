@@ -20,6 +20,11 @@ const allMessages: Record<Locale, Record<string, string>> = {
 const LocaleContext = createContext<LocaleContextValue>(null!);
 
 const STORAGE_KEY = "imaginova-locale";
+const COOKIE_KEY = "imaginova-locale";
+
+function setCookie(value: string) {
+  document.cookie = `${COOKIE_KEY}=${value};path=/;max-age=31536000;SameSite=Lax`;
+}
 
 function tImpl(messages: Record<string, string>, key: string, params?: Record<string, string | number>): string {
   let val = messages[key];
@@ -32,22 +37,24 @@ function tImpl(messages: Record<string, string>, key: string, params?: Record<st
   return val;
 }
 
-export function LocaleProvider({ children }: { children: React.ReactNode }) {
+export function LocaleProvider({ children, initialLocale }: { children: React.ReactNode; initialLocale?: Locale }) {
   const [locale, setLocaleState] = useState<Locale>(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem(STORAGE_KEY) as Locale | null;
-      return saved === "en" || saved === "zh" ? saved : "zh";
-    }
+    if (initialLocale === "en" || initialLocale === "zh") return initialLocale;
     return "zh";
   });
 
   useEffect(() => {
-    document.documentElement.lang = locale;
-  }, [locale]);
+    const saved = localStorage.getItem(STORAGE_KEY) as Locale | null;
+    if (saved === "en" || saved === "zh") {
+      setLocaleState(saved);
+      document.documentElement.lang = saved;
+    }
+  }, []);
 
   const setLocale = useCallback((next: Locale) => {
     setLocaleState(next);
     localStorage.setItem(STORAGE_KEY, next);
+    setCookie(next);
     document.documentElement.lang = next;
   }, []);
 
