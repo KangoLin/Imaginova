@@ -1,6 +1,5 @@
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
-import { NextResponse } from "next/server";
 import db from "@/lib/db";
 import type { UserRow } from "@/lib/db";
 
@@ -26,25 +25,16 @@ export async function verifyToken(token: string) {
   }
 }
 
-function cookieOptions() {
-  return {
-    httpOnly: true,
-    secure: !!process.env.NEXT_PUBLIC_APP_URL?.startsWith("https://"),
-    sameSite: "lax" as const,
-    path: "/",
-    maxAge: 60 * 60 * 24 * 7,
-  };
-}
-
 export async function setSessionCookie(userId: number) {
   const token = await createToken(userId);
   const cookieStore = await cookies();
-  cookieStore.set(COOKIE_NAME, token, cookieOptions());
-}
-
-export async function setSessionCookieOnResponse(userId: number, response: NextResponse) {
-  const token = await createToken(userId);
-  response.cookies.set(COOKIE_NAME, token, cookieOptions());
+  cookieStore.set(COOKIE_NAME, token, {
+    httpOnly: true,
+    secure: !!process.env.NEXT_PUBLIC_APP_URL?.startsWith("https://"),
+    sameSite: "lax",
+    path: "/",
+    maxAge: 60 * 60 * 24 * 7,
+  });
 }
 
 export async function getSessionUserId() {
