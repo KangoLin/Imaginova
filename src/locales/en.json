@@ -99,6 +99,7 @@
   "create.modeKeyframes": "Keyframe Animation",
   "create.replaceImage": "Replace image",
   "create.singleImageHint": "Standard mode supports only one reference image",
+  "create.remix": "Remix",
   "create.videoFailed": "Video generation failed",
   "create.statusCheckFailed": "Status check failed after 3 retries",
   "create.remaining": "~{time} remaining",

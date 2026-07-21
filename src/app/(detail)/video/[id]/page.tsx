@@ -6,7 +6,7 @@ import Link from "next/link";
 import { api, ApiError } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { LoadingSpinner } from "@/components/loading-spinner";
-import { Check, ArrowLeft } from "lucide-react";
+import { Check, ArrowLeft, Wand2 } from "lucide-react";
 import { downloadFile } from "@/lib/utils";
 import { useLocale } from "@/components/locale-provider";
 
@@ -141,6 +141,9 @@ export default function VideoDetailPage() {
             {isCompleted && <Button onClick={() => downloadFile(video.url!, `imaginova-${video.id}`)}>{t("common.download")}</Button>}
             <Button variant="secondary" onClick={handleCopyLink} className="gap-2">
               {copied ? <><Check size={15} className="text-green-500" />{t("common.copied")}</> : t("common.copyLink")}
+            </Button>
+            <Button variant="secondary" onClick={() => router.push(`/create?mode=remix&type=video&id=${params.id}`)} className="gap-2">
+              <Wand2 size={15} /> {t("create.remix")}
             </Button>
             <Button variant="outline" onClick={() => window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(video.prompt)}&url=${encodeURIComponent(window.location.href)}`, "_blank", "noopener")}>{t("common.share")}</Button>
             {!reported ? (

@@ -13,8 +13,8 @@ export async function GET(
 
   const { id } = await params;
   const image = db
-    .prepare("SELECT id, user_id, prompt, model, url, created_at FROM images WHERE id = ?")
-    .get(Number(id)) as Pick<ImageRow, "id" | "user_id" | "prompt" | "model" | "url" | "created_at"> | undefined;
+    .prepare("SELECT id, user_id, prompt, model, url, has_reference, created_at FROM images WHERE id = ?")
+    .get(Number(id)) as (Pick<ImageRow, "id" | "user_id" | "prompt" | "model" | "url" | "created_at"> & { has_reference: number }) | undefined;
 
   if (!image) {
     return NextResponse.json({ error: "Image not found" }, { status: 404 });
@@ -23,7 +23,15 @@ export async function GET(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  return NextResponse.json(image);
+  return NextResponse.json({
+    id: image.id,
+    user_id: image.user_id,
+    prompt: image.prompt,
+    model: image.model,
+    url: image.url,
+    created_at: image.created_at,
+    reference_url: null,
+  });
 }
 
 export async function DELETE(

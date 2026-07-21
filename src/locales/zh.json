@@ -99,6 +99,7 @@
   "create.modeKeyframes": "关键帧动画",
   "create.replaceImage": "替换图片",
   "create.singleImageHint": "标准模式仅支持一张参考图",
+  "create.remix": "重新生成",
   "create.videoFailed": "视频生成失败",
   "create.statusCheckFailed": "状态检查失败超过3次",
   "create.remaining": "约剩 {time}",

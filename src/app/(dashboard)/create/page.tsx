@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useToast } from "@/components/toast";
 import { api, ApiError } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,11 @@ import { useLocale } from "@/components/locale-provider";
 import { Wand2, X } from "lucide-react";
 
 type Tab = "image" | "video";
+
+interface RemixData {
+  id: number; prompt: string; model: string; url: string;
+  reference_url: string | null; created_at: string;
+}
 
 const IMAGE_EXAMPLES_EN = [
   "A serene mountain lake at twilight, mist rising from the water, reflected peaks, cinematic lighting",
@@ -49,8 +54,9 @@ const VIDEO_EXAMPLES_ZH = [
   "延时摄影，樱花在柔和的天空下绽放，花瓣随风飘落",
 ];
 
-export default function CreatePage() {
+function CreatePageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
   const { t, locale } = useLocale();
   const [tab, setTab] = useState<Tab>("image");
@@ -73,10 +79,35 @@ export default function CreatePage() {
   const [videoHeight, setVideoHeight] = useState(720);
   const [videoNumFrames, setVideoNumFrames] = useState(121);
   const [videoFrameRate, setVideoFrameRate] = useState(24);
+  const [remixLoading, setRemixLoading] = useState(false);
+  const [remixError, setRemixError] = useState("");
 
   useEffect(() => {
     if (!localStorage.getItem("imaginova-onboarded")) setShowHint(true);
   }, []);
+
+  useEffect(() => {
+    const mode = searchParams.get("mode");
+    const type = searchParams.get("type");
+    const id = searchParams.get("id");
+    if (mode === "remix" && id && type) {
+      setRemixLoading(true);
+      (async () => {
+        try {
+          const data = await api.get<RemixData>(`/api/${type}/${id}`);
+          setPrompt(data.prompt);
+          setTab(type as Tab);
+          if (data.reference_url) {
+            setImagePreviews([data.reference_url]);
+          }
+        } catch (err) {
+          if (err instanceof ApiError) setRemixError(err.message);
+          else setRemixError("Failed to load remix data");
+        }
+        setRemixLoading(false);
+      })();
+    }
+  }, [searchParams]);
 
   function handleDragFile(file: File) {
     if (file.type.startsWith("image/")) {
@@ -186,6 +217,17 @@ export default function CreatePage() {
           <TabsTrigger value="video">{t("create.video")}</TabsTrigger>
         </TabsList>
       </Tabs>
+
+      {remixLoading && (
+        <div className="flex items-center justify-center py-12">
+          <LoadingSpinner />
+          <span className="ml-2 text-sm text-muted-foreground">{t("common.loading")}</span>
+        </div>
+      )}
+
+      {remixError && (
+        <p className="text-sm text-destructive bg-destructive/5 rounded-lg p-3 mb-4">{remixError}</p>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-5">
         <div>
@@ -366,5 +408,20 @@ export default function CreatePage() {
         );
       })()}
     </main>
+  );
+}
+
+export default function CreatePage() {
+  return (
+    <Suspense fallback={
+      <main className="max-w-2xl mx-auto px-6 pt-24 pb-12">
+        <div className="flex items-center justify-center py-12">
+          <LoadingSpinner />
+          <span className="ml-2 text-sm text-muted-foreground">Loading...</span>
+        </div>
+      </main>
+    }>
+      <CreatePageContent />
+    </Suspense>
   );
 }
