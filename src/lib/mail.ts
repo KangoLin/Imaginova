@@ -38,3 +38,32 @@ export async function sendVerificationCode(email: string, code: string): Promise
     `,
   });
 }
+
+export async function sendPasswordResetLink(email: string, link: string): Promise<void> {
+  if (!transporter) {
+    console.log(`[DEV] Password reset link for ${email}: ${link}`);
+    return;
+  }
+
+  await transporter.sendMail({
+    from: `Imaginova <${FROM_ADDRESS}>`,
+    to: email,
+    subject: "Imaginova 密码重置 / Password Reset",
+    text: `请点击以下链接重置密码（1 小时内有效）：\n${link}\n\nReset your password (valid for 1 hour):\n${link}`,
+    html: `
+      <div style="font-family: -apple-system, sans-serif; max-width: 480px; margin: 0 auto;">
+        <h2 style="color: #0d9488;">Imaginova</h2>
+        <p>请点击下方按钮重置密码（1 小时内有效）：</p>
+        <div style="text-align: center; margin: 24px 0;">
+          <a href="${link}" style="display: inline-block; padding: 12px 32px; background: #0d9488; color: #fff; text-decoration: none; border-radius: 8px; font-size: 16px;">
+            重置密码 / Reset Password
+          </a>
+        </div>
+        <p style="color: #666; font-size: 14px;">如果按钮无法点击，请复制以下链接到浏览器：</p>
+        <p style="color: #666; font-size: 12px; word-break: break-all;">${link}</p>
+        <p style="color: #666; font-size: 14px;">此链接 1 小时内有效。如非本人操作，请忽略此邮件。</p>
+        <p style="color: #666; font-size: 14px;">Valid for 1 hour. If you didn't request this, please ignore.</p>
+      </div>
+    `,
+  });
+}

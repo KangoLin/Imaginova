@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
   ).get(email) as { created_at: string } | undefined;
 
   if (lastCode) {
-    const elapsed = Date.now() - new Date(lastCode.created_at + "Z").getTime();
+    const elapsed = Date.now() - new Date(lastCode.created_at.replace(" ", "T") + "Z").getTime();
     if (elapsed < RATE_LIMIT_MS) {
       return NextResponse.json({ error: "send_code_too_soon" }, { status: 429 });
     }
