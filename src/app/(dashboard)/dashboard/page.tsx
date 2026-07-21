@@ -235,10 +235,7 @@ export default function DashboardPage() {
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight mb-1">{t("dashboard.title")}</h1>
           <p className="text-sm text-muted-foreground">{t("dashboard.subtitle")}</p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={handleCheckin} className="border-primary/30 text-primary hover:bg-primary/10">{t("dashboard.checkIn")}</Button>
-          <Link href="/create"><Button size="sm" className="gap-1.5"><Sparkles size={14} />{t("nav.create")}</Button></Link>
-        </div>
+        <Button variant="outline" size="sm" onClick={handleCheckin} className="border-primary/30 text-primary hover:bg-primary/10">{t("dashboard.checkIn")}</Button>
       </div>
 
       <motion.div className="grid grid-cols-3 gap-4 mb-8" variants={containerVariants} initial="hidden" animate="visible">
