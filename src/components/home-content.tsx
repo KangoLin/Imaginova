@@ -31,6 +31,13 @@ const steps = [
   { icon: Check, titleKey: "home.step3Title", descKey: "home.step3Desc" },
 ];
 
+const scenes = [
+  { id: "try-on", icon: "👗", gradient: "from-pink-500/10 via-purple-500/10 to-transparent", labelKey: "scene.tryOn", descKey: "scene.tryOnDesc", active: true },
+  { id: "style-transfer", icon: "🎨", gradient: "from-blue-500/10 via-cyan-500/10 to-transparent", labelKey: "scene.styleTransfer", descKey: "scene.styleTransferDesc", active: true },
+  { id: "gender-swap", icon: "🔄", gradient: "from-pink-500/10 via-rose-500/10 to-transparent", labelKey: "scene.genderSwap", descKey: "scene.genderSwapDesc", active: true },
+  { id: "age-transform", icon: "🎂", gradient: "from-amber-500/10 via-orange-500/10 to-transparent", labelKey: "scene.ageTransform", descKey: "scene.ageTransformDesc", active: true },
+];
+
 export function HomeContent({ user }: { user: { name: string } | null }) {
   const { t } = useLocale();
   const featuresRef = useRef<HTMLElement>(null);
@@ -112,6 +119,44 @@ export function HomeContent({ user }: { user: { name: string } | null }) {
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
               <path d="M10 3v14M4 11l6 6 6-6" />
             </svg>
+          </div>
+        </section>
+
+        <section className="py-20 relative">
+          <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.02] via-transparent to-background pointer-events-none" />
+          <div className="container-narrow px-6 relative">
+            <div className="text-center mb-10 animate-slide-up">
+              <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight mb-2">{t("scene.sectionTitle")}</h2>
+            </div>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 max-w-3xl mx-auto">
+              {scenes.map((s, i) => (
+                <div
+                  key={s.id}
+                  onClick={() => {
+                    if (s.active && user) window.location.href = `/create?mode=${s.id}`;
+                    else if (s.active && !user) window.location.href = "/register";
+                  }}
+                  className={`group relative rounded-[14px] bg-card border border-border/60 p-5 text-center transition-all duration-300 animate-slide-up overflow-hidden ${
+                    s.active
+                      ? "cursor-pointer hover:border-primary/25 hover:-translate-y-0.5"
+                      : "cursor-default opacity-60"
+                  }`}
+                  style={{ animationDelay: `${i * 0.08}s` }}
+                >
+                  <div className={`absolute inset-0 bg-gradient-to-br ${s.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
+                  <div className="relative">
+                    <div className="text-3xl mb-3">{s.icon}</div>
+                    <h3 className="font-semibold text-sm mb-1">{t(s.labelKey)}</h3>
+                    <p className="text-xs text-muted-foreground leading-relaxed">{t(s.descKey)}</p>
+                    {!s.active && (
+                      <span className="inline-block mt-2 text-[10px] font-medium text-muted-foreground/50 bg-muted/50 px-2 py-0.5 rounded-full">
+                        {t("scene.comingSoon")}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
 

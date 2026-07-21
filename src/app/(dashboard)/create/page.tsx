@@ -12,8 +12,13 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select } from "@/components/ui/select";
 import { useLocale } from "@/components/locale-provider";
 import { Wand2, X } from "lucide-react";
+import { TryOnForm } from "@/components/create/try-on-form";
+import { StyleTransferForm } from "@/components/create/style-transfer-form";
+import { GenderSwapForm } from "@/components/create/gender-swap-form";
+import { AgeTransformForm } from "@/components/create/age-transform-form";
 
 type Tab = "image" | "video";
+type SceneMode = "general" | "try-on" | "style-transfer" | "gender-swap" | "age-transform";
 
 interface RemixData {
   id: number; prompt: string; model: string; url: string;
@@ -59,6 +64,7 @@ function CreatePageContent() {
   const searchParams = useSearchParams();
   const { toast } = useToast();
   const { t, locale } = useLocale();
+  const mode = (searchParams.get("mode") as SceneMode) || "general";
   const [tab, setTab] = useState<Tab>("image");
   const [prompt, setPrompt] = useState("");
   const [loading, setLoading] = useState(false);
@@ -85,6 +91,11 @@ function CreatePageContent() {
   useEffect(() => {
     if (!localStorage.getItem("imaginova-onboarded")) setShowHint(true);
   }, []);
+
+  function switchMode(m: SceneMode) {
+    if (m === "general") router.push("/create");
+    else router.push(`/create?mode=${m}`);
+  }
 
   useEffect(() => {
     const mode = searchParams.get("mode");
@@ -199,6 +210,66 @@ function CreatePageContent() {
         <p className="text-sm text-muted-foreground">{t("create.subtitle")}</p>
       </div>
 
+      <div className="mb-6">
+        <div className="flex gap-1.5 p-1 bg-muted/50 rounded-xl w-fit">
+          <button
+            type="button"
+            onClick={() => switchMode("general")}
+            className={`px-4 py-1.5 text-xs font-medium rounded-lg transition-all ${
+              mode === "general" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {t("create.title")}
+          </button>
+          <button
+            type="button"
+            onClick={() => switchMode("try-on")}
+            className={`px-4 py-1.5 text-xs font-medium rounded-lg transition-all ${
+              mode === "try-on" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {t("scene.tryOn")}
+          </button>
+          <button
+            type="button"
+            onClick={() => switchMode("style-transfer")}
+            className={`px-4 py-1.5 text-xs font-medium rounded-lg transition-all ${
+              mode === "style-transfer" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {t("scene.styleTransfer")}
+          </button>
+          <button
+            type="button"
+            onClick={() => switchMode("gender-swap")}
+            className={`px-4 py-1.5 text-xs font-medium rounded-lg transition-all ${
+              mode === "gender-swap" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {t("scene.genderSwap")}
+          </button>
+          <button
+            type="button"
+            onClick={() => switchMode("age-transform")}
+            className={`px-4 py-1.5 text-xs font-medium rounded-lg transition-all ${
+              mode === "age-transform" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {t("scene.ageTransform")}
+          </button>
+        </div>
+      </div>
+
+      {mode === "try-on" ? (
+        <TryOnForm />
+      ) : mode === "style-transfer" ? (
+        <StyleTransferForm />
+      ) : mode === "gender-swap" ? (
+        <GenderSwapForm />
+      ) : mode === "age-transform" ? (
+        <AgeTransformForm />
+      ) : (
+        <>
       {showHint && (
         <div className="mb-6 bg-primary/[0.04] border border-primary/10 rounded-xl p-4 text-sm animate-fade-in relative">
           <button onClick={() => setShowHint(false)} className="absolute top-3 right-3 size-5 rounded-md flex items-center justify-center text-muted-foreground/40 hover:text-muted-foreground hover:bg-muted/50 transition-colors"><X size={13} /></button>
@@ -407,6 +478,8 @@ function CreatePageContent() {
           </div>
         );
       })()}
+      </>
+      )}
     </main>
   );
 }

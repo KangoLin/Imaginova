@@ -76,9 +76,14 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ id: info.lastInsertRowid, url: result.url, credits: user.credits - 1 });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Image generation failed";
+    let message = err instanceof Error ? err.message : "Image generation failed";
     console.error("Generate error:", message);
     if (err instanceof Error) console.error("Stack:", err.stack);
+    if (/queue is full/i.test(message)) message = "Image queue is full, please retry later / 图片队列已满，请稍后重试";
+    else if (/timeout/i.test(message)) message = "Image generation timed out / 图片生成超时";
+    else if (/rate limit/i.test(message)) message = "Too many requests, please slow down / 请求过于频繁，请减速";
+    else if (/insufficient/i.test(message)) message = "Insufficient balance / 余额不足";
+    else if (/unauthorized/i.test(message) || /invalid api key/i.test(message)) message = "API authentication failed / API 认证失败";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

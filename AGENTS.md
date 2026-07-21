@@ -138,3 +138,8 @@ docker compose restart
 ## Developer Emails
 - `1264867171@qq.com`
 - `2633313990@qq.com`
+
+## Deployment Rules
+- **Local-first**: All development and updates are done locally first.
+- **Ask before deploy**: After completing a major update, ask the user for explicit confirmation before deploying to the production server (Tencent Cloud `43.161.245.49`).
+- **Never auto-deploy**: Do not push to production or run Docker compose on the server without user approval.

@@ -94,8 +94,13 @@ export async function POST(req: NextRequest) {
       credits: user.credits - 1,
     });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Video creation failed";
+    let message = err instanceof Error ? err.message : "Video creation failed";
     console.error("Video create error:", message);
+    if (/queue is full/i.test(message)) message = "Video queue is full, please retry later / 视频队列已满，请稍后重试";
+    else if (/timeout/i.test(message)) message = "Video generation timed out / 视频生成超时";
+    else if (/rate limit/i.test(message)) message = "Too many requests, please slow down / 请求过于频繁，请减速";
+    else if (/insufficient/i.test(message)) message = "Insufficient balance / 余额不足";
+    else if (/unauthorized/i.test(message) || /invalid api key/i.test(message)) message = "API authentication failed / API 认证失败";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
@@ -138,7 +143,10 @@ export async function GET(req: NextRequest) {
     const videoRow = db.prepare("SELECT id FROM videos WHERE task_id = ?").get(taskId) as Pick<VideoRow, "id"> | undefined;
     return NextResponse.json({ ...status, id: videoRow?.id });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Status check failed";
+    let message = err instanceof Error ? err.message : "Status check failed";
+    if (/queue is full/i.test(message)) message = "Video queue is full, please retry later / 视频队列已满，请稍后重试";
+    else if (/timeout/i.test(message)) message = "Video check timed out / 视频状态检查超时";
+    else if (/rate limit/i.test(message)) message = "Too many requests, please slow down / 请求过于频繁，请减速";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
