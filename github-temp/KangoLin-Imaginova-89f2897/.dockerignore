@@ -1,0 +1,14 @@
+node_modules
+.next
+data.db
+*.db-journal
+.git
+.github
+.eslintrc
+.nexttrace
+e2e/
+__tests__/
+.DS_Store
+*.md
+.env
+.env.example

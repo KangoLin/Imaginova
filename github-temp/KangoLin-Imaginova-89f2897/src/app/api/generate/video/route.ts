@@ -1,0 +1,144 @@
+import { NextRequest, NextResponse } from "next/server";
+import { getSessionUserId } from "@/lib/auth";
+import db, { type UserRow, type VideoRow } from "@/lib/db";
+import { createVideo, getVideoStatus } from "@/lib/video";
+
+export const maxDuration = 180;
+
+export async function POST(req: NextRequest) {
+  const userId = await getSessionUserId();
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  let prompt: string;
+  let imageUrl: string | undefined;
+  let imageUrls: string[] = [];
+  let mode: string | undefined;
+  let width: number | undefined;
+  let height: number | undefined;
+  let num_frames: number | undefined;
+  let frame_rate: number | undefined;
+
+  const ct = req.headers.get("content-type") || "";
+  if (ct.includes("multipart/form-data")) {
+    const formData = await req.formData();
+    const p = formData.get("prompt");
+    if (typeof p !== "string" || !p) {
+      return NextResponse.json({ error: "Prompt is required" }, { status: 400 });
+    }
+    prompt = p;
+    mode = typeof formData.get("mode") === "string" ? formData.get("mode") as string : undefined;
+    const w = formData.get("width");
+    const h = formData.get("height");
+    const nf = formData.get("num_frames");
+    const fr = formData.get("frame_rate");
+    if (w) width = Number(w);
+    if (h) height = Number(h);
+    if (nf) num_frames = Number(nf);
+    if (fr) frame_rate = Number(fr);
+    const files = formData.getAll("image");
+    for (const file of files) {
+      if (typeof file === "object" && "size" in file && file.size > 0 && "arrayBuffer" in file) {
+        const buf = Buffer.from(await file.arrayBuffer());
+        const b64 = buf.toString("base64");
+        const mime = file.type || "image/png";
+        imageUrls.push(`data:${mime};base64,${b64}`);
+      }
+    }
+    imageUrl = imageUrls.length === 1 ? imageUrls[0] : undefined;
+  } else {
+    const raw = await req.text();
+    const body = JSON.parse(raw);
+    if (typeof body.prompt !== "string" || !body.prompt) {
+      return NextResponse.json({ error: "Prompt is required" }, { status: 400 });
+    }
+    prompt = body.prompt;
+    mode = body.mode;
+    imageUrls = Array.isArray(body.imageUrls) ? body.imageUrls : (body.imageUrl ? [body.imageUrl] : []);
+    imageUrl = imageUrls.length === 1 ? imageUrls[0] : undefined;
+    width = body.width ? Number(body.width) : undefined;
+    height = body.height ? Number(body.height) : undefined;
+    num_frames = body.num_frames ? Number(body.num_frames) : undefined;
+    frame_rate = body.frame_rate ? Number(body.frame_rate) : undefined;
+  }
+
+  const user = db
+    .prepare("SELECT credits FROM users WHERE id = ?")
+    .get(userId) as Pick<UserRow, "credits"> | undefined;
+
+  if (!user) {
+    return NextResponse.json({ error: "User not found" }, { status: 404 });
+  }
+
+    if (user.credits < 1) {
+    return NextResponse.json(
+      { error: "Insufficient credits", credits: user.credits },
+      { status: 402 }
+    );
+  }
+
+  try {
+    const task = await createVideo(prompt, imageUrl, { width, height, num_frames, frame_rate, imageUrls: imageUrls.length > 0 ? imageUrls : undefined, mode });
+
+    const info = db.prepare(
+      "INSERT INTO videos (user_id, prompt, model, status, task_id, video_id) VALUES (?, ?, ?, ?, ?, ?)"
+    ).run(userId, prompt, "agnes-video-v2.0", "queued", task.task_id, task.video_id || null);
+    db.prepare("UPDATE users SET credits = credits - 1 WHERE id = ?").run(userId);
+    db.prepare("INSERT INTO api_usage (user_id, action, cost) VALUES (?, 'video_generation', ?)").run(userId, 1);
+
+    return NextResponse.json({
+      id: info.lastInsertRowid,
+      task_id: task.task_id,
+      video_id: task.video_id,
+      credits: user.credits - 1,
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Video creation failed";
+    console.error("Video create error:", message);
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
+
+export async function GET(req: NextRequest) {
+  const userId = await getSessionUserId();
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const taskId = req.nextUrl.searchParams.get("taskId");
+  const videoId = req.nextUrl.searchParams.get("videoId");
+  if (!taskId) {
+    return NextResponse.json({ error: "taskId is required" }, { status: 400 });
+  }
+
+  try {
+    const status = await getVideoStatus(taskId, videoId || undefined);
+    console.log("Video status for", taskId, ":", JSON.stringify(status));
+
+    if (status.status === "completed" && status.url) {
+      db.prepare("UPDATE videos SET status = ?, url = ?, progress = 100 WHERE task_id = ?").run(
+        "completed",
+        status.url,
+        taskId
+      );
+    } else if (status.status === "failed") {
+      db.prepare("UPDATE videos SET status = ? WHERE task_id = ?").run(
+        "failed",
+        taskId
+      );
+    } else {
+      db.prepare("UPDATE videos SET status = ?, progress = ? WHERE task_id = ?").run(
+        status.status,
+        status.progress || 0,
+        taskId
+      );
+    }
+
+    const videoRow = db.prepare("SELECT id FROM videos WHERE task_id = ?").get(taskId) as Pick<VideoRow, "id"> | undefined;
+    return NextResponse.json({ ...status, id: videoRow?.id });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Status check failed";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
