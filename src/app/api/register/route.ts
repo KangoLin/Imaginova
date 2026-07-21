@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "code_mismatch" }, { status: 400 });
   }
 
-  if (Date.now() > new Date(row.expires_at + "Z").getTime()) {
+  if (Date.now() > new Date(row.expires_at).getTime()) {
     return NextResponse.json({ error: "code_expired" }, { status: 400 });
   }
 
