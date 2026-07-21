@@ -124,7 +124,7 @@ docker compose restart
 ### Deployment
 - Docker `output: "standalone"` in next.config.ts.
 - `serverExternalPackages: ["better-sqlite3"]` in next.config.ts — required for Docker build.
-- Production server: Tencent Cloud (`43.161.245.49`), SSH via WeChat QR auth (Cloud Shell).
+- Production server: Tencent Cloud (`43.161.245.49`), SSH username/password login.
 - After `git pull`, use `docker compose up -d --build --no-cache` for clean builds.
 
 ### Important Constraints
