@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import db, { type UserRow } from "@/lib/db";
-import { setSessionCookie } from "@/lib/auth";
+import { setSessionCookie, setSessionCookieOnResponse } from "@/lib/auth";
 import { EMAIL_REGEX } from "@/lib/email-validation";
 
 export async function POST(request: NextRequest) {
@@ -49,11 +49,12 @@ export async function POST(request: NextRequest) {
     return errRedirect("Invalid email or password");
   }
 
-  await setSessionCookie(user.id);
-
   if (request.nextUrl.searchParams.has("redirect")) {
-    return NextResponse.redirect(new URL(redirectTo, baseUrl), { status: 303 });
+    const redirectRes = NextResponse.redirect(new URL(redirectTo, baseUrl), { status: 303 });
+    await setSessionCookieOnResponse(user.id, redirectRes);
+    return redirectRes;
   }
 
+  await setSessionCookie(user.id);
   return NextResponse.json({ id: user.id, name: user.name, email: user.email });
 }

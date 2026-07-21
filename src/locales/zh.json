@@ -77,7 +77,7 @@
   "dashboard.deleteConfirmImage": "删除这张图片？此操作不可撤销。",
   "dashboard.deleteConfirmVideo": "删除这个视频？此操作不可撤销。",
 
-  "create.title": "创作",
+  "create.title": "自由创作",
   "create.subtitle": "描述你想要生成的内容",
   "create.tips": "快速提示",
   "create.tip1": "点击下面的示例提示词即可快速开始",
