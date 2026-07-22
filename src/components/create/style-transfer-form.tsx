@@ -97,7 +97,7 @@ export function StyleTransferForm() {
   const canSubmit = sourceFile && selectedStyle && !loading;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" onPaste={(e) => { const item = Array.from(e.clipboardData.items).find(i => i.type.startsWith("image/")); if (item) { const f = item.getAsFile(); if (f) { e.preventDefault(); handleSourceFile(f); } }; }}>
       <form onSubmit={handleSubmit} className="space-y-5">
         <div>
           <label className="block text-sm font-medium mb-1.5 text-foreground">{t("styleTransfer.sourceImage")}</label>

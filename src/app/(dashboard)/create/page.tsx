@@ -200,7 +200,7 @@ function CreatePageContent() {
   }
 
   return (
-    <main className="max-w-2xl mx-auto px-6 pt-24 pb-12 animate-fade-in">
+    <main className="max-w-2xl mx-auto px-6 pt-24 pb-12 animate-fade-in" onPaste={(e) => { const item = Array.from(e.clipboardData.items).find(i => i.type.startsWith("image/")); if (item) { const f = item.getAsFile(); if (f) { e.preventDefault(); handleDragFile(f); } }; }}>
       <div className="mb-8">
         <div className="flex items-center gap-2 text-primary mb-2">
           <Wand2 size={16} />

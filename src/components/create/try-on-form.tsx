@@ -76,7 +76,7 @@ export function TryOnForm() {
   const canSubmit = personFile && garmentFile && !loading;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" onPaste={(e) => { const item = Array.from(e.clipboardData.items).find(i => i.type.startsWith("image/")); if (item) { const f = item.getAsFile(); if (f) { e.preventDefault(); handlePersonFile(f); } }; }}>
       <form onSubmit={handleSubmit} className="space-y-5">
         <div className="grid sm:grid-cols-2 gap-4">
           <UploadZone
