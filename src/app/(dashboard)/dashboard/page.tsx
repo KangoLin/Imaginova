@@ -45,7 +45,7 @@ function ImageLightbox({ img, images, onClose, onNavigate }: {
   const next = idx < images.length - 1 ? images[idx + 1] : null;
   return (
     <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
-      <DialogContent className="sm:max-w-4xl p-0 overflow-hidden gap-0 bg-card" showCloseButton={false}>
+      <DialogContent className="sm:max-w-4xl p-0 gap-0 bg-card max-h-[85dvh] overflow-y-auto" showCloseButton={false}>
         <DialogTitle className="sr-only">{img.prompt}</DialogTitle>
         <DialogDescription className="sr-only">{t("dashboard.viewDetails")}</DialogDescription>
         <div className="relative flex items-center justify-center bg-black/50 min-h-[50dvh]">
@@ -72,7 +72,7 @@ function VideoModal({ vid, onClose }: { vid: VideoItem; onClose: () => void }) {
   const { t } = useLocale();
   return (
     <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
-      <DialogContent className="sm:max-w-3xl p-0 overflow-hidden gap-0 bg-card" showCloseButton={false}>
+      <DialogContent className="sm:max-w-3xl p-0 gap-0 bg-card max-h-[85dvh] overflow-y-auto" showCloseButton={false}>
         <DialogTitle className="sr-only">{vid.prompt}</DialogTitle>
         <DialogDescription className="sr-only">{t("dashboard.viewDetails")}</DialogDescription>
         <div className="relative flex items-center justify-center bg-black/50 min-h-[50dvh]">
