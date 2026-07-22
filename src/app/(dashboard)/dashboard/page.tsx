@@ -45,22 +45,24 @@ function ImageLightbox({ img, images, onClose, onNavigate }: {
   const next = idx < images.length - 1 ? images[idx + 1] : null;
   return (
     <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
-      <DialogContent className="sm:max-w-4xl p-0 gap-0 bg-card max-h-[85dvh] overflow-y-auto" showCloseButton={false}>
+      <DialogContent className="sm:max-w-4xl p-0 gap-0 bg-card" showCloseButton={false}>
         <DialogTitle className="sr-only">{img.prompt}</DialogTitle>
         <DialogDescription className="sr-only">{t("dashboard.viewDetails")}</DialogDescription>
-        <div className="relative flex items-center justify-center bg-black/50 min-h-[50dvh]">
+        <div className="relative flex items-center justify-center bg-black/50 min-h-[50dvh] max-h-[80dvh]">
           <Image src={img.url} alt={img.prompt} fill className="object-contain" sizes="90vw" />
           {prev && <button onClick={() => onNavigate(prev)} className="absolute left-2 top-1/2 -translate-y-1/2 size-9 rounded-full bg-black/40 text-white flex items-center justify-center hover:bg-black/60 transition-all" aria-label="Previous"><ChevronLeft size={18} /></button>}
           {next && <button onClick={() => onNavigate(next)} className="absolute right-2 top-1/2 -translate-y-1/2 size-9 rounded-full bg-black/40 text-white flex items-center justify-center hover:bg-black/60 transition-all" aria-label="Next"><ChevronRight size={18} /></button>}
-        </div>
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4">
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-medium truncate">{img.prompt}</p>
-            <p className="text-xs text-muted-foreground mt-0.5">{img.model} &middot; {img.created_at}</p>
-          </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <Button size="sm" variant="secondary" onClick={() => window.open(`/image/${img.id}`, "_blank")}>{t("dashboard.viewDetails")}</Button>
-            <Button size="sm" variant="ghost" onClick={onClose}>{t("dashboard.close")}</Button>
+          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4 pt-12">
+            <div className="flex items-end justify-between gap-3">
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-white truncate">{img.prompt}</p>
+                <p className="text-xs text-white/60 mt-0.5">{img.model} &middot; {img.created_at}</p>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <Button size="sm" variant="secondary" className="bg-white/20 text-white border-white/30 hover:bg-white/30 backdrop-blur-sm" onClick={() => window.open(`/image/${img.id}`, "_blank")}>{t("dashboard.viewDetails")}</Button>
+                <Button size="sm" variant="ghost" className="text-white hover:bg-white/20" onClick={onClose}>{t("dashboard.close")}</Button>
+              </div>
+            </div>
           </div>
         </div>
       </DialogContent>
@@ -72,24 +74,26 @@ function VideoModal({ vid, onClose }: { vid: VideoItem; onClose: () => void }) {
   const { t } = useLocale();
   return (
     <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
-      <DialogContent className="sm:max-w-3xl p-0 gap-0 bg-card max-h-[85dvh] overflow-y-auto" showCloseButton={false}>
+      <DialogContent className="sm:max-w-3xl p-0 gap-0 bg-card" showCloseButton={false}>
         <DialogTitle className="sr-only">{vid.prompt}</DialogTitle>
         <DialogDescription className="sr-only">{t("dashboard.viewDetails")}</DialogDescription>
-        <div className="relative flex items-center justify-center bg-black/50 min-h-[50dvh]">
+        <div className="relative flex items-center justify-center bg-black/50 min-h-[50dvh] max-h-[80dvh]">
           {vid.status === "completed" && vid.url ? (
             <video src={`/api/proxy/video?url=${encodeURIComponent(vid.url)}`} controls autoPlay playsInline muted className="max-w-full max-h-[70dvh]" />
           ) : (
             <div className="text-muted-foreground text-sm">{vid.status === "processing" ? t("video.processing", { progress: vid.progress }) : t("video.statusLabel", { status: vid.status })}</div>
           )}
-        </div>
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4">
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-medium truncate">{vid.prompt}</p>
-            <p className="text-xs text-muted-foreground mt-0.5">{vid.model} &middot; {vid.created_at}</p>
-          </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <Button size="sm" variant="secondary" onClick={() => window.open(`/video/${vid.id}`, "_blank")}>{t("dashboard.viewDetails")}</Button>
-            <Button size="sm" variant="ghost" onClick={onClose}>{t("dashboard.close")}</Button>
+          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4 pt-12">
+            <div className="flex items-end justify-between gap-3">
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-white truncate">{vid.prompt}</p>
+                <p className="text-xs text-white/60 mt-0.5">{vid.model} &middot; {vid.created_at}</p>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <Button size="sm" variant="secondary" className="bg-white/20 text-white border-white/30 hover:bg-white/30 backdrop-blur-sm" onClick={() => window.open(`/video/${vid.id}`, "_blank")}>{t("dashboard.viewDetails")}</Button>
+                <Button size="sm" variant="ghost" className="text-white hover:bg-white/20" onClick={onClose}>{t("dashboard.close")}</Button>
+              </div>
+            </div>
           </div>
         </div>
       </DialogContent>
