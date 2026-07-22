@@ -108,7 +108,7 @@ export function AgeTransformForm() {
               return (
                 <button key={opt.key} type="button" onClick={() => setTargetAge(opt.key)} className={`relative rounded-[14px] border p-3 text-center transition-all duration-200 ${isSelected ? "border-primary bg-primary/10 ring-1 ring-primary/30" : "border-border/60 hover:border-primary/30 bg-card"}`}>
                   <div className="text-xl mb-1">{opt.icon}</div>
-                  <p className="text-[10px] font-medium leading-tight">{t(`ageTransform.${opt.key === "young-adult" ? "youngAdult" : opt.key}`)}</p>
+                  <p className="text-[10px] font-medium leading-tight">{t(`ageTransform.${opt.key === "young-adult" ? "youngAdult" : opt.key === "middle-aged" ? "middleAged" : opt.key}`)}</p>
                   {isSelected && <div className="absolute top-1.5 right-1.5 size-4 rounded-full bg-primary flex items-center justify-center"><Check size={10} className="text-primary-foreground" /></div>}
                 </button>
               );
