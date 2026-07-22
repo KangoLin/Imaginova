@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSessionUserId } from "@/lib/auth";
 import db, { type UserRow, type VideoRow } from "@/lib/db";
 import { createVideo, getVideoStatus } from "@/lib/video";
+import { saveFileFromUrl } from "@/lib/storage";
 
 export const maxDuration = 180;
 
@@ -122,9 +123,19 @@ export async function GET(req: NextRequest) {
     console.log("Video status for", taskId, ":", JSON.stringify(status));
 
     if (status.status === "completed" && status.url) {
+      const videoRow = db.prepare("SELECT id FROM videos WHERE task_id = ?").get(taskId) as Pick<VideoRow, "id"> | undefined;
+      let finalUrl = status.url;
+      if (videoRow) {
+        try {
+          const { publicUrl } = await saveFileFromUrl("videos", videoRow.id, status.url);
+          finalUrl = publicUrl;
+        } catch (saveErr) {
+          console.error("Failed to persist video locally, falling back to original URL:", saveErr);
+        }
+      }
       db.prepare("UPDATE videos SET status = ?, url = ?, progress = 100 WHERE task_id = ?").run(
         "completed",
-        status.url,
+        finalUrl,
         taskId
       );
     } else if (status.status === "failed") {

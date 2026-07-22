@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSessionUserId } from "@/lib/auth";
 import db, { type UserRow } from "@/lib/db";
 import { generateImage } from "@/lib/image";
+import { saveFileFromUrl } from "@/lib/storage";
 
 export const maxDuration = 180;
 
@@ -74,7 +75,16 @@ export async function POST(req: NextRequest) {
     db.prepare("UPDATE users SET credits = credits - 1 WHERE id = ?").run(userId);
     db.prepare("INSERT INTO api_usage (user_id, action, cost) VALUES (?, 'image_generation', ?)").run(userId, 1);
 
-    return NextResponse.json({ id: info.lastInsertRowid, url: result.url, credits: user.credits - 1 });
+    // Persist: download from temporary URL and store locally
+    const imageId = info.lastInsertRowid as number;
+    try {
+      const { publicUrl } = await saveFileFromUrl("images", imageId, result.url);
+      db.prepare("UPDATE images SET url = ? WHERE id = ?").run(publicUrl, imageId);
+      return NextResponse.json({ id: imageId, url: publicUrl, credits: user.credits - 1 });
+    } catch (saveErr) {
+      console.error("Failed to persist image locally, falling back to original URL:", saveErr);
+      return NextResponse.json({ id: imageId, url: result.url, credits: user.credits - 1 });
+    }
   } catch (err) {
     let message = err instanceof Error ? err.message : "Image generation failed";
     console.error("Generate error:", message);
