@@ -13,8 +13,8 @@ import { Wand2, Download, RotateCcw, Check } from "lucide-react";
 type GenderTarget = "male-to-female" | "female-to-male";
 
 const GENDER_PROMPTS: Record<GenderTarget, string> = {
-  "male-to-female": "Transform this person to appear female, feminine facial features, soft skin, natural makeup, keep the overall face structure and expression",
-  "female-to-male": "Transform this person to appear male, masculine facial features, stronger jawline, keep the overall face structure and expression",
+  "male-to-female": "Change only the gender to female, keep all original facial features, identity, and characteristics unchanged, only adjust gender presentation",
+  "female-to-male": "Change only the gender to male, keep all original facial features, identity, and characteristics unchanged, only adjust gender presentation",
 };
 
 export function GenderSwapForm() {

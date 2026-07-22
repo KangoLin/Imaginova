@@ -13,11 +13,11 @@ import { Wand2, Download, RotateCcw, Check } from "lucide-react";
 type AgeTarget = "child" | "teen" | "young-adult" | "middle-aged" | "elderly";
 
 const AGE_PROMPTS: Record<AgeTarget, string> = {
-  "child": "Transform this person to look like a child around 6-12 years old, younger face, smoother skin, smaller facial features, keep the core identity",
-  "teen": "Transform this person to look like a teenager around 13-19 years old, youthful skin,青春活力, keep the core facial identity",
-  "young-adult": "Transform this person to look like a young adult around 20-30 years old, fresh appearance, keep the core facial identity",
-  "middle-aged": "Transform this person to look middle-aged around 40-55 years old, mature features, slight wrinkles, keep the core facial identity",
-  "elderly": "Transform this person to look elderly around 60+ years old, visible wrinkles, gray hair, aged skin texture, keep the core facial identity",
+  "child": "Transform this person to look like a child around 6-12 years old, keep all original facial features and identity unchanged, only adjust age appearance, younger face, smoother skin",
+  "teen": "Transform this person to look like a teenager around 13-19 years old, keep all original facial features and identity unchanged, only adjust age appearance, youthful skin",
+  "young-adult": "Transform this person to look like a young adult around 20-30 years old, keep all original facial features and identity unchanged, only adjust age appearance, fresh look",
+  "middle-aged": "Transform this person to look middle-aged around 40-55 years old, keep all original facial features and identity unchanged, only adjust age appearance, mature features, slight wrinkles",
+  "elderly": "Transform this person to look elderly around 60+ years old, keep all original facial features and identity unchanged, only adjust age appearance, visible wrinkles, gray hair",
 };
 
 const AGE_OPTIONS: { key: AgeTarget; icon: string }[] = [

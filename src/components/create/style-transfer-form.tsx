@@ -77,7 +77,7 @@ export function StyleTransferForm() {
     try {
       const stylePrompt = STYLE_PROMPTS[selectedStyle];
       const desc = description.trim() ? `, ${description.trim()}` : "";
-      const prompt = `Transform this image ${stylePrompt}${desc}, high quality, detailed`;
+      const prompt = `将参考图中的角色或场景改为${stylePrompt}${desc}, high quality, detailed`;
 
       const formData = new FormData();
       formData.append("prompt", prompt);

@@ -55,7 +55,7 @@ export function TryOnForm() {
 
     try {
       const desc = description.trim() ? `, ${description.trim()}` : "";
-      const prompt = `A person wearing this garment${desc}, full body, photorealistic, high quality detail, studio lighting`;
+      const prompt = `The person from the first image wearing the clothing from the second image${desc}, keep the original face and body shape unchanged, full body, photorealistic, high quality detail, studio lighting`;
 
       const formData = new FormData();
       formData.append("prompt", prompt);
