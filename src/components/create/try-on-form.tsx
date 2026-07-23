@@ -118,7 +118,7 @@ export function TryOnForm() {
         <span className="text-muted-foreground">{t("create.cost")}: 1 {t("create.credit")}</span>
       </div>
 
-      <Button type="submit" disabled={!canSubmit} className="w-full gap-2 h-11 text-base">
+      <Button type="submit" disabled={!canSubmit} className="w-full gap-2 h-11 text-base active:scale-[0.97] transition-all duration-200">
         {loading && <LoadingSpinner />}
         {loading ? t("tryOn.generating") : t("tryOn.generate")}
       </Button>
@@ -126,7 +126,7 @@ export function TryOnForm() {
   );
 
   const resultSection = result ? (
-    <div className="animate-slide-up space-y-4 rounded-[14px] border border-border/60 bg-card p-5">
+    <div className="animate-slide-up space-y-4 rounded-[14px] border border-border/60 bg-card p-5 glow-primary">
       <h3 className="text-sm font-medium text-foreground">{t("tryOn.result")}</h3>
       <div className="rounded-lg overflow-hidden border border-border/60 bg-muted/30">
         <Image

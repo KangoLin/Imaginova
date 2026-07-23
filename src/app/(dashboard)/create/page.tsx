@@ -243,13 +243,13 @@ function CreatePageContent() {
       {mode !== "general" && !sessionStorage.getItem(`imaginova-onboarded-${mode}`) && !onboardingDismissed ? (
         <ModeOnboarding mode={mode as "try-on" | "style-transfer" | "gender-swap" | "age-transform"} onDismiss={() => setOnboardingDismissed(true)} />
       ) : mode === "try-on" ? (
-        <TryOnForm />
+        <TryOnForm key="try-on" />
       ) : mode === "style-transfer" ? (
-        <StyleTransferForm />
+        <StyleTransferForm key="style-transfer" />
       ) : mode === "gender-swap" ? (
-        <GenderSwapForm />
+        <GenderSwapForm key="gender-swap" />
       ) : mode === "age-transform" ? (
-        <AgeTransformForm />
+        <AgeTransformForm key="age-transform" />
       ) : (
         <>
       {showHint && (

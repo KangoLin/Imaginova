@@ -112,6 +112,7 @@ export function StyleTransferForm() {
         onRemove={() => { if (sourcePreview) URL.revokeObjectURL(sourcePreview); setSourceFile(null); setSourcePreview(null); if (fileInputRef.current) fileInputRef.current.value = ""; }}
         onDragOver={setDragOver}
         inputRef={fileInputRef}
+        loading={loading}
       />
 
       <div>
@@ -124,11 +125,11 @@ export function StyleTransferForm() {
                 key={preset.key}
                 type="button"
                 onClick={() => setSelectedStyle(preset.key)}
-                className={`relative rounded-[14px] border p-3 text-center transition-all duration-200 ${
-                  isSelected
-                    ? "border-primary bg-primary/10 ring-1 ring-primary/30"
-                    : "border-border/60 hover:border-primary/30 bg-card"
-                }`}
+                  className={`relative rounded-[14px] border p-3 text-center transition-all duration-200 active:scale-[0.97] ${
+                    isSelected
+                      ? "border-primary bg-primary/10 ring-1 ring-primary/30"
+                      : "border-border/60 hover:border-primary/30 hover:scale-[1.02] bg-card"
+                  }`}
               >
                 <div className={`absolute inset-0 rounded-[14px] bg-gradient-to-br ${preset.gradient} opacity-50`} />
                 <div className="relative">
@@ -163,7 +164,7 @@ export function StyleTransferForm() {
         <span className="text-muted-foreground">{t("create.cost")}: 1 {t("create.credit")}</span>
       </div>
 
-      <Button type="submit" disabled={!canSubmit} className="w-full gap-2 h-11 text-base">
+      <Button type="submit" disabled={!canSubmit} className="w-full gap-2 h-11 text-base active:scale-[0.97] transition-all duration-200">
         {loading && <LoadingSpinner />}
         {loading ? t("styleTransfer.generating") : t("styleTransfer.generate")}
       </Button>
@@ -171,7 +172,7 @@ export function StyleTransferForm() {
   );
 
   const resultSection = result ? (
-    <div className="animate-slide-up space-y-4 rounded-[14px] border border-border/60 bg-card p-5">
+    <div className="animate-slide-up space-y-4 rounded-[14px] border border-border/60 bg-card p-5 glow-primary">
       <h3 className="text-sm font-medium text-foreground">{t("styleTransfer.result")}</h3>
       {sourcePreview ? (
         <BeforeAfterSlider beforeSrc={sourcePreview} afterSrc={result.url} aspectRatio={1} />

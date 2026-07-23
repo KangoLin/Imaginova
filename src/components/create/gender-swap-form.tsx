@@ -85,6 +85,7 @@ export function GenderSwapForm() {
         onRemove={() => { if (sourcePreview) URL.revokeObjectURL(sourcePreview); setSourceFile(null); setSourcePreview(null); if (fileInputRef.current) fileInputRef.current.value = ""; }}
         onDragOver={setDragOver}
         inputRef={fileInputRef}
+        loading={loading}
       />
 
       <div>
@@ -93,7 +94,7 @@ export function GenderSwapForm() {
           {(["male-to-female", "female-to-male"] as GenderTarget[]).map((g) => {
             const isSelected = targetGender === g;
             return (
-              <button key={g} type="button" onClick={() => setTargetGender(g)} className={`relative rounded-[14px] border p-4 text-center transition-all duration-200 ${isSelected ? "border-primary bg-primary/10 ring-1 ring-primary/30" : "border-border/60 hover:border-primary/30 bg-card"}`}>
+                <button key={g} type="button" onClick={() => setTargetGender(g)} className={`relative rounded-[14px] border p-4 text-center transition-all duration-200 active:scale-[0.97] ${isSelected ? "border-primary bg-primary/10 ring-1 ring-primary/30" : "border-border/60 hover:border-primary/30 hover:scale-[1.02] bg-card"}`}>
                 <div className="text-2xl mb-1">{g === "male-to-female" ? "♀️" : "♂️"}</div>
                 <p className="text-xs font-medium">{t(`genderSwap.${g === "male-to-female" ? "maleToFemale" : "femaleToMale"}`)}</p>
                 {isSelected && <div className="absolute top-1.5 right-1.5 size-4 rounded-full bg-primary flex items-center justify-center"><Check size={10} className="text-primary-foreground" /></div>}
@@ -114,7 +115,7 @@ export function GenderSwapForm() {
         <span className="text-muted-foreground">{t("create.cost")}: 1 {t("create.credit")}</span>
       </div>
 
-      <Button type="submit" disabled={!canSubmit} className="w-full gap-2 h-11 text-base">
+      <Button type="submit" disabled={!canSubmit} className="w-full gap-2 h-11 text-base active:scale-[0.97] transition-all duration-200">
         {loading && <LoadingSpinner />}
         {loading ? t("genderSwap.generating") : t("genderSwap.generate")}
       </Button>
@@ -122,7 +123,7 @@ export function GenderSwapForm() {
   );
 
   const resultSection = result ? (
-    <div className="animate-slide-up space-y-4 rounded-[14px] border border-border/60 bg-card p-5">
+    <div className="animate-slide-up space-y-4 rounded-[14px] border border-border/60 bg-card p-5 glow-primary">
       <h3 className="text-sm font-medium text-foreground">{t("genderSwap.result")}</h3>
       {sourcePreview ? (
         <BeforeAfterSlider beforeSrc={sourcePreview} afterSrc={result.url} aspectRatio={3 / 4} />

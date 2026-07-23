@@ -96,6 +96,7 @@ export function AgeTransformForm() {
         onRemove={() => { if (sourcePreview) URL.revokeObjectURL(sourcePreview); setSourceFile(null); setSourcePreview(null); if (fileInputRef.current) fileInputRef.current.value = ""; }}
         onDragOver={setDragOver}
         inputRef={fileInputRef}
+        loading={loading}
       />
 
       <div>
@@ -104,7 +105,7 @@ export function AgeTransformForm() {
           {AGE_OPTIONS.map((opt) => {
             const isSelected = targetAge === opt.key;
             return (
-              <button key={opt.key} type="button" onClick={() => setTargetAge(opt.key)} className={`relative rounded-[14px] border p-3 text-center transition-all duration-200 ${isSelected ? "border-primary bg-primary/10 ring-1 ring-primary/30" : "border-border/60 hover:border-primary/30 bg-card"}`}>
+              <button key={opt.key} type="button" onClick={() => setTargetAge(opt.key)} className={`relative rounded-[14px] border p-3 text-center transition-all duration-200 active:scale-[0.97] ${isSelected ? "border-primary bg-primary/10 ring-1 ring-primary/30" : "border-border/60 hover:border-primary/30 hover:scale-[1.02] bg-card"}`}>
                 <div className="text-xl mb-1">{opt.icon}</div>
                 <p className="text-[10px] font-medium leading-tight">{t(`ageTransform.${opt.key === "young-adult" ? "youngAdult" : opt.key === "middle-aged" ? "middleAged" : opt.key}`)}</p>
                 {isSelected && <div className="absolute top-1.5 right-1.5 size-4 rounded-full bg-primary flex items-center justify-center"><Check size={10} className="text-primary-foreground" /></div>}
@@ -125,7 +126,7 @@ export function AgeTransformForm() {
         <span className="text-muted-foreground">{t("create.cost")}: 1 {t("create.credit")}</span>
       </div>
 
-      <Button type="submit" disabled={!canSubmit} className="w-full gap-2 h-11 text-base">
+      <Button type="submit" disabled={!canSubmit} className="w-full gap-2 h-11 text-base active:scale-[0.97] transition-all duration-200">
         {loading && <LoadingSpinner />}
         {loading ? t("ageTransform.generating") : t("ageTransform.generate")}
       </Button>
@@ -133,7 +134,7 @@ export function AgeTransformForm() {
   );
 
   const resultSection = result ? (
-    <div className="animate-slide-up space-y-4 rounded-[14px] border border-border/60 bg-card p-5">
+    <div className="animate-slide-up space-y-4 rounded-[14px] border border-border/60 bg-card p-5 glow-primary">
       <h3 className="text-sm font-medium text-foreground">{t("ageTransform.result")}</h3>
       {sourcePreview ? (
         <BeforeAfterSlider beforeSrc={sourcePreview} afterSrc={result.url} aspectRatio={3 / 4} />

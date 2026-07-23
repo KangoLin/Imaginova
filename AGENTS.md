@@ -134,6 +134,10 @@ docker compose restart
 - Transition properties: prefer specific CSS properties over `transition-all` (performance).
 - `touch-action: manipulation` on `<html>` (300ms click delay fix).
 - After every feature update, update `PROJECT_PLAN.md`.
+- **Mobile adaptation**: Always test on ≤375px viewport. Avoid fixed widths; use `max-w-sm`/`max-w-md` for content containers. Use `overflow-x-auto` with snap points for scrollable rows. Touch targets must be ≥36px (ideally 44px). Use `overscroll-behavior: contain` on modals/sheets to prevent body scroll. Never use `hover:` as the only interaction indicator — always pair with `active:` or `aria-selected` for touch devices.
+- **Animation budget**: Limit simultaneous animated properties to 2 per element. Prefer `transform` and `opacity` for animation (compositor-friendly). Avoid animating `width`, `height`, `top`, `left`, `box-shadow`, or `border-radius` on mobile. Use `will-change: transform` sparingly and only during active animations.
+- **Touch interactions**: All draggable/resizable components must support both pointer and touch events. Use `touch-action: none` on interactive slider handles to prevent scroll interference. Avoid 300ms tap delay (already handled by `touch-action: manipulation` on `<html>`).
+- **Image loading**: Always provide `width`/`height` on `<Image>` to prevent layout shift. Use CSS `aspect-ratio` as fallback for dynamic images. Show skeleton/shimmer placeholders while loading (class `animate-shimmer` with `bg-gradient-to-r from-muted/30 via-muted/50 to-muted/30`).
 
 ## Developer Emails
 - `1264867171@qq.com`
