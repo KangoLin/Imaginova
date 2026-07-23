@@ -43,11 +43,10 @@ export async function generateImage(params: { prompt: string; model: string; siz
     model: params.model || "agnes-image-2.1-flash",
     prompt: params.prompt,
     size: params.size || "1024x1024",
-    n: 1,
   };
   if (params.imageUrls && params.imageUrls.length > 0) {
+    reqBody.image = params.imageUrls;
     reqBody.extra_body = {
-      image: params.imageUrls,
       response_format: "url",
     };
   }
