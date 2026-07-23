@@ -2,7 +2,7 @@
 
 import { type RefObject } from "react";
 import Image from "next/image";
-import { Wand2 } from "lucide-react";
+import { Image as ImageIcon } from "lucide-react";
 
 export function ImageUploadZone({
   label,
@@ -68,7 +68,7 @@ export function ImageUploadZone({
           <div className={`size-10 rounded-xl flex items-center justify-center transition-all duration-300 ${
             dragOver ? "bg-primary/20 text-primary scale-110" : "bg-muted/50 text-muted-foreground/40 group-hover:text-primary/50"
           }`}>
-            <Wand2 size={18} />
+            <ImageIcon size={18} />
           </div>
           <span className={`transition-colors duration-200 ${dragOver ? "text-primary font-medium" : ""}`}>
             {dragOver ? dropText : uploadText}

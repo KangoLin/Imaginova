@@ -8,7 +8,7 @@ import { downloadFile } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { LoadingSpinner } from "@/components/loading-spinner";
-import { Wand2, Download, RotateCcw } from "lucide-react";
+import { Image as ImageIcon, Download, RotateCcw } from "lucide-react";
 import { StudioLayout } from "@/components/create/studio-layout";
 
 export function TryOnForm() {
@@ -77,7 +77,7 @@ export function TryOnForm() {
   const canSubmit = personFile && garmentFile && !loading;
 
   const inputSection = (
-    <form onSubmit={handleSubmit} className="space-y-5" onPaste={(e) => { const item = Array.from(e.clipboardData.items).find(i => i.type.startsWith("image/")); if (item) { const f = item.getAsFile(); if (f) { e.preventDefault(); handlePersonFile(f); } }; }}>
+    <form onSubmit={handleSubmit} className="space-y-5 max-w-lg mx-auto" onPaste={(e) => { const item = Array.from(e.clipboardData.items).find(i => i.type.startsWith("image/")); if (item) { const f = item.getAsFile(); if (f) { e.preventDefault(); handlePersonFile(f); } }; }}>
       <div className="grid sm:grid-cols-2 gap-4">
         <UploadZone
           label={t("tryOn.personImage")}
@@ -213,7 +213,7 @@ function UploadZone({
           <div className={`size-10 rounded-xl flex items-center justify-center transition-all duration-300 ${
             dragOver ? "bg-primary/20 text-primary scale-110" : "bg-muted/50 text-muted-foreground/40 group-hover:text-primary/50"
           }`}>
-            <Wand2 size={18} />
+            <ImageIcon size={18} />
           </div>
           <span className={dragOver ? "text-primary font-medium" : ""}>
             {dragOver ? t("tryOn.dropImage") : t("tryOn.uploadImage")}

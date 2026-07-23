@@ -84,7 +84,7 @@ export function AgeTransformForm() {
   const canSubmit = sourceFile && targetAge && !loading;
 
   const inputSection = (
-    <form onSubmit={handleSubmit} className="space-y-5" onPaste={(e) => { const item = Array.from(e.clipboardData.items).find(i => i.type.startsWith("image/")); if (item) { const f = item.getAsFile(); if (f) { e.preventDefault(); handleSourceFile(f); } }; }}>
+    <form onSubmit={handleSubmit} className="space-y-5 max-w-lg mx-auto" onPaste={(e) => { const item = Array.from(e.clipboardData.items).find(i => i.type.startsWith("image/")); if (item) { const f = item.getAsFile(); if (f) { e.preventDefault(); handleSourceFile(f); } }; }}>
       <ImageUploadZone
         label={t("ageTransform.sourceImage")}
         hint={t("ageTransform.sourceImageHint")}
