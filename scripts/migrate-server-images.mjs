@@ -2,9 +2,9 @@
  * Server-side migration script
  * Run inside Docker container: docker exec -i imaginova-imaginova-1 node /app/scripts/migrate-server-images.js
  */
-const Database = require("better-sqlite3");
-const fs = require("fs/promises");
-const path = require("path");
+import Database from "better-sqlite3";
+import fs from "fs/promises";
+import path from "path";
 
 const DB_PATH = process.env.DATABASE_PATH || "/app/data/data.db";
 const UPLOAD_DIR = "/app/data/uploads/images";
