@@ -49,7 +49,11 @@ function ImageLightbox({ img, images, onClose, onNavigate }: {
         <DialogTitle className="sr-only">{img.prompt}</DialogTitle>
         <DialogDescription className="sr-only">{t("dashboard.viewDetails")}</DialogDescription>
         <div className="relative flex items-center justify-center bg-black/50 min-h-[50dvh] max-h-[80dvh]">
-          <Image src={img.url} alt={img.prompt} fill className="object-contain" sizes="90vw" />
+          {img.url.startsWith("/api/file/") ? (
+            <img src={img.url} alt={img.prompt} className="absolute inset-0 w-full h-full object-contain" />
+          ) : (
+            <Image src={img.url} alt={img.prompt} fill className="object-contain" sizes="90vw" />
+          )}
           {prev && <button onClick={() => onNavigate(prev)} className="absolute left-2 top-1/2 -translate-y-1/2 size-9 rounded-full bg-black/40 text-white flex items-center justify-center hover:bg-black/60 transition-all" aria-label="Previous"><ChevronLeft size={18} /></button>}
           {next && <button onClick={() => onNavigate(next)} className="absolute right-2 top-1/2 -translate-y-1/2 size-9 rounded-full bg-black/40 text-white flex items-center justify-center hover:bg-black/60 transition-all" aria-label="Next"><ChevronRight size={18} /></button>}
           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4 pt-12">
@@ -321,7 +325,11 @@ export default function DashboardPage() {
             <motion.div key={img.id} variants={itemVariants}>
               <div className="group relative bg-card border border-border/60 rounded-[14px] overflow-hidden cursor-pointer hover:border-primary/25 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-0.5 transition-all duration-300" onClick={() => setSelectedImage(img)}>
                 <div className="aspect-[4/3] bg-muted relative overflow-hidden">
-                  <Image src={img.url} alt={img.prompt} fill className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="(max-width: 640px) 50vw, 33vw" />
+                  {img.url.startsWith("/api/file/") ? (
+                    <img src={img.url} alt={img.prompt} className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  ) : (
+                    <Image src={img.url} alt={img.prompt} fill className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="(max-width: 640px) 50vw, 33vw" />
+                  )}
                 </div>
                 <button onClick={(e) => handleDeleteItem(img.id, "images", e)} disabled={deletingItems.has(img.id)} className="absolute top-2 right-2 size-7 rounded-full bg-background/80 border border-border/60 flex items-center justify-center md:opacity-0 md:group-hover:opacity-100 transition-opacity hover:bg-destructive hover:text-destructive-foreground disabled:opacity-50">
                   {deletingItems.has(img.id) ? <LoadingSpinner size="sm" /> : <Trash2 size={11} />}

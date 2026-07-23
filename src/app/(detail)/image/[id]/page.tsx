@@ -98,7 +98,11 @@ export default function ImageDetailPage() {
       </Link>
       <div className="bg-card rounded-xl overflow-hidden border border-border/60">
         <div className="bg-muted relative flex items-center justify-center group" style={{ minHeight: "65vh", maxHeight: "85vh" }}>
-          <Image src={image.url} alt={image.prompt} fill className="object-contain" sizes="(max-width: 768px) 100vw, 1024px" />
+          {image.url.startsWith("/api/file/") ? (
+            <img src={image.url} alt={image.prompt} className="absolute inset-0 w-full h-full object-contain" />
+          ) : (
+            <Image src={image.url} alt={image.prompt} fill className="object-contain" sizes="(max-width: 768px) 100vw, 1024px" />
+          )}
           {prevImage && (
             <button onClick={() => navigateTo(prevImage.id)} className="absolute left-3 top-1/2 -translate-y-1/2 size-10 rounded-full bg-background/80 border border-border/60 text-muted-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-background hover:text-foreground transition-all duration-200" aria-label="Previous image">
               <ChevronLeft size={18} />

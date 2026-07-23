@@ -9,6 +9,7 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "oaidalleapiprodscus.blob.core.windows.net" },
       { protocol: "https", hostname: "**.stability.ai" },
       { protocol: "https", hostname: "**.agnes-ai.space" },
+      { protocol: "https", hostname: "platform-outputs.agnes-ai.space" },
     ],
   },
 }

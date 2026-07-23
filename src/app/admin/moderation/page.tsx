@@ -60,7 +60,7 @@ export default function ModerationPage() {
       <div key={`${type}-${item.id}`} className="bg-card rounded-lg border border-border/60 overflow-hidden hover:shadow-sm transition-shadow">
         <div className="aspect-[4/3] bg-muted relative cursor-pointer overflow-hidden" onClick={() => setPreview(item)}>
           {item.url && !isVideo ? (
-            <Image src={item.url} alt={item.prompt} fill className="object-cover" sizes="(max-width: 640px) 50vw, 25vw" />
+            <Image src={item.url} alt={item.prompt} fill className="object-cover" sizes="(max-width: 640px) 50vw, 25vw" unoptimized />
           ) : item.url && isVideo ? (
             <video src={`/api/proxy/video?url=${encodeURIComponent(item.url)}`} preload="metadata" muted playsInline className="w-full h-full object-cover" />
           ) : (
@@ -154,7 +154,7 @@ export default function ModerationPage() {
               preview.status !== undefined ? (
                 <video src={`/api/proxy/video?url=${encodeURIComponent(preview.url)}`} controls autoPlay playsInline muted className="max-w-full max-h-[90dvh] mx-auto" />
               ) : (
-                <Image src={preview.url} alt={preview.prompt} width={1024} height={768} className="max-w-full max-h-[90vh] object-contain mx-auto" />
+                <Image src={preview.url} alt={preview.prompt} width={1024} height={768} className="max-w-full max-h-[90vh] object-contain mx-auto" unoptimized />
               )
             ) : (
               <div className="text-muted-foreground text-center py-20">{t("common.loading")}</div>

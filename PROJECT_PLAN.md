@@ -1,4 +1,8 @@
-## 📦 近期线上修复 (2026-07-15)
+## 📦 近期线上修复
+
+| # | 问题 | 严重度 | 状态 | 修复 |
+|---|------|--------|------|------|
+| 6 | **Dashboard 作品缩略图无法加载** — 图片 URL 为外部临时链接（已过期），且 `next/image` 请求 `/api/file/` 时因缺少 auth cookie 返回 401 | P0 | ✅ 已修复 | 1) 迁移全部 12 张存量图片到本地存储 `/api/file/images/` 2) 对本地 URL 改用原生 `<img>` 标签（携带 auth cookie）3) `src/app/(dashboard)/dashboard/page.tsx` + `src/app/(detail)/image/[id]/page.tsx` + `src/app/admin/moderation/page.tsx` 统一修复 |
 
 | # | 问题 | 严重度 | 状态 | 修复 |
 |---|------|--------|------|------|
