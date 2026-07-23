@@ -55,6 +55,7 @@
   "scene.genderSwapDesc": "Transform a photo to swap the gender while keeping facial features",
   "scene.ageTransform": "Age Transformation",
   "scene.ageTransformDesc": "Make someone look younger or older with AI",
+  "scene.start": "Get Started",
   "scene.comingSoon": "Coming Soon",
 
   "dashboard.title": "My Works",
@@ -228,6 +229,8 @@
   "common.model": "Model",
   "common.created": "Created",
   "common.status": "Status",
+  "common.before": "Before",
+  "common.after": "After",
   "common.download": "Download",
   "common.copyLink": "Copy Link",
   "common.copied": "Copied!",

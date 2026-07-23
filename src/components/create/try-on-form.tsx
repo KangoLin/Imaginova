@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { LoadingSpinner } from "@/components/loading-spinner";
 import { Wand2, Download, RotateCcw } from "lucide-react";
+import { StudioLayout } from "@/components/create/studio-layout";
 
 export function TryOnForm() {
   const { t } = useLocale();
@@ -75,82 +76,82 @@ export function TryOnForm() {
 
   const canSubmit = personFile && garmentFile && !loading;
 
-  return (
-    <div className="space-y-6" onPaste={(e) => { const item = Array.from(e.clipboardData.items).find(i => i.type.startsWith("image/")); if (item) { const f = item.getAsFile(); if (f) { e.preventDefault(); handlePersonFile(f); } }; }}>
-      <form onSubmit={handleSubmit} className="space-y-5">
-        <div className="grid sm:grid-cols-2 gap-4">
-          <UploadZone
-            label={t("tryOn.personImage")}
-            hint={t("tryOn.personImageHint")}
-            preview={personPreview}
-            dragOver={dragOverPerson}
-            inputRef={personInputRef}
-            onFile={handlePersonFile}
-            onRemove={() => { if (personPreview) URL.revokeObjectURL(personPreview); setPersonFile(null); setPersonPreview(null); if (personInputRef.current) personInputRef.current.value = ""; }}
-            onDragOver={setDragOverPerson}
-          />
-          <UploadZone
-            label={t("tryOn.garmentImage")}
-            hint={t("tryOn.garmentImageHint")}
-            preview={garmentPreview}
-            dragOver={dragOverGarment}
-            inputRef={garmentInputRef}
-            onFile={handleGarmentFile}
-            onRemove={() => { if (garmentPreview) URL.revokeObjectURL(garmentPreview); setGarmentFile(null); setGarmentPreview(null); if (garmentInputRef.current) garmentInputRef.current.value = ""; }}
-            onDragOver={setDragOverGarment}
-          />
-        </div>
+  const inputSection = (
+    <form onSubmit={handleSubmit} className="space-y-5" onPaste={(e) => { const item = Array.from(e.clipboardData.items).find(i => i.type.startsWith("image/")); if (item) { const f = item.getAsFile(); if (f) { e.preventDefault(); handlePersonFile(f); } }; }}>
+      <div className="grid sm:grid-cols-2 gap-4">
+        <UploadZone
+          label={t("tryOn.personImage")}
+          hint={t("tryOn.personImageHint")}
+          preview={personPreview}
+          dragOver={dragOverPerson}
+          inputRef={personInputRef}
+          onFile={handlePersonFile}
+          onRemove={() => { if (personPreview) URL.revokeObjectURL(personPreview); setPersonFile(null); setPersonPreview(null); if (personInputRef.current) personInputRef.current.value = ""; }}
+          onDragOver={setDragOverPerson}
+        />
+        <UploadZone
+          label={t("tryOn.garmentImage")}
+          hint={t("tryOn.garmentImageHint")}
+          preview={garmentPreview}
+          dragOver={dragOverGarment}
+          inputRef={garmentInputRef}
+          onFile={handleGarmentFile}
+          onRemove={() => { if (garmentPreview) URL.revokeObjectURL(garmentPreview); setGarmentFile(null); setGarmentPreview(null); if (garmentInputRef.current) garmentInputRef.current.value = ""; }}
+          onDragOver={setDragOverGarment}
+        />
+      </div>
 
-        <div>
-          <label className="block text-sm font-medium mb-1.5 text-foreground">{t("tryOn.description")}</label>
-          <Textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder={t("tryOn.descriptionPlaceholder")}
-            rows={2}
-            className="resize-none text-base"
-          />
-        </div>
+      <div>
+        <label className="block text-sm font-medium mb-1.5 text-foreground">{t("tryOn.description")}</label>
+        <Textarea
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          placeholder={t("tryOn.descriptionPlaceholder")}
+          rows={2}
+          className="resize-none text-base"
+        />
+      </div>
 
-        {error && <p className="text-sm text-destructive bg-destructive/5 rounded-lg p-3">{error}</p>}
+      {error && <p className="text-sm text-destructive bg-destructive/5 rounded-lg p-3">{error}</p>}
 
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-muted-foreground">{t("create.cost")}: 1 {t("create.credit")}</span>
-        </div>
+      <div className="flex items-center justify-between text-sm">
+        <span className="text-muted-foreground">{t("create.cost")}: 1 {t("create.credit")}</span>
+      </div>
 
-        <Button type="submit" disabled={!canSubmit} className="w-full gap-2 h-11 text-base">
-          {loading && <LoadingSpinner />}
-          {loading ? t("tryOn.generating") : t("tryOn.generate")}
-        </Button>
-      </form>
-
-      {result && (
-        <div className="animate-slide-up space-y-4 pt-4 border-t border-border/60">
-          <h3 className="text-sm font-medium text-foreground">{t("tryOn.result")}</h3>
-          <div className="rounded-[14px] overflow-hidden border border-border/60 bg-card">
-            <Image
-              src={result.url}
-              alt="Try-on result"
-              width={768}
-              height={1024}
-              className="w-full h-auto object-contain"
-              unoptimized
-            />
-          </div>
-          <div className="flex gap-3">
-            <Button variant="outline" size="sm" className="gap-2" onClick={() => handleDownload(result.url, result.id)}>
-              <Download size={14} />
-              {t("common.download")}
-            </Button>
-            <Button variant="outline" size="sm" className="gap-2" onClick={() => { setResult(null); setDescription(""); }}>
-              <RotateCcw size={14} />
-              {t("tryOn.generateAgain")}
-            </Button>
-          </div>
-        </div>
-      )}
-    </div>
+      <Button type="submit" disabled={!canSubmit} className="w-full gap-2 h-11 text-base">
+        {loading && <LoadingSpinner />}
+        {loading ? t("tryOn.generating") : t("tryOn.generate")}
+      </Button>
+    </form>
   );
+
+  const resultSection = result ? (
+    <div className="animate-slide-up space-y-4 rounded-[14px] border border-border/60 bg-card p-5">
+      <h3 className="text-sm font-medium text-foreground">{t("tryOn.result")}</h3>
+      <div className="rounded-lg overflow-hidden border border-border/60 bg-muted/30">
+        <Image
+          src={result.url}
+          alt="Try-on result"
+          width={768}
+          height={1024}
+          className="w-full h-auto object-contain"
+          unoptimized
+        />
+      </div>
+      <div className="flex gap-3">
+        <Button variant="outline" size="sm" className="gap-2" onClick={() => handleDownload(result.url, result.id)}>
+          <Download size={14} />
+          {t("common.download")}
+        </Button>
+        <Button variant="outline" size="sm" className="gap-2" onClick={() => { setResult(null); setDescription(""); }}>
+          <RotateCcw size={14} />
+          {t("tryOn.generateAgain")}
+        </Button>
+      </div>
+    </div>
+  ) : undefined;
+
+  return <StudioLayout left={inputSection} right={resultSection} />;
 }
 
 function handleDownload(url: string, id: number) {

@@ -11,11 +11,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select } from "@/components/ui/select";
 import { useLocale } from "@/components/locale-provider";
-import { Wand2, X } from "lucide-react";
+import { Wand2, X, Sparkles, Shirt, Paintbrush, VenusAndMars, UserCog } from "lucide-react";
 import { TryOnForm } from "@/components/create/try-on-form";
 import { StyleTransferForm } from "@/components/create/style-transfer-form";
 import { GenderSwapForm } from "@/components/create/gender-swap-form";
 import { AgeTransformForm } from "@/components/create/age-transform-form";
+import { ModeOnboarding } from "@/components/create/mode-onboarding";
 
 type Tab = "image" | "video";
 type SceneMode = "general" | "try-on" | "style-transfer" | "gender-swap" | "age-transform";
@@ -87,6 +88,7 @@ function CreatePageContent() {
   const [videoFrameRate, setVideoFrameRate] = useState(24);
   const [remixLoading, setRemixLoading] = useState(false);
   const [remixError, setRemixError] = useState("");
+  const [onboardingDismissed, setOnboardingDismissed] = useState(false);
 
   useEffect(() => {
     if (!localStorage.getItem("imaginova-onboarded")) setShowHint(true);
@@ -210,57 +212,37 @@ function CreatePageContent() {
         <p className="text-sm text-muted-foreground">{t("create.subtitle")}</p>
       </div>
 
-      <div className="mb-6">
-        <div className="flex gap-1.5 p-1 bg-muted/50 rounded-xl w-fit">
-          <button
-            type="button"
-            onClick={() => switchMode("general")}
-            className={`px-4 py-1.5 text-xs font-medium rounded-lg transition-all ${
-              mode === "general" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {t("create.title")}
-          </button>
-          <button
-            type="button"
-            onClick={() => switchMode("try-on")}
-            className={`px-4 py-1.5 text-xs font-medium rounded-lg transition-all ${
-              mode === "try-on" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {t("scene.tryOn")}
-          </button>
-          <button
-            type="button"
-            onClick={() => switchMode("style-transfer")}
-            className={`px-4 py-1.5 text-xs font-medium rounded-lg transition-all ${
-              mode === "style-transfer" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {t("scene.styleTransfer")}
-          </button>
-          <button
-            type="button"
-            onClick={() => switchMode("gender-swap")}
-            className={`px-4 py-1.5 text-xs font-medium rounded-lg transition-all ${
-              mode === "gender-swap" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {t("scene.genderSwap")}
-          </button>
-          <button
-            type="button"
-            onClick={() => switchMode("age-transform")}
-            className={`px-4 py-1.5 text-xs font-medium rounded-lg transition-all ${
-              mode === "age-transform" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {t("scene.ageTransform")}
-          </button>
+      <div className="mb-6 overflow-x-auto scrollbar-none">
+        <div className="flex gap-1 p-1 bg-muted/50 rounded-xl w-fit min-w-max" role="tablist">
+          {[
+            { key: "general", icon: Sparkles, label: t("create.title") },
+            { key: "try-on", icon: Shirt, label: t("scene.tryOn") },
+            { key: "style-transfer", icon: Paintbrush, label: t("scene.styleTransfer") },
+            { key: "gender-swap", icon: VenusAndMars, label: t("scene.genderSwap") },
+            { key: "age-transform", icon: UserCog, label: t("scene.ageTransform") },
+          ].map(({ key, icon: Icon, label }) => (
+            <button
+              key={key}
+              type="button"
+              role="tab"
+              aria-selected={mode === key}
+              onClick={() => switchMode(key as SceneMode)}
+              className={`flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg transition-all whitespace-nowrap ${
+                mode === key
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
+              }`}
+            >
+              <Icon size={14} />
+              {label}
+            </button>
+          ))}
         </div>
       </div>
 
-      {mode === "try-on" ? (
+      {mode !== "general" && !sessionStorage.getItem(`imaginova-onboarded-${mode}`) && !onboardingDismissed ? (
+        <ModeOnboarding mode={mode as "try-on" | "style-transfer" | "gender-swap" | "age-transform"} onDismiss={() => setOnboardingDismissed(true)} />
+      ) : mode === "try-on" ? (
         <TryOnForm />
       ) : mode === "style-transfer" ? (
         <StyleTransferForm />

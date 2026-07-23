@@ -8,7 +8,10 @@ import { downloadFile } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { LoadingSpinner } from "@/components/loading-spinner";
-import { Wand2, Download, RotateCcw, Check } from "lucide-react";
+import { ImageUploadZone } from "@/components/ui/image-upload-zone";
+import { Download, RotateCcw, Check } from "lucide-react";
+import { StudioLayout } from "@/components/create/studio-layout";
+import { BeforeAfterSlider } from "@/components/create/before-after-slider";
 
 type StylePreset =
   | "anime"
@@ -96,133 +99,99 @@ export function StyleTransferForm() {
 
   const canSubmit = sourceFile && selectedStyle && !loading;
 
-  return (
-    <div className="space-y-6" onPaste={(e) => { const item = Array.from(e.clipboardData.items).find(i => i.type.startsWith("image/")); if (item) { const f = item.getAsFile(); if (f) { e.preventDefault(); handleSourceFile(f); } }; }}>
-      <form onSubmit={handleSubmit} className="space-y-5">
-        <div>
-          <label className="block text-sm font-medium mb-1.5 text-foreground">{t("styleTransfer.sourceImage")}</label>
-          {sourcePreview ? (
-            <div className="relative group max-w-sm">
-              <Image
-                src={sourcePreview}
-                alt=""
-                width={320}
-                height={320}
-                className="w-full h-48 object-cover rounded-[14px] border border-border/60"
-                unoptimized
-              />
+  const inputSection = (
+    <form onSubmit={handleSubmit} className="space-y-5" onPaste={(e) => { const item = Array.from(e.clipboardData.items).find(i => i.type.startsWith("image/")); if (item) { const f = item.getAsFile(); if (f) { e.preventDefault(); handleSourceFile(f); } }; }}>
+      <ImageUploadZone
+        label={t("styleTransfer.sourceImage")}
+        hint={t("styleTransfer.sourceImageHint")}
+        preview={sourcePreview}
+        dragOver={dragOver}
+        uploadText={t("styleTransfer.uploadImage")}
+        dropText={t("styleTransfer.dropImage")}
+        onFile={handleSourceFile}
+        onRemove={() => { if (sourcePreview) URL.revokeObjectURL(sourcePreview); setSourceFile(null); setSourcePreview(null); if (fileInputRef.current) fileInputRef.current.value = ""; }}
+        onDragOver={setDragOver}
+        inputRef={fileInputRef}
+      />
+
+      <div>
+        <label className="block text-sm font-medium mb-3 text-foreground">{t("styleTransfer.chooseStyle")}</label>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          {STYLE_PRESETS.map((preset) => {
+            const isSelected = selectedStyle === preset.key;
+            return (
               <button
+                key={preset.key}
                 type="button"
-                onClick={() => { if (sourcePreview) URL.revokeObjectURL(sourcePreview); setSourceFile(null); setSourcePreview(null); if (fileInputRef.current) fileInputRef.current.value = ""; }}
-                className="absolute top-2 right-2 size-6 rounded-full bg-background/80 border border-border/60 flex items-center justify-center text-muted-foreground hover:text-foreground transition-all text-xs opacity-0 group-hover:opacity-100 backdrop-blur-sm"
+                onClick={() => setSelectedStyle(preset.key)}
+                className={`relative rounded-[14px] border p-3 text-center transition-all duration-200 ${
+                  isSelected
+                    ? "border-primary bg-primary/10 ring-1 ring-primary/30"
+                    : "border-border/60 hover:border-primary/30 bg-card"
+                }`}
               >
-                x
-              </button>
-            </div>
-          ) : (
-            <div
-              onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-              onDragLeave={() => setDragOver(false)}
-              onDrop={(e) => { e.preventDefault(); setDragOver(false); const f = e.dataTransfer.files[0]; if (f) handleSourceFile(f); }}
-              onClick={() => fileInputRef.current?.click()}
-              className={`w-full max-w-sm h-48 border-2 border-dashed rounded-[14px] flex flex-col items-center justify-center gap-2 text-sm text-muted-foreground transition-all duration-300 cursor-pointer group ${
-                dragOver ? "border-primary bg-primary/[0.06] scale-[1.02]" : "border-border/60 hover:border-primary/30 hover:bg-primary/[0.03]"
-              }`}
-            >
-              <div className={`size-10 rounded-xl flex items-center justify-center transition-all duration-300 ${
-                dragOver ? "bg-primary/20 text-primary scale-110" : "bg-muted/50 text-muted-foreground/40 group-hover:text-primary/50"
-              }`}>
-                <Wand2 size={18} />
-              </div>
-              <span className={dragOver ? "text-primary font-medium" : ""}>
-                {dragOver ? t("styleTransfer.dropImage") : t("styleTransfer.uploadImage")}
-              </span>
-              <span className="text-xs text-muted-foreground/40">{t("styleTransfer.sourceImageHint")}</span>
-            </div>
-          )}
-          <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleSourceFile(f); }} />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-3 text-foreground">{t("styleTransfer.chooseStyle")}</label>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            {STYLE_PRESETS.map((preset) => {
-              const isSelected = selectedStyle === preset.key;
-              return (
-                <button
-                  key={preset.key}
-                  type="button"
-                  onClick={() => setSelectedStyle(preset.key)}
-                  className={`relative rounded-[14px] border p-3 text-center transition-all duration-200 ${
-                    isSelected
-                      ? "border-primary bg-primary/10 ring-1 ring-primary/30"
-                      : "border-border/60 hover:border-primary/30 bg-card"
-                  }`}
-                >
-                  <div className={`absolute inset-0 rounded-[14px] bg-gradient-to-br ${preset.gradient} opacity-50`} />
-                  <div className="relative">
-                    <div className="text-xl mb-1">{preset.icon}</div>
-                    <p className="text-xs font-medium">{t(`styleTransfer.preset${preset.key.charAt(0).toUpperCase() + preset.key.slice(1)}`)}</p>
+                <div className={`absolute inset-0 rounded-[14px] bg-gradient-to-br ${preset.gradient} opacity-50`} />
+                <div className="relative">
+                  <div className="text-xl mb-1">{preset.icon}</div>
+                  <p className="text-xs font-medium">{t(`styleTransfer.preset${preset.key.charAt(0).toUpperCase() + preset.key.slice(1)}`)}</p>
+                </div>
+                {isSelected && (
+                  <div className="absolute top-1.5 right-1.5 size-4 rounded-full bg-primary flex items-center justify-center">
+                    <Check size={10} className="text-primary-foreground" />
                   </div>
-                  {isSelected && (
-                    <div className="absolute top-1.5 right-1.5 size-4 rounded-full bg-primary flex items-center justify-center">
-                      <Check size={10} className="text-primary-foreground" />
-                    </div>
-                  )}
-                </button>
-              );
-            })}
-          </div>
+                )}
+              </button>
+            );
+          })}
         </div>
+      </div>
 
-        <div>
-          <label className="block text-sm font-medium mb-1.5 text-foreground">{t("styleTransfer.description")}</label>
-          <Textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder={t("styleTransfer.descriptionPlaceholder")}
-            rows={2}
-            className="resize-none text-base"
-          />
-        </div>
+      <div>
+        <label className="block text-sm font-medium mb-1.5 text-foreground">{t("styleTransfer.description")}</label>
+        <Textarea
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          placeholder={t("styleTransfer.descriptionPlaceholder")}
+          rows={2}
+          className="resize-none text-base"
+        />
+      </div>
 
-        {error && <p className="text-sm text-destructive bg-destructive/5 rounded-lg p-3">{error}</p>}
+      {error && <p className="text-sm text-destructive bg-destructive/5 rounded-lg p-3">{error}</p>}
 
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-muted-foreground">{t("create.cost")}: 1 {t("create.credit")}</span>
-        </div>
+      <div className="flex items-center justify-between text-sm">
+        <span className="text-muted-foreground">{t("create.cost")}: 1 {t("create.credit")}</span>
+      </div>
 
-        <Button type="submit" disabled={!canSubmit} className="w-full gap-2 h-11 text-base">
-          {loading && <LoadingSpinner />}
-          {loading ? t("styleTransfer.generating") : t("styleTransfer.generate")}
-        </Button>
-      </form>
+      <Button type="submit" disabled={!canSubmit} className="w-full gap-2 h-11 text-base">
+        {loading && <LoadingSpinner />}
+        {loading ? t("styleTransfer.generating") : t("styleTransfer.generate")}
+      </Button>
+    </form>
+  );
 
-      {result && (
-        <div className="animate-slide-up space-y-4 pt-4 border-t border-border/60">
-          <h3 className="text-sm font-medium text-foreground">{t("styleTransfer.result")}</h3>
-          <div className="rounded-[14px] overflow-hidden border border-border/60 bg-card">
-            <Image
-              src={result.url}
-              alt="Style transfer result"
-              width={1024}
-              height={1024}
-              className="w-full h-auto object-contain"
-              unoptimized
-            />
-          </div>
-          <div className="flex gap-3">
-            <Button variant="outline" size="sm" className="gap-2" onClick={() => downloadFile(result.url, `style-transfer-${result.id}.png`)}>
-              <Download size={14} />
-              {t("common.download")}
-            </Button>
-            <Button variant="outline" size="sm" className="gap-2" onClick={() => { setResult(null); setDescription(""); }}>
-              <RotateCcw size={14} />
-              {t("styleTransfer.generateAgain")}
-            </Button>
-          </div>
+  const resultSection = result ? (
+    <div className="animate-slide-up space-y-4 rounded-[14px] border border-border/60 bg-card p-5">
+      <h3 className="text-sm font-medium text-foreground">{t("styleTransfer.result")}</h3>
+      {sourcePreview ? (
+        <BeforeAfterSlider beforeSrc={sourcePreview} afterSrc={result.url} aspectRatio={1} />
+      ) : (
+        <div className="rounded-lg overflow-hidden border border-border/60 bg-muted/30">
+          <Image src={result.url} alt="Style transfer result" width={1024} height={1024} className="w-full h-auto object-contain" unoptimized />
         </div>
       )}
+      <div className="flex gap-3">
+        <Button variant="outline" size="sm" className="gap-2" onClick={() => downloadFile(result.url, `style-transfer-${result.id}.png`)}>
+          <Download size={14} />
+          {t("common.download")}
+        </Button>
+        <Button variant="outline" size="sm" className="gap-2" onClick={() => { setResult(null); setDescription(""); }}>
+          <RotateCcw size={14} />
+          {t("styleTransfer.generateAgain")}
+        </Button>
+      </div>
     </div>
-  );
+  ) : undefined;
+
+  return <StudioLayout left={inputSection} right={resultSection} />;
 }

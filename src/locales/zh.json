@@ -55,6 +55,7 @@
   "scene.genderSwapDesc": "上传照片，AI 在保留面部特征的前提下转换性别",
   "scene.ageTransform": "年龄转换",
   "scene.ageTransformDesc": "让照片中的人变年轻或变老",
+  "scene.start": "开始使用",
   "scene.comingSoon": "即将上线",
 
   "dashboard.title": "我的作品",
@@ -228,6 +229,8 @@
   "common.model": "模型",
   "common.created": "创建时间",
   "common.status": "状态",
+  "common.before": "原图",
+  "common.after": "生成",
   "common.download": "下载",
   "common.copyLink": "复制链接",
   "common.copied": "已复制！",
