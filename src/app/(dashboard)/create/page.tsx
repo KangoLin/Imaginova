@@ -202,7 +202,7 @@ function CreatePageContent() {
   }
 
   return (
-    <main className="max-w-2xl mx-auto px-6 pt-24 pb-12 animate-fade-in" onPaste={(e) => { const item = Array.from(e.clipboardData.items).find(i => i.type.startsWith("image/")); if (item) { const f = item.getAsFile(); if (f) { e.preventDefault(); handleDragFile(f); } }; }}>
+    <main className={`mx-auto px-6 pt-24 pb-12 animate-fade-in ${mode !== "general" ? "max-w-5xl" : "max-w-2xl"}`} onPaste={(e) => { const item = Array.from(e.clipboardData.items).find(i => i.type.startsWith("image/")); if (item) { const f = item.getAsFile(); if (f) { e.preventDefault(); handleDragFile(f); } }; }}>
       <div className="mb-8 text-center">
         <div className="flex items-center justify-center gap-2 text-primary mb-2">
           <Wand2 size={16} />
@@ -213,7 +213,7 @@ function CreatePageContent() {
       </div>
 
       <div className="mb-6 overflow-x-auto scrollbar-none">
-        <div className="flex gap-1 p-1 bg-muted/50 rounded-xl w-max" role="tablist">
+        <div className="flex gap-1 p-1 bg-muted/50 rounded-xl mx-auto w-fit" role="tablist">
           {[
             { key: "general", icon: Sparkles, label: t("create.title") },
             { key: "try-on", icon: Shirt, label: t("scene.tryOn") },
@@ -240,7 +240,6 @@ function CreatePageContent() {
         </div>
       </div>
 
-      <div className={mode !== "general" ? "max-w-4xl mx-auto" : ""}>
       {mode !== "general" && !sessionStorage.getItem(`imaginova-onboarded-${mode}`) && !onboardingDismissed ? (
         <ModeOnboarding mode={mode as "try-on" | "style-transfer" | "gender-swap" | "age-transform"} onDismiss={() => setOnboardingDismissed(true)} />
       ) : mode === "try-on" ? (
@@ -463,7 +462,6 @@ function CreatePageContent() {
       })()}
       </>
       )}
-      </div>
     </main>
   );
 }
