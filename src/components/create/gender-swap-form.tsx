@@ -73,7 +73,7 @@ export function GenderSwapForm() {
   const canSubmit = sourceFile && targetGender && !loading;
 
   const inputSection = (
-    <form onSubmit={handleSubmit} className="space-y-5" onPaste={(e) => { const item = Array.from(e.clipboardData.items).find(i => i.type.startsWith("image/")); if (item) { const f = item.getAsFile(); if (f) { e.preventDefault(); handleSourceFile(f); } }; }}>
+    <form onSubmit={handleSubmit} className="space-y-5 max-w-md mx-auto" onPaste={(e) => { const item = Array.from(e.clipboardData.items).find(i => i.type.startsWith("image/")); if (item) { const f = item.getAsFile(); if (f) { e.preventDefault(); handleSourceFile(f); } }; }}>
       <ImageUploadZone
         label={t("genderSwap.sourceImage")}
         hint={t("genderSwap.sourceImageHint")}

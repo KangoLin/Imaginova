@@ -147,3 +147,9 @@ docker compose restart
 - **Local-first**: All development and updates are done locally first.
 - **Ask before deploy**: After completing a major update, ask the user for explicit confirmation before deploying to the production server (Tencent Cloud `43.161.245.49`).
 - **Never auto-deploy**: Do not push to production or run Docker compose on the server without user approval.
+
+## Operations & Promotion Rules
+- **All operations/promotion decisions require user approval**: Any changes related to monetization, pricing, credit adjustment, marketing, promotion, user acquisition, referral programs, SEO strategy, advertising, or any other operational/commercial activity must be presented to the user as a proposal first.
+- **No silent changes**: Do not modify credit amounts, pricing, paywall behavior, signup bonuses, or any revenue-related logic without first proposing the change and getting explicit permission.
+- **Propose, don't implement**: When identifying an operations or promotion opportunity, write up the proposal in this chat and ask "Shall I implement this?" — wait for a "yes" before touching any code or configuration.
+- **Exception — bug fixes**: Security vulnerabilities, broken functionality, and critical errors can be fixed without prior approval, but must be reported after the fact.

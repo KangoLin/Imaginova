@@ -77,7 +77,7 @@ export function TryOnForm() {
   const canSubmit = personFile && garmentFile && !loading;
 
   const inputSection = (
-    <form onSubmit={handleSubmit} className="space-y-5" onPaste={(e) => { const item = Array.from(e.clipboardData.items).find(i => i.type.startsWith("image/")); if (item) { const f = item.getAsFile(); if (f) { e.preventDefault(); handlePersonFile(f); } }; }}>
+    <form onSubmit={handleSubmit} className="space-y-5 max-w-md mx-auto" onPaste={(e) => { const item = Array.from(e.clipboardData.items).find(i => i.type.startsWith("image/")); if (item) { const f = item.getAsFile(); if (f) { e.preventDefault(); handlePersonFile(f); } }; }}>
       <div className="grid sm:grid-cols-2 gap-4">
         <UploadZone
           label={t("tryOn.personImage")}
