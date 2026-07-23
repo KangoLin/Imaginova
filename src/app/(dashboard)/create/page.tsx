@@ -212,8 +212,8 @@ function CreatePageContent() {
         <p className="text-sm text-muted-foreground">{t("create.subtitle")}</p>
       </div>
 
-      <div className="mb-6 overflow-x-auto scrollbar-none px-1">
-        <div className="flex gap-1 p-1 bg-muted/50 rounded-xl mx-auto w-fit" role="tablist">
+      <div className="mb-6 overflow-x-auto scrollbar-none">
+        <div className="flex gap-1 p-1 bg-muted/50 rounded-xl w-max" role="tablist">
           {[
             { key: "general", icon: Sparkles, label: t("create.title") },
             { key: "try-on", icon: Shirt, label: t("scene.tryOn") },
@@ -240,6 +240,7 @@ function CreatePageContent() {
         </div>
       </div>
 
+      <div className={mode !== "general" ? "max-w-4xl mx-auto" : ""}>
       {mode !== "general" && !sessionStorage.getItem(`imaginova-onboarded-${mode}`) && !onboardingDismissed ? (
         <ModeOnboarding mode={mode as "try-on" | "style-transfer" | "gender-swap" | "age-transform"} onDismiss={() => setOnboardingDismissed(true)} />
       ) : mode === "try-on" ? (
@@ -462,6 +463,7 @@ function CreatePageContent() {
       })()}
       </>
       )}
+      </div>
     </main>
   );
 }
