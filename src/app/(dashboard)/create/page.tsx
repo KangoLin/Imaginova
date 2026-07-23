@@ -203,8 +203,8 @@ function CreatePageContent() {
 
   return (
     <main className="max-w-2xl mx-auto px-6 pt-24 pb-12 animate-fade-in" onPaste={(e) => { const item = Array.from(e.clipboardData.items).find(i => i.type.startsWith("image/")); if (item) { const f = item.getAsFile(); if (f) { e.preventDefault(); handleDragFile(f); } }; }}>
-      <div className="mb-8">
-        <div className="flex items-center gap-2 text-primary mb-2">
+      <div className="mb-8 text-center">
+        <div className="flex items-center justify-center gap-2 text-primary mb-2">
           <Wand2 size={16} />
           <span className="text-xs font-medium uppercase tracking-wider">{t("create.badge")}</span>
         </div>
@@ -212,8 +212,8 @@ function CreatePageContent() {
         <p className="text-sm text-muted-foreground">{t("create.subtitle")}</p>
       </div>
 
-      <div className="mb-6 overflow-x-auto scrollbar-none">
-        <div className="flex gap-1 p-1 bg-muted/50 rounded-xl w-fit min-w-max" role="tablist">
+      <div className="mb-6 overflow-x-auto scrollbar-none px-1">
+        <div className="flex gap-1 p-1 bg-muted/50 rounded-xl mx-auto w-fit" role="tablist">
           {[
             { key: "general", icon: Sparkles, label: t("create.title") },
             { key: "try-on", icon: Shirt, label: t("scene.tryOn") },

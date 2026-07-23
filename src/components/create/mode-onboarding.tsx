@@ -52,7 +52,7 @@ export function ModeOnboarding({ mode, onDismiss }: ModeOnboardingProps) {
             {mode === "try-on" ? t("scene.tryOn") : mode === "style-transfer" ? t("scene.styleTransfer") : mode === "gender-swap" ? t("scene.genderSwap") : t("scene.ageTransform")}
           </h2>
           <p className="text-sm text-muted-foreground max-w-md mx-auto mb-6">{t(data.descKey)}</p>
-          <Button onClick={handleStart} size="lg" className="gap-2">
+          <Button onClick={handleStart} size="lg" className="gap-2 mx-auto">
             {t("scene.start") || "开始使用"}
           </Button>
         </div>
