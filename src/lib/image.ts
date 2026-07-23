@@ -45,8 +45,8 @@ export async function generateImage(params: { prompt: string; model: string; siz
     size: params.size || "1024x1024",
   };
   if (params.imageUrls && params.imageUrls.length > 0) {
-    reqBody.image = params.imageUrls;
     reqBody.extra_body = {
+      image: params.imageUrls,
       response_format: "url",
     };
   }
