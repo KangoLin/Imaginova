@@ -15,7 +15,6 @@ export function ImageUploadZone({
   onRemove,
   onDragOver,
   inputRef,
-  compact,
   loading,
 }: {
   label: string;
@@ -28,14 +27,13 @@ export function ImageUploadZone({
   onRemove: () => void;
   onDragOver: (v: boolean) => void;
   inputRef: RefObject<HTMLInputElement | null>;
-  compact?: boolean;
   loading?: boolean;
 }) {
   return (
     <div>
       <label className="block text-sm font-medium mb-1.5 text-foreground">{label}</label>
       {loading ? (
-        <div className={`${compact ? "" : "max-w-sm"} w-full h-48 rounded-[14px] border border-border/60 bg-muted/30 animate-shimmer bg-gradient-to-r from-muted/20 via-muted/40 to-muted/20`} />
+        <div className="w-full h-48 rounded-[14px] border border-border/60 bg-muted/30 animate-shimmer bg-gradient-to-r from-muted/20 via-muted/40 to-muted/20" />
       ) : preview ? (
         <div className="relative group">
           <Image
@@ -61,7 +59,7 @@ export function ImageUploadZone({
           onDragLeave={() => onDragOver(false)}
           onDrop={(e) => { e.preventDefault(); onDragOver(false); const f = e.dataTransfer.files[0]; if (f) onFile(f); }}
           onClick={() => inputRef.current?.click()}
-          className={`${compact ? "" : "max-w-sm"} w-full h-48 border-2 border-dashed rounded-[14px] flex flex-col items-center justify-center gap-2 text-sm text-muted-foreground transition-all duration-300 cursor-pointer group active:scale-[0.99] ${
+          className={`w-full h-48 border-2 border-dashed rounded-[14px] flex flex-col items-center justify-center gap-2 text-sm text-muted-foreground transition-all duration-300 cursor-pointer group active:scale-[0.99] ${
             dragOver ? "border-primary bg-primary/[0.06] scale-[1.02]" : "border-border/60 hover:border-primary/30 hover:bg-primary/[0.03]"
           }`}
         >

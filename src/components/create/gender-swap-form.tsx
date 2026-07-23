@@ -90,7 +90,7 @@ export function GenderSwapForm() {
 
       <div>
         <label className="block text-sm font-medium mb-3 text-foreground">{t("genderSwap.targetGender")}</label>
-        <div className="grid grid-cols-2 gap-3 max-w-sm">
+        <div className="grid grid-cols-2 gap-3">
           {(["male-to-female", "female-to-male"] as GenderTarget[]).map((g) => {
             const isSelected = targetGender === g;
             return (
