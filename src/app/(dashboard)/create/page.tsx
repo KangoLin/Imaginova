@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef, Suspense } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useToast } from "@/components/toast";
 import { api, ApiError } from "@/lib/api-client";
@@ -162,7 +161,7 @@ function ImageGenerationForm({
   setImageFiles, setImagePreviews, handleDragFile, setDragOver, progress,
   progressPhase, pollStartRef, isVideo, videoWidth, videoHeight, videoNumFrames,
   videoFrameRate, setVideoSize, setVideoNumFrames, setVideoFrameRate, videoMode,
-  setVideoMode, onCampaignLink,
+  setVideoMode,
 }: {
   prompt: string; setPrompt: (v: string) => void; loading: boolean; error: string;
   imageFiles: File[]; imagePreviews: string[]; imageSize: string; setImageSize: (v: string) => void; dragOver: boolean;
@@ -181,7 +180,6 @@ function ImageGenerationForm({
   setVideoSize?: (w: number, h: number) => void;
   setVideoNumFrames?: (v: number) => void; setVideoFrameRate?: (v: number) => void;
   videoMode?: string; setVideoMode?: (v: "standard" | "keyframes") => void;
-  onCampaignLink?: boolean;
 }) {
   const [hintDismissed, setHintDismissed] = useState(false);
   const showHintLocal = showHint && !hintDismissed;
@@ -193,16 +191,6 @@ function ImageGenerationForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
-      {onCampaignLink && (
-        <div className="flex justify-end">
-          <Link href="/create/campaign">
-            <Button type="button" variant="outline" size="sm" className="gap-1 text-xs">
-              {t("create.campaignLink")}
-            </Button>
-          </Link>
-        </div>
-      )}
-
       {showHintLocal && (
         <div className="mb-2 bg-muted/30 border border-border/60 rounded-xl p-4 text-sm animate-fade-in relative">
           <button onClick={() => setHintDismissed(true)} className="absolute top-3 right-3 size-5 rounded-md flex items-center justify-center text-muted-foreground/40 hover:text-muted-foreground hover:bg-muted/50 transition-colors"><X size={13} /></button>
@@ -612,7 +600,6 @@ function CreatePageContent() {
           setImageFiles={setImageFiles} setImagePreviews={setImagePreviews}
           handleDragFile={handleDragFile} setDragOver={setDragOver}
           progress={progress} progressPhase={progressPhase} pollStartRef={pollStartRef}
-          onCampaignLink
         />
       )}
 
