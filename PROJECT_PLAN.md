@@ -1,3 +1,37 @@
+## 🎨 Imaginova Redesign — AI Visual Studio (2026-07-30)
+
+> **Core positioning shift**: From generic "AI tool" to vertical "AI Visual Studio" — 5 specialized studios.
+
+| # | Task | Files | Status |
+|---|------|-------|--------|
+| ✅ | **T1 Color System** | `globals.css` — pure black `#000` + grayscale, removed purple/teal | Done |
+| ✅ | **T2 Locales** | `en.json`/`zh.json` — 5-studio copy, removed old feature/scene keys | Done |
+| ✅ | **T3 Homepage Carousel** | `home-content.tsx` — auto-play 5s fade carousel, 5 studio cards, updated showcase | Done |
+| ✅ | **T4 Create Page 5 Studios** | `create/page.tsx` — StudioSwitcher + 5 modes (product-photography, fashion, game, style, free) | Done |
+| ✅ | **T5 Dashboard Polish** | `dashboard/page.tsx` — grayscale stats, 5-studio welcome modal | Done |
+| ✅ | **T6 Build Verification** | `npm run build` passes, all routes working | Done |
+| ✅ | **T7 Visual Polish** | Home: scroll animations, decorative glows, card hover effects, CTA shadows. Create: icons in studio switcher. Dashboard: icon boxes in welcome modal. | Done |
+
+### Studios Structure
+| Mode | Route | Content |
+|------|-------|---------|
+| Product Photography | `/create?mode=product-photography` | Image gen (image only) + campaign link |
+| Fashion Studio | `/create?mode=fashion` | TryOnForm + Age/Gender quick tabs |
+| Game Assets | `/create?mode=game` | Style presets (6) + prompt → image gen |
+| Style Transfer | `/create?mode=style` | StyleTransferForm |
+| Free Creation | `/create?mode=free` | Sub-tabs: T2I, T2V, Style, Gender, Age |
+
+### Design Tokens (new)
+| Token | Light | Dark |
+|-------|-------|------|
+| Background | `oklch(0.99 0 0)` | `oklch(0.022 0 0)` |
+| Primary | `oklch(0.15 0.01 260)` | `oklch(0.95 0 0)` |
+| Accent | `oklch(0.15 0.01 260)` | `oklch(0.95 0 0)` |
+| Card | `oklch(0.96 0.005 260)` | `oklch(0.07 0.005 260)` |
+| Border | `oklch(0.85 0.01 260)` | `oklch(0.2 0.008 260)` |
+
+---
+
 ## 📦 近期线上修复
 
 | # | 问题 | 严重度 | 状态 | 修复 |

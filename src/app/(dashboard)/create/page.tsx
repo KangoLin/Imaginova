@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, Suspense } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useToast } from "@/components/toast";
 import { api, ApiError } from "@/lib/api-client";
@@ -11,20 +12,42 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select } from "@/components/ui/select";
 import { useLocale } from "@/components/locale-provider";
-import { Wand2, X, Sparkles, Shirt, Paintbrush, VenusAndMars, UserCog } from "lucide-react";
+import { Wand2, X, VenusAndMars, UserCog, Gamepad2, ImageIcon, Shirt, Paintbrush, Sparkles } from "lucide-react";
 import { TryOnForm } from "@/components/create/try-on-form";
 import { StyleTransferForm } from "@/components/create/style-transfer-form";
 import { GenderSwapForm } from "@/components/create/gender-swap-form";
 import { AgeTransformForm } from "@/components/create/age-transform-form";
 import { ModeOnboarding } from "@/components/create/mode-onboarding";
 
-type Tab = "image" | "video";
-type SceneMode = "general" | "try-on" | "style-transfer" | "gender-swap" | "age-transform";
+type StudioMode = "product-photography" | "fashion" | "game" | "style" | "free";
+type FreeTab = "image" | "video" | "style-transfer" | "gender-swap" | "age-transform";
 
 interface RemixData {
   id: number; prompt: string; model: string; url: string;
   reference_url: string | null; created_at: string;
 }
+
+function nowMs(): number {
+  return Date.now();
+}
+
+const PRODUCT_EXAMPLES_EN = [
+  "A sleek black wireless mouse on a minimalist white desk, soft studio lighting, shallow depth of field",
+  "A luxury perfume bottle with gold accents, dramatic side lighting, dark gradient background",
+  "A ceramic coffee mug with steam rising, warm morning light, rustic wooden table texture",
+  "A pair of white sneakers on a clean pastel background, natural diffused lighting, 3/4 angle",
+  "A minimalist watch on a marble surface, soft window light casting gentle shadows, neutral tones",
+  "A skincare bottle with dropper, soft focus background, clean and modern aesthetic, natural lighting",
+];
+
+const PRODUCT_EXAMPLES_ZH = [
+  "一只黑色无线鼠标放在极简白色桌面上，柔和影棚灯光，浅景深效果",
+  "一瓶带有金色点缀的奢华香水，戏剧性侧光，深色渐变背景",
+  "一只冒着热气的陶瓷咖啡杯，温暖的晨光，质朴的木桌纹理",
+  "一双白色运动鞋在干净的浅色背景上，自然漫射光，3/4侧面角度",
+  "一款极简手表在大理石表面上，柔和窗光投下轻柔阴影，中性色调",
+  "一瓶带滴管的护肤品瓶，柔焦背景，干净现代的美学风格，自然光",
+];
 
 const IMAGE_EXAMPLES_EN = [
   "A serene mountain lake at twilight, mist rising from the water, reflected peaks, cinematic lighting",
@@ -60,13 +83,296 @@ const VIDEO_EXAMPLES_ZH = [
   "延时摄影，樱花在柔和的天空下绽放，花瓣随风飘落",
 ];
 
+const studios = [
+  { mode: "product-photography" as StudioMode, labelKey: "create.campaignStudio", descKey: "create.campaignStudioDesc" },
+  { mode: "fashion" as StudioMode, labelKey: "create.fashionStudio", descKey: "create.fashionStudioDesc" },
+  { mode: "game" as StudioMode, labelKey: "create.gameStudio", descKey: "create.gameStudioDesc" },
+  { mode: "style" as StudioMode, labelKey: "create.styleStudio", descKey: "create.styleStudioDesc" },
+  { mode: "free" as StudioMode, labelKey: "create.freeStudio", descKey: "create.freeStudioDesc" },
+];
+
+const studioIcons: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
+  "product-photography": ImageIcon,
+  fashion: Shirt,
+  game: Gamepad2,
+  style: Paintbrush,
+  free: Sparkles,
+};
+
+const gameStyleDefs = [
+  { id: "fantasy", labelKey: "create.gameStyleFantasy" },
+  { id: "cyberpunk", labelKey: "create.gameStyleCyberpunk" },
+  { id: "pixel-art", labelKey: "create.gameStylePixelArt" },
+  { id: "anime", labelKey: "create.gameStyleAnime" },
+  { id: "rpg", labelKey: "create.gameStyleRpg" },
+  { id: "sci-fi", labelKey: "create.gameStyleSciFi" },
+];
+
+function VideoProgressBar({ progress, progressPhase, pollStartRef, t }: {
+  progress: number; progressPhase: string;
+  pollStartRef: React.RefObject<number>;
+  t: (k: string, p?: Record<string, string | number>) => string;
+}) {
+  const [elapsed, setElapsed] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setElapsed(nowMs() - (pollStartRef.current || nowMs()));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [pollStartRef]);
+
+  const elapsedSec = elapsed / 1000;
+  const eta = progress > 0 && progress < 100 && elapsedSec > 0
+    ? Math.round((elapsedSec / progress) * (100 - progress)) : 0;
+  const etaText = eta >= 60 ? `${Math.floor(eta / 60)}m ${eta % 60}s` : `${eta}s`;
+
+  return (
+    <div className="mt-6 animate-fade-in">
+      <div className="w-full bg-muted rounded-full h-1.5 overflow-hidden">
+        <div className="h-full rounded-full bg-foreground/30 transition-all duration-500" style={{ width: `${Math.max(progress, 5)}%` }} />
+      </div>
+      <p className="text-xs text-muted-foreground mt-2 text-center">
+        {progressPhase || t("create.starting")}
+        {eta > 0 && <span className="ml-2 text-muted-foreground/60">({t("create.remaining", { time: etaText })})</span>}
+      </p>
+    </div>
+  );
+}
+
+function ImageGenerationForm({
+  prompt, setPrompt, loading, error, imageFiles, imagePreviews, imageSize, setImageSize, dragOver,
+  textareaRef, fileInputRef, showHint, examplesEn, examplesZh, locale, t, handleSubmit,
+  setImageFiles, setImagePreviews, handleDragFile, setDragOver, progress,
+  progressPhase, pollStartRef, isVideo, videoWidth, videoHeight, videoNumFrames,
+  videoFrameRate, setVideoSize, setVideoNumFrames, setVideoFrameRate, videoMode,
+  setVideoMode, onCampaignLink,
+}: {
+  prompt: string; setPrompt: (v: string) => void; loading: boolean; error: string;
+  imageFiles: File[]; imagePreviews: string[]; imageSize: string; setImageSize: (v: string) => void; dragOver: boolean;
+  textareaRef: React.RefObject<HTMLTextAreaElement | null>;
+  fileInputRef: React.RefObject<HTMLInputElement | null>;
+  showHint: boolean; examplesEn: string[]; examplesZh: string[];
+  locale: string; t: (k: string, p?: Record<string, string | number>) => string;
+  handleSubmit: (e: React.FormEvent) => Promise<void>;
+  setImageFiles: (v: File[] | ((prev: File[]) => File[])) => void;
+  setImagePreviews: (v: string[] | ((prev: string[]) => string[])) => void;
+  handleDragFile: (f: File) => void; setDragOver: (v: boolean) => void;
+  progress: number; progressPhase: string;
+  pollStartRef: React.RefObject<number>; isVideo?: boolean;
+  videoWidth?: number; videoHeight?: number; videoNumFrames?: number;
+  videoFrameRate?: number;
+  setVideoSize?: (w: number, h: number) => void;
+  setVideoNumFrames?: (v: number) => void; setVideoFrameRate?: (v: number) => void;
+  videoMode?: string; setVideoMode?: (v: "standard" | "keyframes") => void;
+  onCampaignLink?: boolean;
+}) {
+  const [hintDismissed, setHintDismissed] = useState(false);
+  const showHintLocal = showHint && !hintDismissed;
+
+  function autoResize(el: HTMLTextAreaElement) {
+    el.style.height = "auto";
+    el.style.height = `${el.scrollHeight}px`;
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-5">
+      {onCampaignLink && (
+        <div className="flex justify-end">
+          <Link href="/create/campaign">
+            <Button type="button" variant="outline" size="sm" className="gap-1 text-xs">
+              {t("create.campaignLink")}
+            </Button>
+          </Link>
+        </div>
+      )}
+
+      {showHintLocal && (
+        <div className="mb-2 bg-muted/30 border border-border/60 rounded-xl p-4 text-sm animate-fade-in relative">
+          <button onClick={() => setHintDismissed(true)} className="absolute top-3 right-3 size-5 rounded-md flex items-center justify-center text-muted-foreground/40 hover:text-muted-foreground hover:bg-muted/50 transition-colors"><X size={13} /></button>
+          <p className="font-medium text-foreground mb-1.5">{t("create.tips")}</p>
+          <ul className="space-y-1 text-muted-foreground text-xs">
+            <li>{"\u2022"} {t("create.tip1")}</li>
+            <li>{"\u2022"} {t("create.tip2")}</li>
+            <li>{"\u2022"} {t("create.tip3")}</li>
+          </ul>
+        </div>
+      )}
+
+      <div>
+        <label htmlFor="prompt" className="block text-sm font-medium mb-1.5 text-foreground">{t("create.prompt")}</label>
+        <Textarea
+          ref={textareaRef}
+          id="prompt"
+          value={prompt}
+          onChange={(e) => { setPrompt(e.target.value); if (textareaRef.current) autoResize(textareaRef.current); }}
+          onKeyDown={(e) => { if ((e.metaKey || e.ctrlKey) && e.key === "Enter") handleSubmit(e); }}
+          placeholder={isVideo ? "A cinematic drone shot flying over a forest canopy..." : "A serene mountain landscape at sunset, volumetric lighting..."}
+          rows={3}
+          required
+          className="resize-none min-h-[76px] overflow-hidden text-base"
+        />
+      </div>
+
+      {!prompt && (
+        <div>
+          <p className="text-xs text-muted-foreground mb-2">{t("create.tryExample")}</p>
+          <div className="flex flex-wrap gap-1.5">
+            {(locale === "zh" ? examplesZh : examplesEn).map((ex) => (
+              <button
+                key={ex}
+                type="button"
+                onClick={() => { setPrompt(ex); if (textareaRef.current) autoResize(textareaRef.current); }}
+                className="text-xs bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground px-2.5 py-1 rounded-full border border-border/60 transition-all active:scale-[0.97]"
+              >
+                {ex.length > 40 ? ex.slice(0, 40) + "..." : ex}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div>
+        <label className="block text-sm font-medium mb-1.5 text-foreground">{t("create.referenceImage")}</label>
+        {imagePreviews.length > 0 ? (
+          <div className="flex flex-wrap gap-2 mb-3">
+            {imagePreviews.map((preview, idx) => (
+              <div key={idx} className="relative inline-block group">
+                <Image src={preview} alt={`Reference ${idx + 1}`} width={96} height={96} className="object-cover rounded-lg border border-border size-24" unoptimized />
+                <button type="button" onClick={() => {
+                  setImageFiles((prev) => prev.filter((_, i) => i !== idx));
+                  setImagePreviews((prev) => prev.filter((_, i) => i !== idx));
+                }} className="absolute -top-2 -right-2 size-5 rounded-full bg-background border border-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-all text-[10px] opacity-0 group-hover:opacity-100">x</button>
+              </div>
+            ))}
+          </div>
+        ) : null}
+        <div
+          onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+          onDragLeave={() => setDragOver(false)}
+          onDrop={(e) => { e.preventDefault(); setDragOver(false); const f = e.dataTransfer.files[0]; if (f) handleDragFile(f); }}
+          onClick={() => fileInputRef.current?.click()}
+          className={`w-full border-2 border-dashed rounded-xl py-6 text-sm text-muted-foreground transition-all duration-300 cursor-pointer group ${
+              dragOver ? "border-foreground/40 bg-muted/20 scale-[1.02]" : "border-border/60 hover:border-foreground/30 hover:bg-muted/10"
+          }`}
+        >
+          <div className="flex flex-col items-center gap-2">
+            <div className={`size-10 rounded-xl flex items-center justify-center transition-all duration-300 ${
+              dragOver ? "bg-muted/40 text-foreground scale-110" : "bg-muted/50 text-muted-foreground/40 group-hover:text-foreground/50"
+            }`}>
+              <Wand2 size={18} />
+            </div>
+            <span className={dragOver ? "text-foreground font-medium" : ""}>{imagePreviews.length > 0 ? (isVideo && videoMode === "standard" ? t("create.replaceImage") : t("create.addMoreImages")) : dragOver ? t("create.dropImage") : t("create.uploadImage")}</span>
+            <span className="text-xs text-muted-foreground/40">{isVideo && videoMode === "standard" ? t("create.singleImageHint") : t("create.dragHint")}</span>
+          </div>
+        </div>
+        <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden" onChange={(e) => {
+          const files = e.target.files;
+          if (files) {
+            const isSingle = isVideo && videoMode === "standard";
+            const newFiles = Array.from(files).filter((f) => f.type.startsWith("image/"));
+            if (isSingle && newFiles.length > 0) {
+              setImageFiles([newFiles[0]]);
+              setImagePreviews([URL.createObjectURL(newFiles[0])]);
+            } else {
+              setImageFiles((prev) => [...prev, ...newFiles]);
+              setImagePreviews((prev) => [...prev, ...newFiles.map((f) => URL.createObjectURL(f))]);
+            }
+          }
+        }} />
+      </div>
+
+      {!isVideo && (
+        <div>
+          <label className="block text-sm font-medium mb-1.5 text-foreground">{t("create.imageSize")}</label>
+          <Select value={imageSize} onChange={(e) => setImageSize(e.target.value)}>
+            <option value="1024x1024">{t("create.size1024")}</option>
+            <option value="1024x768">{t("create.size1024_768")}</option>
+            <option value="768x1024">{t("create.size768_1024")}</option>
+            <option value="1024x576">{t("create.size1024_576")}</option>
+            <option value="576x1024">{t("create.size576_1024")}</option>
+            <option value="2048x2048">{t("create.size2048")}</option>
+          </Select>
+        </div>
+      )}
+
+      {isVideo && (
+        <div>
+          <div className="mb-3">
+            <label className="block text-sm font-medium mb-1.5 text-foreground">{t("create.videoMode") || "Video Mode"}</label>
+            <div className="flex gap-2">
+              <button type="button" onClick={() => { setVideoMode?.("standard"); if (imageFiles.length > 1) { setImageFiles([imageFiles[0]]); setImagePreviews([imagePreviews[0]]); } }} className={`flex-1 px-3 py-2 text-xs rounded-lg border transition-all text-left ${videoMode === "standard" ? "border-foreground/30 bg-muted/30 text-foreground" : "border-border/60 text-muted-foreground hover:border-foreground/30"}`}>
+                <div className="font-medium mb-0.5">{t("create.modeStandard") || "Standard"}</div>
+                <div className="opacity-60 font-normal">{t("create.modeStandardDesc") || "Upload one reference image, AI generates a video continuing that scene"}</div>
+              </button>
+              <button type="button" onClick={() => setVideoMode?.("keyframes")} className={`flex-1 px-3 py-2 text-xs rounded-lg border transition-all text-left ${videoMode === "keyframes" ? "border-foreground/30 bg-muted/30 text-foreground" : "border-border/60 text-muted-foreground hover:border-foreground/30"}`}>
+                <div className="font-medium mb-0.5">{t("create.modeKeyframes") || "Keyframe Animation"}</div>
+                <div className="opacity-60 font-normal">{t("create.modeKeyframesDesc") || "Upload multiple reference images as keyframes"}</div>
+              </button>
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-3">
+          <div>
+            <label className="block text-sm font-medium mb-1.5 text-foreground">{t("create.videoResolution")}</label>
+            <Select value={`${videoWidth}x${videoHeight}`} onChange={(e) => { const [w, h] = e.target.value.split("x").map(Number); setVideoSize?.(w, h); }}>
+              <option value="854x480">{t("create.res480p")}</option>
+              <option value="1280x720">{t("create.res720p")}</option>
+              <option value="1920x1080">{t("create.res1080p")}</option>
+              <option value="480x854">{t("create.res480pPortrait")}</option>
+              <option value="720x1280">{t("create.res720pPortrait")}</option>
+              <option value="1080x1920">{t("create.res1080pPortrait")}</option>
+              <option value="480x480">{t("create.res480pSquare")}</option>
+              <option value="720x720">{t("create.res720pSquare")}</option>
+              <option value="1080x1080">{t("create.res1080pSquare")}</option>
+            </Select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1.5 text-foreground">{t("create.videoDuration")}</label>
+            <Select value={videoNumFrames} onChange={(e) => setVideoNumFrames?.(Number(e.target.value))}>
+              <option value={81}>{t("create.dur3s")}</option>
+              <option value={121}>{t("create.dur5s")}</option>
+              <option value={241}>{t("create.dur10s")}</option>
+              <option value={441}>{t("create.dur18s")}</option>
+            </Select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1.5 text-foreground">{t("create.frameRate")}</label>
+            <Select value={videoFrameRate} onChange={(e) => setVideoFrameRate?.(Number(e.target.value))}>
+              <option value={24}>24 {t("create.fps")}</option>
+              <option value={30}>30 {t("create.fps")}</option>
+              <option value={60}>60 {t("create.fps")}</option>
+            </Select>
+          </div>
+        </div>
+        </div>
+      )}
+
+      <div className="flex items-center justify-between text-sm">
+        <span className="text-muted-foreground">{t("create.cost")}: {isVideo ? `2 ${t("create.credits")}` : `1 ${t("create.credit")}`}</span>
+      </div>
+
+      {error && <p className="text-sm text-destructive bg-destructive/5 rounded-lg p-3">{error}</p>}
+
+      <Button type="submit" disabled={loading || !prompt.trim()} className="w-full gap-2 h-11 text-base">
+        {loading && <LoadingSpinner />}
+        {loading ? (isVideo ? t("create.generatingVideo", { progress }) : t("create.generating")) : `${t("create.generate")} ${isVideo ? t("create.video") : t("create.image")}`}
+      </Button>
+
+      {loading && isVideo && (
+        <VideoProgressBar progress={progress} progressPhase={progressPhase} pollStartRef={pollStartRef} t={t} />
+      )}
+    </form>
+  );
+}
+
 function CreatePageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
   const { t, locale } = useLocale();
-  const mode = (searchParams.get("mode") as SceneMode) || "general";
-  const [tab, setTab] = useState<Tab>("image");
+  const studioMode = (searchParams.get("mode") as StudioMode) || "product-photography";
+  const initialFreeTab = (searchParams.get("tab") as FreeTab) || "image";
+  const [freeTab, setFreeTab] = useState<FreeTab>(initialFreeTab);
   const [prompt, setPrompt] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -89,13 +395,14 @@ function CreatePageContent() {
   const [remixLoading, setRemixLoading] = useState(false);
   const [remixError, setRemixError] = useState("");
   const [onboardingDismissed, setOnboardingDismissed] = useState(false);
+  const [gameStyle, setGameStyle] = useState("fantasy");
 
   useEffect(() => {
-    if (!localStorage.getItem("imaginova-onboarded")) setShowHint(true);
+    if (!localStorage.getItem("imaginova-onboarded")) requestAnimationFrame(() => setShowHint(true));
   }, []);
 
-  function switchMode(m: SceneMode) {
-    if (m === "general") router.push("/create");
+  function switchMode(m: StudioMode) {
+    if (m === "product-photography") router.push("/create");
     else router.push(`/create?mode=${m}`);
   }
 
@@ -104,12 +411,11 @@ function CreatePageContent() {
     const type = searchParams.get("type");
     const id = searchParams.get("id");
     if (mode === "remix" && id && type) {
-      setRemixLoading(true);
       (async () => {
+        setRemixLoading(true);
         try {
           const data = await api.get<RemixData>(`/api/${type}/${id}`);
           setPrompt(data.prompt);
-          setTab(type as Tab);
           if (data.reference_url) {
             setImagePreviews([data.reference_url]);
           }
@@ -124,19 +430,9 @@ function CreatePageContent() {
 
   function handleDragFile(file: File) {
     if (file.type.startsWith("image/")) {
-      if (tab === "video" && videoMode === "standard") {
-        setImageFiles([file]);
-        setImagePreviews([URL.createObjectURL(file)]);
-      } else {
-        setImageFiles((prev) => [...prev, file]);
-        setImagePreviews((prev) => [...prev, URL.createObjectURL(file)]);
-      }
+      setImageFiles((prev) => [...prev, file]);
+      setImagePreviews((prev) => [...prev, URL.createObjectURL(file)]);
     }
-  }
-
-  function autoResize(el: HTMLTextAreaElement) {
-    el.style.height = "auto";
-    el.style.height = `${el.scrollHeight}px`;
   }
 
   useEffect(() => {
@@ -150,35 +446,69 @@ function CreatePageContent() {
     setLoading(true);
 
     try {
-      if (tab === "image") {
-        const formData = new FormData();
-        formData.append("prompt", prompt);
-        formData.append("model", "agnes-image-2.1-flash");
-        formData.append("size", imageSize);
+      const formData = new FormData();
+      formData.append("prompt", prompt);
+      formData.append("model", "agnes-image-2.1-flash");
+      formData.append("size", imageSize);
+      for (const file of imageFiles) formData.append("image", file);
+      const data = (imageFiles.length > 0
+        ? await api.post("/api/generate/image", formData)
+        : await api.post("/api/generate/image", { prompt, model: "agnes-image-2.1-flash", size: imageSize })) as { id: number };
+      router.push(`/image/${data.id}`);
+      return;
+    } catch (err) {
+      if (err instanceof ApiError) { setError(err.message); } else { setError(t("create.networkError")); }
+      setLoading(false);
+    }
+  }
+
+  async function handleVideoSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
+    setProgress(0);
+    setLoading(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("prompt", prompt);
+      if (videoMode === "keyframes") {
+        formData.append("mode", "keyframes");
         for (const file of imageFiles) formData.append("image", file);
-        const data = (imageFiles.length > 0
-          ? await api.post("/api/generate/image", formData)
-          : await api.post("/api/generate/image", { prompt, model: "agnes-image-2.1-flash", size: imageSize })) as { id: number };
-        router.push(`/image/${data.id}`);
-        return;
-      } else {
-        const formData = new FormData();
-        formData.append("prompt", prompt);
-        if (videoMode === "keyframes") {
-          formData.append("mode", "keyframes");
-          for (const file of imageFiles) formData.append("image", file);
-        } else if (imageFiles.length > 0) {
-          formData.append("image", imageFiles[0]);
-        }
-        formData.append("width", String(videoWidth));
-        formData.append("height", String(videoHeight));
-        formData.append("num_frames", String(videoNumFrames));
-        formData.append("frame_rate", String(videoFrameRate));
-        const data = (await api.post("/api/generate/video", formData)) as { id: number; task_id: string };
-        toast(t("create.videoStarted"), "info");
-        pollStartRef.current = Date.now();
-        startSSE(data.id);
+      } else if (imageFiles.length > 0) {
+        formData.append("image", imageFiles[0]);
       }
+      formData.append("width", String(videoWidth));
+      formData.append("height", String(videoHeight));
+      formData.append("num_frames", String(videoNumFrames));
+      formData.append("frame_rate", String(videoFrameRate));
+      const data = (await api.post("/api/generate/video", formData)) as { id: number; task_id: string };
+      toast(t("create.videoStarted"), "info");
+      pollStartRef.current = nowMs();
+      startSSE(data.id);
+    } catch (err) {
+      if (err instanceof ApiError) { setError(err.message); } else { setError(t("create.networkError")); }
+      setLoading(false);
+    }
+  }
+
+  async function handleGameSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
+    setProgress(0);
+    setLoading(true);
+
+    try {
+      const prefixedPrompt = `[${gameStyle} style] ${prompt}`;
+      const formData = new FormData();
+      formData.append("prompt", prefixedPrompt);
+      formData.append("model", "agnes-image-2.1-flash");
+      formData.append("size", imageSize);
+      for (const file of imageFiles) formData.append("image", file);
+      const data = (imageFiles.length > 0
+        ? await api.post("/api/generate/image", formData)
+        : await api.post("/api/generate/image", { prompt: prefixedPrompt, model: "agnes-image-2.1-flash", size: imageSize })) as { id: number };
+      router.push(`/image/${data.id}`);
+      return;
     } catch (err) {
       if (err instanceof ApiError) { setError(err.message); } else { setError(t("create.networkError")); }
       setLoading(false);
@@ -201,75 +531,49 @@ function CreatePageContent() {
     es.onerror = () => { es.close(); pollingRef.current = false; setError(t("create.statusCheckFailed")); setLoading(false); };
   }
 
+  function autoResize(el: HTMLTextAreaElement) {
+    el.style.height = "auto";
+    el.style.height = `${el.scrollHeight}px`;
+  }
+
   return (
-    <main className={`mx-auto px-6 pt-24 pb-12 animate-fade-in ${mode !== "general" ? "max-w-5xl" : "max-w-2xl"}`} onPaste={(e) => { const item = Array.from(e.clipboardData.items).find(i => i.type.startsWith("image/")); if (item) { const f = item.getAsFile(); if (f) { e.preventDefault(); handleDragFile(f); } }; }}>
+    <main className="mx-auto px-6 pt-24 pb-12 animate-fade-in max-w-4xl" onPaste={(e) => { const item = Array.from(e.clipboardData.items).find(i => i.type.startsWith("image/")); if (item) { const f = item.getAsFile(); if (f) { e.preventDefault(); handleDragFile(f); } }; }}>
       <div className="mb-8 text-center">
-        <div className="flex items-center justify-center gap-2 text-primary mb-2">
-          <Wand2 size={16} />
-          <span className="text-xs font-medium uppercase tracking-wider">{t("create.badge")}</span>
-        </div>
+          <div className="flex items-center justify-center gap-2 text-muted-foreground mb-2">
+            <Wand2 size={16} />
+            <span className="text-xs font-medium uppercase tracking-wider">{t("create.badge")}</span>
+          </div>
         <h1 className="text-xl sm:text-2xl font-bold tracking-tight mb-1">{t("create.title")}</h1>
         <p className="text-sm text-muted-foreground">{t("create.subtitle")}</p>
       </div>
 
-      <div className="mb-6 overflow-x-auto scrollbar-none">
-        <div className="flex gap-1 p-1 bg-muted/50 rounded-xl mx-auto w-fit" role="tablist">
-          {[
-            { key: "general", icon: Sparkles, label: t("create.title") },
-            { key: "try-on", icon: Shirt, label: t("scene.tryOn") },
-            { key: "style-transfer", icon: Paintbrush, label: t("scene.styleTransfer") },
-            { key: "gender-swap", icon: VenusAndMars, label: t("scene.genderSwap") },
-            { key: "age-transform", icon: UserCog, label: t("scene.ageTransform") },
-          ].map(({ key, icon: Icon, label }) => (
+      <div className="mb-8 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+        {studios.map(({ mode, labelKey, descKey }) => {
+          const StudioIcon = studioIcons[mode];
+          return (
             <button
-              key={key}
+              key={mode}
               type="button"
-              role="tab"
-              aria-selected={mode === key}
-              onClick={() => switchMode(key as SceneMode)}
-              className={`flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg transition-all whitespace-nowrap ${
-                mode === key
-                  ? "bg-primary text-primary-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
+              onClick={() => switchMode(mode)}
+              className={`rounded-xl p-3.5 text-left transition-all border ${
+                studioMode === mode
+                  ? "border-foreground/30 bg-card shadow-sm ring-1 ring-foreground/10"
+                  : "border-border/60 bg-card hover:border-foreground/20 hover:shadow-sm hover:-translate-y-0.5"
               }`}
             >
-              <Icon size={14} />
-              {label}
+              {StudioIcon && (
+                <div className={`size-8 rounded-lg flex items-center justify-center mb-2 transition-colors ${
+                  studioMode === mode ? "bg-foreground/10 text-foreground" : "bg-muted text-muted-foreground group-hover:bg-foreground/5"
+                }`}>
+                  <StudioIcon size={15} />
+                </div>
+              )}
+              <div className="text-sm font-medium text-foreground mb-0.5">{t(labelKey)}</div>
+              <div className="text-[11px] text-muted-foreground leading-relaxed">{t(descKey)}</div>
             </button>
-          ))}
-        </div>
+          );
+        })}
       </div>
-
-      {mode !== "general" && !sessionStorage.getItem(`imaginova-onboarded-${mode}`) && !onboardingDismissed ? (
-        <ModeOnboarding mode={mode as "try-on" | "style-transfer" | "gender-swap" | "age-transform"} onDismiss={() => setOnboardingDismissed(true)} />
-      ) : mode === "try-on" ? (
-        <TryOnForm key="try-on" />
-      ) : mode === "style-transfer" ? (
-        <StyleTransferForm key="style-transfer" />
-      ) : mode === "gender-swap" ? (
-        <GenderSwapForm key="gender-swap" />
-      ) : mode === "age-transform" ? (
-        <AgeTransformForm key="age-transform" />
-      ) : (
-        <>
-      {showHint && (
-        <div className="mb-6 bg-primary/[0.04] border border-primary/10 rounded-xl p-4 text-sm animate-fade-in relative">
-          <button onClick={() => setShowHint(false)} className="absolute top-3 right-3 size-5 rounded-md flex items-center justify-center text-muted-foreground/40 hover:text-muted-foreground hover:bg-muted/50 transition-colors"><X size={13} /></button>
-          <p className="font-medium text-foreground mb-1.5">{t("create.tips")}</p>
-          <ul className="space-y-1 text-muted-foreground text-xs">
-            <li>{"\u2022"} {t("create.tip1")}</li>
-            <li>{"\u2022"} {t("create.tip2")}</li>
-            <li>{"\u2022"} {t("create.tip3")}</li>
-          </ul>
-        </div>
-      )}
-
-      <Tabs value={tab} onValueChange={(v) => { setTab(v as Tab); setImageFiles([]); setImagePreviews([]); if (fileInputRef.current) fileInputRef.current.value = ""; }}>
-        <TabsList variant="line" className="mb-6">
-          <TabsTrigger value="image">{t("create.image")}</TabsTrigger>
-          <TabsTrigger value="video">{t("create.video")}</TabsTrigger>
-        </TabsList>
-      </Tabs>
 
       {remixLoading && (
         <div className="flex items-center justify-center py-12">
@@ -282,91 +586,137 @@ function CreatePageContent() {
         <p className="text-sm text-destructive bg-destructive/5 rounded-lg p-3 mb-4">{remixError}</p>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-5">
-        <div>
-          <label htmlFor="prompt" className="block text-sm font-medium mb-1.5 text-foreground">{t("create.prompt")}</label>
-          <Textarea
-            ref={textareaRef}
-            id="prompt"
-            value={prompt}
-            onChange={(e) => { setPrompt(e.target.value); if (textareaRef.current) autoResize(textareaRef.current); }}
-            onKeyDown={(e) => { if ((e.metaKey || e.ctrlKey) && e.key === "Enter") handleSubmit(e); }}
-            placeholder={tab === "image" ? "A serene mountain landscape at sunset, volumetric lighting..." : "A cinematic drone shot flying over a forest canopy..."}
-            rows={3}
-            required
-            className="resize-none min-h-[76px] overflow-hidden text-base"
-          />
-        </div>
+      {studioMode === "product-photography" && (
+        <ImageGenerationForm
+          prompt={prompt} setPrompt={setPrompt} loading={loading} error={error}
+          imageFiles={imageFiles} imagePreviews={imagePreviews} imageSize={imageSize} setImageSize={setImageSize}
+          dragOver={dragOver} textareaRef={textareaRef} fileInputRef={fileInputRef}
+          showHint={showHint} examplesEn={PRODUCT_EXAMPLES_EN} examplesZh={PRODUCT_EXAMPLES_ZH}
+          locale={locale} t={t} handleSubmit={handleSubmit}
+          setImageFiles={setImageFiles} setImagePreviews={setImagePreviews}
+          handleDragFile={handleDragFile} setDragOver={setDragOver}
+          progress={progress} progressPhase={progressPhase} pollStartRef={pollStartRef}
+          onCampaignLink
+        />
+      )}
 
-        {!prompt && (
+      {studioMode === "fashion" && (
+        <div className="space-y-6">
+          {!sessionStorage.getItem("imaginova-onboarded-try-on") && !onboardingDismissed ? (
+            <ModeOnboarding mode="try-on" onDismiss={() => setOnboardingDismissed(true)} />
+          ) : (
+            <div>
+              <h2 className="text-base font-semibold text-foreground mb-4">{t("scene.tryOn")}</h2>
+              <TryOnForm key="fashion-try-on" />
+            </div>
+          )}
+          <div className="border-t border-border/60 pt-5">
+            <p className="text-xs text-muted-foreground mb-3 font-medium uppercase tracking-wider">{t("create.tryExample") || "Quick Access"}</p>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => router.push("/create?mode=free&tab=gender-swap")}
+                className="rounded-xl border border-border/60 bg-card p-4 text-left hover:border-foreground/20 transition-all"
+              >
+                <VenusAndMars size={18} className="text-foreground/60 mb-2" />
+                <div className="text-sm font-medium text-foreground">{t("scene.genderSwap")}</div>
+                <div className="text-xs text-muted-foreground mt-0.5">{t("scene.genderSwapDesc")}</div>
+              </button>
+              <button
+                type="button"
+                onClick={() => router.push("/create?mode=free&tab=age-transform")}
+                className="rounded-xl border border-border/60 bg-card p-4 text-left hover:border-foreground/20 transition-all"
+              >
+                <UserCog size={18} className="text-foreground/60 mb-2" />
+                <div className="text-sm font-medium text-foreground">{t("scene.ageTransform")}</div>
+                <div className="text-xs text-muted-foreground mt-0.5">{t("scene.ageTransformDesc")}</div>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {studioMode === "game" && (
+        <form onSubmit={handleGameSubmit} className="space-y-5">
           <div>
-            <p className="text-xs text-muted-foreground mb-2">{t("create.tryExample")}</p>
-            <div className="flex flex-wrap gap-1.5">
-              {(tab === "image" ? (locale === "zh" ? IMAGE_EXAMPLES_ZH : IMAGE_EXAMPLES_EN) : (locale === "zh" ? VIDEO_EXAMPLES_ZH : VIDEO_EXAMPLES_EN)).map((ex) => (
+            <label className="block text-sm font-medium mb-2.5 text-foreground">{t("create.selectStyle")}</label>
+            <div className="flex flex-wrap gap-2">
+              {gameStyleDefs.map(({ id, labelKey }) => (
                 <button
-                  key={ex}
+                  key={id}
                   type="button"
-                  onClick={() => { setPrompt(ex); if (textareaRef.current) autoResize(textareaRef.current); }}
-                  className="text-xs bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground px-2.5 py-1 rounded-full border border-border/60 transition-all active:scale-[0.97]"
+                  onClick={() => setGameStyle(id)}
+                  className={`px-3.5 py-2 text-xs font-medium rounded-lg border transition-all ${
+                    gameStyle === id
+                      ? "border-foreground/30 bg-muted/30 text-foreground"
+                      : "border-border/60 text-muted-foreground hover:border-foreground/20 hover:text-foreground"
+                  }`}
                 >
-                  {ex.length > 40 ? ex.slice(0, 40) + "..." : ex}
+                  {t(labelKey)}
                 </button>
               ))}
             </div>
           </div>
-        )}
 
-        <div>
-          <label className="block text-sm font-medium mb-1.5 text-foreground">{t("create.referenceImage")}</label>
-          {imagePreviews.length > 0 ? (
-            <div className="flex flex-wrap gap-2 mb-3">
-              {imagePreviews.map((preview, idx) => (
-                <div key={idx} className="relative inline-block group">
-                  <Image src={preview} alt={`Reference ${idx + 1}`} width={96} height={96} className="object-cover rounded-lg border border-border size-24" unoptimized />
-                  <button type="button" onClick={() => {
-                    setImageFiles((prev) => prev.filter((_, i) => i !== idx));
-                    setImagePreviews((prev) => prev.filter((_, i) => i !== idx));
-                  }} className="absolute -top-2 -right-2 size-5 rounded-full bg-background border border-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-all text-[10px] opacity-0 group-hover:opacity-100">x</button>
-                </div>
-              ))}
-            </div>
-          ) : null}
-          <div
-            onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-            onDragLeave={() => setDragOver(false)}
-            onDrop={(e) => { e.preventDefault(); setDragOver(false); const f = e.dataTransfer.files[0]; if (f) handleDragFile(f); }}
-            onClick={() => fileInputRef.current?.click()}
-            className={`w-full border-2 border-dashed rounded-xl py-6 text-sm text-muted-foreground transition-all duration-300 cursor-pointer group ${
-                dragOver ? "border-primary bg-primary/[0.06] scale-[1.02]" : "border-border/60 hover:border-primary/30 hover:bg-primary/[0.03]"
-            }`}
-          >
-            <div className="flex flex-col items-center gap-2">
-              <div className={`size-10 rounded-xl flex items-center justify-center transition-all duration-300 ${
-                dragOver ? "bg-primary/20 text-primary scale-110" : "bg-muted/50 text-muted-foreground/40 group-hover:text-primary/50"
-              }`}>
-                <Wand2 size={18} />
-              </div>
-              <span className={dragOver ? "text-primary font-medium" : ""}>{imagePreviews.length > 0 ? (tab === "video" && videoMode === "standard" ? t("create.replaceImage") || "替换图片" : t("create.addMoreImages") || "添加更多图片") : dragOver ? t("create.dropImage") : t("create.uploadImage")}</span>
-              <span className="text-xs text-muted-foreground/40">{tab === "video" && videoMode === "standard" ? (t("create.singleImageHint") || "标准模式仅支持一张参考图") : (t("create.dragHint") || "支持拖放图片到此处")}</span>
-            </div>
+          <div>
+            <label htmlFor="game-prompt" className="block text-sm font-medium mb-1.5 text-foreground">{t("create.prompt")}</label>
+            <Textarea
+              ref={textareaRef}
+              id="game-prompt"
+              value={prompt}
+              onChange={(e) => { setPrompt(e.target.value); if (textareaRef.current) autoResize(textareaRef.current); }}
+              onKeyDown={(e) => { if ((e.metaKey || e.ctrlKey) && e.key === "Enter") handleGameSubmit(e); }}
+              placeholder="A powerful warrior with glowing armor, epic battle scene..."
+              rows={3}
+              required
+              className="resize-none min-h-[76px] overflow-hidden text-base"
+            />
           </div>
-          <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden" onChange={(e) => {
-            const files = e.target.files;
-            if (files) {
-              const isSingle = tab === "video" && videoMode === "standard";
-              const newFiles = Array.from(files).filter((f) => f.type.startsWith("image/"));
-              if (isSingle && newFiles.length > 0) {
-                setImageFiles([newFiles[0]]);
-                setImagePreviews([URL.createObjectURL(newFiles[0])]);
-              } else {
+
+          <div>
+            <label className="block text-sm font-medium mb-1.5 text-foreground">{t("create.referenceImage")}</label>
+            {imagePreviews.length > 0 ? (
+              <div className="flex flex-wrap gap-2 mb-3">
+                {imagePreviews.map((preview, idx) => (
+                  <div key={idx} className="relative inline-block group">
+                    <Image src={preview} alt={`Reference ${idx + 1}`} width={96} height={96} className="object-cover rounded-lg border border-border size-24" unoptimized />
+                    <button type="button" onClick={() => {
+                      setImageFiles((prev) => prev.filter((_, i) => i !== idx));
+                      setImagePreviews((prev) => prev.filter((_, i) => i !== idx));
+                    }} className="absolute -top-2 -right-2 size-5 rounded-full bg-background border border-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-all text-[10px] opacity-0 group-hover:opacity-100">x</button>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+            <div
+              onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+              onDragLeave={() => setDragOver(false)}
+              onDrop={(e) => { e.preventDefault(); setDragOver(false); const f = e.dataTransfer.files[0]; if (f) handleDragFile(f); }}
+              onClick={() => fileInputRef.current?.click()}
+              className={`w-full border-2 border-dashed rounded-xl py-6 text-sm text-muted-foreground transition-all duration-300 cursor-pointer group ${
+                  dragOver ? "border-foreground/40 bg-muted/20 scale-[1.02]" : "border-border/60 hover:border-foreground/30 hover:bg-muted/10"
+              }`}
+            >
+              <div className="flex flex-col items-center gap-2">
+                <div className={`size-10 rounded-xl flex items-center justify-center transition-all duration-300 ${
+                  dragOver ? "bg-muted/40 text-foreground scale-110" : "bg-muted/50 text-muted-foreground/40 group-hover:text-foreground/50"
+                }`}>
+                  <Gamepad2 size={18} />
+                </div>
+                <span className={dragOver ? "text-foreground font-medium" : ""}>{imagePreviews.length > 0 ? t("create.addMoreImages") || "Add more images" : dragOver ? t("create.dropImage") : t("create.uploadImage")}</span>
+                <span className="text-xs text-muted-foreground/40">{t("create.dragHint") || "Drag & drop images here"}</span>
+              </div>
+            </div>
+            <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden" onChange={(e) => {
+              const files = e.target.files;
+              if (files) {
+                const newFiles = Array.from(files).filter((f) => f.type.startsWith("image/"));
                 setImageFiles((prev) => [...prev, ...newFiles]);
                 setImagePreviews((prev) => [...prev, ...newFiles.map((f) => URL.createObjectURL(f))]);
               }
-            }
-          }} />
-        </div>
+            }} />
+          </div>
 
-        {tab === "image" && (
           <div>
             <label className="block text-sm font-medium mb-1.5 text-foreground">{t("create.imageSize")}</label>
             <Select value={imageSize} onChange={(e) => setImageSize(e.target.value)}>
@@ -378,89 +728,79 @@ function CreatePageContent() {
               <option value="2048x2048">{t("create.size2048")}</option>
             </Select>
           </div>
-        )}
 
-        {tab === "video" && (
-          <div>
-            <div className="mb-3">
-              <label className="block text-sm font-medium mb-1.5 text-foreground">{t("create.videoMode") || "视频模式"}</label>
-              <div className="flex gap-2">
-                <button type="button" onClick={() => { setVideoMode("standard"); if (imageFiles.length > 1) { setImageFiles([imageFiles[0]]); setImagePreviews([imagePreviews[0]]); } }} className={`flex-1 px-3 py-2 text-xs rounded-lg border transition-all text-left ${videoMode === "standard" ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:border-primary/30"}`}>
-                  <div className="font-medium mb-0.5">{t("create.modeStandard") || "标准图生视频"}</div>
-                  <div className="opacity-60 font-normal">{t("create.modeStandardDesc") || "上传一张参考图，AI 生成延续该画面的视频"}</div>
-                </button>
-                <button type="button" onClick={() => setVideoMode("keyframes")} className={`flex-1 px-3 py-2 text-xs rounded-lg border transition-all text-left ${videoMode === "keyframes" ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:border-primary/30"}`}>
-                  <div className="font-medium mb-0.5">{t("create.modeKeyframes") || "关键帧动画"}</div>
-                  <div className="opacity-60 font-normal">{t("create.modeKeyframesDesc") || "上传多张参考图作为关键帧，AI 生成连贯过渡动画"}</div>
-                </button>
-              </div>
-            </div>
-            <div className="grid grid-cols-3 gap-3">
-            <div>
-              <label className="block text-sm font-medium mb-1.5 text-foreground">{t("create.videoResolution")}</label>
-              <Select value={`${videoWidth}x${videoHeight}`} onChange={(e) => { const [w, h] = e.target.value.split("x").map(Number); setVideoWidth(w); setVideoHeight(h); }}>
-                <option value="854x480">{t("create.res480p")}</option>
-                <option value="1280x720">{t("create.res720p")}</option>
-                <option value="1920x1080">{t("create.res1080p")}</option>
-                <option value="480x854">{t("create.res480pPortrait")}</option>
-                <option value="720x1280">{t("create.res720pPortrait")}</option>
-                <option value="1080x1920">{t("create.res1080pPortrait")}</option>
-                <option value="480x480">{t("create.res480pSquare")}</option>
-                <option value="720x720">{t("create.res720pSquare")}</option>
-                <option value="1080x1080">{t("create.res1080pSquare")}</option>
-              </Select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1.5 text-foreground">{t("create.videoDuration")}</label>
-              <Select value={videoNumFrames} onChange={(e) => setVideoNumFrames(Number(e.target.value))}>
-                <option value={81}>{t("create.dur3s")}</option>
-                <option value={121}>{t("create.dur5s")}</option>
-                <option value={241}>{t("create.dur10s")}</option>
-                <option value={441}>{t("create.dur18s")}</option>
-              </Select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1.5 text-foreground">{t("create.frameRate")}</label>
-              <Select value={videoFrameRate} onChange={(e) => setVideoFrameRate(Number(e.target.value))}>
-                <option value={24}>24 {t("create.fps")}</option>
-                <option value={30}>30 {t("create.fps")}</option>
-                <option value={60}>60 {t("create.fps")}</option>
-              </Select>
-            </div>
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-muted-foreground">{t("create.cost")}: 1 {t("create.credit")}</span>
           </div>
-          </div>
-        )}
 
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-muted-foreground">{t("create.cost")}: {tab === "image" ? `1 ${t("create.credit")}` : `2 ${t("create.credits")}`}</span>
+          {error && <p className="text-sm text-destructive bg-destructive/5 rounded-lg p-3">{error}</p>}
+
+          <Button type="submit" disabled={loading || !prompt.trim()} className="w-full gap-2 h-11 text-base">
+            {loading && <LoadingSpinner />}
+            {loading ? t("create.generating") : t("create.generate")}
+          </Button>
+        </form>
+      )}
+
+      {studioMode === "style" && (
+        <StyleTransferForm key="style-studio" />
+      )}
+
+      {studioMode === "free" && (
+        <div>
+          <Tabs value={freeTab} onValueChange={(v) => { setFreeTab(v as FreeTab); setImageFiles([]); setImagePreviews([]); if (fileInputRef.current) fileInputRef.current.value = ""; setError(""); }}>
+            <TabsList variant="line" className="mb-6">
+              <TabsTrigger value="image">{t("create.image")}</TabsTrigger>
+              <TabsTrigger value="video">{t("create.video")}</TabsTrigger>
+              <TabsTrigger value="style-transfer">{t("scene.styleTransfer")}</TabsTrigger>
+              <TabsTrigger value="gender-swap">{t("scene.genderSwap")}</TabsTrigger>
+              <TabsTrigger value="age-transform">{t("scene.ageTransform")}</TabsTrigger>
+            </TabsList>
+          </Tabs>
+
+          {freeTab === "image" && (
+            <ImageGenerationForm
+              prompt={prompt} setPrompt={setPrompt} loading={loading} error={error}
+              imageFiles={imageFiles} imagePreviews={imagePreviews} imageSize={imageSize} setImageSize={setImageSize}
+              dragOver={dragOver} textareaRef={textareaRef} fileInputRef={fileInputRef}
+              showHint={showHint} examplesEn={IMAGE_EXAMPLES_EN} examplesZh={IMAGE_EXAMPLES_ZH}
+              locale={locale} t={t} handleSubmit={handleSubmit}
+              setImageFiles={setImageFiles} setImagePreviews={setImagePreviews}
+              handleDragFile={handleDragFile} setDragOver={setDragOver}
+              progress={progress} progressPhase={progressPhase} pollStartRef={pollStartRef}
+            />
+          )}
+
+          {freeTab === "video" && (
+            <ImageGenerationForm
+              prompt={prompt} setPrompt={setPrompt} loading={loading} error={error}
+              imageFiles={imageFiles} imagePreviews={imagePreviews} imageSize={imageSize} setImageSize={setImageSize}
+              dragOver={dragOver} textareaRef={textareaRef} fileInputRef={fileInputRef}
+              showHint={showHint} examplesEn={VIDEO_EXAMPLES_EN} examplesZh={VIDEO_EXAMPLES_ZH}
+              locale={locale} t={t} handleSubmit={handleVideoSubmit}
+              setImageFiles={setImageFiles} setImagePreviews={setImagePreviews}
+              handleDragFile={handleDragFile} setDragOver={setDragOver}
+              progress={progress} progressPhase={progressPhase} pollStartRef={pollStartRef}
+              isVideo videoWidth={videoWidth} videoHeight={videoHeight}
+              videoNumFrames={videoNumFrames} videoFrameRate={videoFrameRate}
+              setVideoSize={(w, h) => { setVideoWidth(w); setVideoHeight(h); }}
+              setVideoNumFrames={setVideoNumFrames} setVideoFrameRate={setVideoFrameRate}
+              videoMode={videoMode} setVideoMode={setVideoMode}
+            />
+          )}
+
+          {freeTab === "style-transfer" && (
+            <StyleTransferForm key="free-style-transfer" />
+          )}
+
+          {freeTab === "gender-swap" && (
+            <GenderSwapForm key="free-gender-swap" />
+          )}
+
+          {freeTab === "age-transform" && (
+            <AgeTransformForm key="free-age-transform" />
+          )}
         </div>
-
-        {error && <p className="text-sm text-destructive bg-destructive/5 rounded-lg p-3">{error}</p>}
-
-        <Button type="submit" disabled={loading || !prompt.trim()} className="w-full gap-2 h-11 text-base">
-          {loading && <LoadingSpinner />}
-          {loading ? tab === "video" ? t("create.generatingVideo", { progress }) : t("create.generating") : `${t("create.generate")} ${tab === "image" ? t("create.image") : t("create.video")}`}
-        </Button>
-      </form>
-
-      {loading && tab === "video" && (() => {
-        const elapsed = pollStartRef.current ? (Date.now() - pollStartRef.current) / 1000 : 0;
-        const eta = progress > 0 && progress < 100 && elapsed > 0
-          ? Math.round((elapsed / progress) * (100 - progress)) : 0;
-        const etaText = eta >= 60 ? `${Math.floor(eta / 60)}m ${eta % 60}s` : `${eta}s`;
-        return (
-          <div className="mt-6 animate-fade-in">
-            <div className="w-full bg-muted rounded-full h-1.5 overflow-hidden">
-              <div className="h-full rounded-full bg-primary transition-all duration-500" style={{ width: `${Math.max(progress, 5)}%` }} />
-            </div>
-            <p className="text-xs text-muted-foreground mt-2 text-center">
-              {progressPhase || t("create.starting")}
-              {eta > 0 && <span className="ml-2 text-muted-foreground/60">({t("create.remaining", { time: etaText })})</span>}
-            </p>
-          </div>
-        );
-      })()}
-      </>
       )}
     </main>
   );

@@ -15,7 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useLocale } from "@/components/locale-provider";
-import { Search, Trash2, ImageIcon, Video, ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
+import { Search, Trash2, ImageIcon, Video, ChevronLeft, ChevronRight, Sparkles, Shirt, Gamepad2, Paintbrush } from "lucide-react";
 
 type Tab = "images" | "videos";
 const PAGE_SIZE = 12;
@@ -110,12 +110,20 @@ function WelcomeModal({ onDismiss }: { onDismiss: () => void }) {
   return (
     <Dialog open onOpenChange={(open) => { if (!open) onDismiss(); }}>
       <DialogContent className="sm:max-w-md p-6" showCloseButton={false}>
-        <DialogTitle className="text-lg font-bold">{t("home.readyTitle") || "Welcome to Imaginova!"}</DialogTitle>
-        <DialogDescription className="text-sm text-muted-foreground">Your AI creative studio. Generate images & videos from text.</DialogDescription>
-        <div className="flex flex-col gap-3 my-4">
-          {[{ icon: Sparkles, title: "Generate", desc: "Describe what you want in natural language" }, { icon: ImageIcon, title: "Browse", desc: "View all your creations in one place" }, { icon: Video, title: "Credits", desc: "Check in daily for free credits" }].map((f) => (
-            <div key={f.title} className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
-              <f.icon size={16} className="text-primary shrink-0" />
+        <DialogTitle className="text-lg font-bold">{t("home.badge")}</DialogTitle>
+        <DialogDescription className="text-sm text-muted-foreground">Five specialized AI studios at your fingertips.</DialogDescription>
+        <div className="flex flex-col gap-2 my-4">
+          {[
+            { icon: ImageIcon, title: "Product Photography", desc: "Product posters and ad visuals" },
+            { icon: Shirt, title: "Fashion Studio", desc: "Virtual try-on and age/gender tools" },
+            { icon: Gamepad2, title: "Game Assets", desc: "Character art and sprites" },
+            { icon: Paintbrush, title: "Style Transfer", desc: "Turn photos into art" },
+            { icon: Sparkles, title: "Free Creation", desc: "Text-to-image, video & more" },
+          ].map((f) => (
+            <div key={f.title} className="flex items-center gap-3 p-2.5 rounded-lg bg-muted/50 hover:bg-muted/80 transition-colors">
+              <div className="size-8 rounded-lg bg-foreground/5 flex items-center justify-center shrink-0">
+                <f.icon size={14} className="text-foreground" />
+              </div>
               <div><p className="text-sm font-medium">{f.title}</p><p className="text-xs text-muted-foreground">{f.desc}</p></div>
             </div>
           ))}
@@ -146,7 +154,7 @@ export default function DashboardPage() {
   const [tasks, setTasks] = useState<TaskItem[]>([]);
   const [claimingTask, setClaimingTask] = useState<string | null>(null);
 
-  useEffect(() => { if (!localStorage.getItem(ONBOARDING_KEY)) setShowWelcome(true); }, []);
+  useEffect(() => { if (!localStorage.getItem(ONBOARDING_KEY)) requestAnimationFrame(() => setShowWelcome(true)); }, []);
   useEffect(() => { if (user) api.get<TaskItem[]>("/api/tasks").then(setTasks).catch(() => {}); }, [user]);
   useEffect(() => {
     (async () => {
@@ -243,36 +251,36 @@ export default function DashboardPage() {
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight mb-1">{t("dashboard.title")}</h1>
           <p className="text-sm text-muted-foreground">{t("dashboard.subtitle")}</p>
         </div>
-        <Button variant="outline" size="sm" onClick={handleCheckin} className="border-primary/30 text-primary hover:bg-primary/10">{t("dashboard.checkIn")}</Button>
+        <Button variant="outline" size="sm" onClick={handleCheckin} className="border-foreground/20 text-foreground hover:bg-foreground/10">{t("dashboard.checkIn")}</Button>
       </div>
 
       <motion.div className="grid grid-cols-3 gap-4 mb-8" variants={containerVariants} initial="hidden" animate="visible">
         {[
-          { label: t("dashboard.images"), value: imageTotal, icon: ImageIcon, accent: "text-primary" },
-          { label: t("dashboard.videos"), value: videoTotal, icon: Video, accent: "text-accent" },
-        ].map((s, i) => {
+          { label: t("dashboard.images"), value: imageTotal, icon: ImageIcon },
+          { label: t("dashboard.videos"), value: videoTotal, icon: Video },
+        ].map((s) => {
           const Icon = s.icon;
           return (
-            <motion.div key={s.label} variants={itemVariants} className="bg-card border border-border/60 rounded-[14px] p-5 hover:border-primary/20 transition-colors duration-300">
+            <motion.div key={s.label} variants={itemVariants} className="bg-card border border-border/60 rounded-[14px] p-5 transition-colors duration-300">
               <div className="flex items-center justify-between mb-3">
                 <p className="text-xs text-muted-foreground font-medium">{s.label}</p>
-                <div className={`size-8 rounded-lg bg-current/10 flex items-center justify-center ${s.accent}`}>
+                <div className="size-8 rounded-lg bg-muted/50 flex items-center justify-center text-muted-foreground">
                   <Icon size={14} />
                 </div>
               </div>
-              <p className={`text-2xl sm:text-3xl font-bold tracking-tight ${s.accent}`}>{s.value}</p>
+              <p className="text-2xl sm:text-3xl font-bold tracking-tight">{s.value}</p>
             </motion.div>
           );
         })}
         <motion.div variants={itemVariants}>
-          <Link href="/credits" className="block bg-card border border-border/60 rounded-[14px] p-5 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 group">
+          <Link href="/credits" className="block bg-card border border-border/60 rounded-[14px] p-5 hover:shadow-lg transition-all duration-300">
             <div className="flex items-center justify-between mb-3">
               <p className="text-xs text-muted-foreground font-medium">{t("dashboard.credits")}</p>
-              <div className="size-8 rounded-lg bg-accent/10 flex items-center justify-center text-accent group-hover:bg-accent/15 transition-colors">
+              <div className="size-8 rounded-lg bg-muted/50 flex items-center justify-center text-muted-foreground">
                 <Sparkles size={14} />
               </div>
             </div>
-            <p className="text-2xl sm:text-3xl font-bold tracking-tight text-accent">{user.credits}</p>
+            <p className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">{user.credits}</p>
           </Link>
         </motion.div>
       </motion.div>
@@ -282,8 +290,8 @@ export default function DashboardPage() {
           <CardHeader className="pb-3"><CardTitle className="text-sm">{t("tasks.title")}</CardTitle></CardHeader>
           <CardContent className="space-y-1.5">
             {tasks.map((task) => {
-              const label = t(`tasks.${task.key}` as any);
-              const desc = t(`tasks.${task.key}_desc` as any);
+              const label = t(`tasks.${task.key}`);
+              const desc = t(`tasks.${task.key}_desc`);
               return (
                 <div key={task.key} className={`flex items-center justify-between py-2 px-3 rounded-lg transition-colors ${task.completed ? 'bg-muted/20 opacity-60' : 'hover:bg-muted/30'}`}>
                   <div className="min-w-0 flex-1">
@@ -323,7 +331,7 @@ export default function DashboardPage() {
         <motion.div className="grid grid-cols-2 sm:grid-cols-3 gap-4" variants={containerVariants} initial="hidden" animate="visible">
           {sortedImages.filter((i) => i.prompt.toLowerCase().includes(query)).map((img) => (
             <motion.div key={img.id} variants={itemVariants}>
-              <div className="group relative bg-card border border-border/60 rounded-[14px] overflow-hidden cursor-pointer hover:border-primary/25 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-0.5 transition-all duration-300" onClick={() => setSelectedImage(img)}>
+              <div className="group relative bg-card border border-border/60 rounded-[14px] overflow-hidden cursor-pointer hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300" onClick={() => setSelectedImage(img)}>
                 <div className="aspect-[4/3] bg-muted relative overflow-hidden">
                   {img.url.startsWith("/api/file/") ? (
                     <img src={img.url} alt={img.prompt} className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
@@ -358,7 +366,7 @@ export default function DashboardPage() {
         <motion.div className="grid grid-cols-2 sm:grid-cols-3 gap-4" variants={containerVariants} initial="hidden" animate="visible">
           {sortedVideos.filter((v) => v.prompt.toLowerCase().includes(query)).map((vid) => (
             <motion.div key={vid.id} variants={itemVariants}>
-              <div className="group relative bg-card border border-border/60 rounded-[14px] overflow-hidden cursor-pointer hover:border-primary/25 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-0.5 transition-all duration-300" onClick={() => setSelectedVideo(vid)}>
+              <div className="group relative bg-card border border-border/60 rounded-[14px] overflow-hidden cursor-pointer hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300" onClick={() => setSelectedVideo(vid)}>
                 {vid.status === "completed" && vid.url ? (
                   <div className="aspect-[4/3] bg-muted overflow-hidden"><video src={`/api/proxy/video?url=${encodeURIComponent(vid.url)}`} preload="metadata" muted playsInline className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" /></div>
                 ) : (
