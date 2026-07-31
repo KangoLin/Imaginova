@@ -12,14 +12,22 @@
 | ✅ | **T6 Build Verification** | `npm run build` passes, all routes working | Done |
 | ✅ | **T7 Visual Polish** | Home: scroll animations, decorative glows, card hover effects, CTA shadows. Create: icons in studio switcher. Dashboard: icon boxes in welcome modal. | Done |
 
+### Create Page UI Fixes (2026-07-31)
+| # | Change | Files | Status |
+|---|--------|-------|--------|
+| ✅ | **C1 Dynamic Title/Subtitle** | `create/page.tsx` — per-mode title+subtitle via `studioTitleKey`/`studioDescKey` maps | Done |
+| ✅ | **C2 Campaign Link Removed** | `create/page.tsx`, `en.json`, `zh.json` — "Campaign →" button and `create.campaignLink` key removed (`/create/campaign` page kept, unlinked) | Done |
+| ✅ | **C3 Fashion Studio Inline Tabs** | `create/page.tsx` — Gender Swap / Age Transform now inline tabs in Fashion Studio (no more mode jumping) | Done |
+| ✅ | **C4 Free Mode Two-Row Tabs** | `create/page.tsx` — 5 tabs wrap to 2 rows at ≤375px | Done |
+
 ### Studios Structure
 | Mode | Route | Content |
 |------|-------|---------|
-| Product Photography | `/create?mode=product-photography` | Image gen (image only) + campaign link |
-| Fashion Studio | `/create?mode=fashion` | TryOnForm + Age/Gender quick tabs |
+| Product Photography | `/create?mode=product-photography` | Image gen (image only) |
+| Fashion Studio | `/create?mode=fashion` | Tabs: Try-On / Gender Swap / Age Transform (all inline) |
 | Game Assets | `/create?mode=game` | Style presets (6) + prompt → image gen |
 | Style Transfer | `/create?mode=style` | StyleTransferForm |
-| Free Creation | `/create?mode=free` | Sub-tabs: T2I, T2V, Style, Gender, Age |
+| Free Creation | `/create?mode=free` | Sub-tabs (2 rows): T2I, T2V, Style, Gender, Age |
 
 ### Design Tokens (new)
 | Token | Light | Dark |
