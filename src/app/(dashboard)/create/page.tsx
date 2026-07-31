@@ -741,7 +741,7 @@ function CreatePageContent() {
       {studioMode === "free" && (
         <div>
           <Tabs value={freeTab} onValueChange={(v) => { setFreeTab(v as FreeTab); setImageFiles([]); setImagePreviews([]); if (fileInputRef.current) fileInputRef.current.value = ""; setError(""); }}>
-            <TabsList variant="line" className="mb-6">
+            <TabsList variant="line" className="mb-6 flex flex-wrap w-full">
               <TabsTrigger value="image">{t("create.image")}</TabsTrigger>
               <TabsTrigger value="video">{t("create.video")}</TabsTrigger>
               <TabsTrigger value="style-transfer">{t("scene.styleTransfer")}</TabsTrigger>
