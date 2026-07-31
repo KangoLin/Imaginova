@@ -56,3 +56,9 @@ cookies.txt
 next-env.d.ts
 
 .shadcn-init-*.log
+
+# runtime uploads
+/data
+
+# SDD workspace
+/.superpowers
