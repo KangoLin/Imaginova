@@ -108,6 +108,22 @@ const gameStyleDefs = [
   { id: "sci-fi", labelKey: "create.gameStyleSciFi" },
 ];
 
+const studioTitleKey: Record<StudioMode, string> = {
+  "product-photography": "create.campaignStudio",
+  fashion: "create.fashionStudio",
+  game: "create.gameStudio",
+  style: "create.styleStudio",
+  free: "create.freeStudio",
+};
+
+const studioDescKey: Record<StudioMode, string> = {
+  "product-photography": "create.campaignStudioDesc",
+  fashion: "create.fashionStudioDesc",
+  game: "create.gameStudioDesc",
+  style: "create.styleStudioDesc",
+  free: "create.freeStudioDesc",
+};
+
 function VideoProgressBar({ progress, progressPhase, pollStartRef, t }: {
   progress: number; progressPhase: string;
   pollStartRef: React.RefObject<number>;
@@ -543,8 +559,8 @@ function CreatePageContent() {
             <Wand2 size={16} />
             <span className="text-xs font-medium uppercase tracking-wider">{t("create.badge")}</span>
           </div>
-        <h1 className="text-xl sm:text-2xl font-bold tracking-tight mb-1">{t("create.title")}</h1>
-        <p className="text-sm text-muted-foreground">{t("create.subtitle")}</p>
+        <h1 className="text-xl sm:text-2xl font-bold tracking-tight mb-1">{t(studioTitleKey[studioMode])}</h1>
+        <p className="text-sm text-muted-foreground">{t(studioDescKey[studioMode])}</p>
       </div>
 
       <div className="mb-8 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
