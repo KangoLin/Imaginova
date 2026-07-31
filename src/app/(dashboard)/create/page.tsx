@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select } from "@/components/ui/select";
 import { useLocale } from "@/components/locale-provider";
-import { Wand2, X, VenusAndMars, UserCog, Gamepad2, ImageIcon, Shirt, Paintbrush, Sparkles } from "lucide-react";
+import { Wand2, X, Gamepad2, ImageIcon, Shirt, Paintbrush, Sparkles } from "lucide-react";
 import { TryOnForm } from "@/components/create/try-on-form";
 import { StyleTransferForm } from "@/components/create/style-transfer-form";
 import { GenderSwapForm } from "@/components/create/gender-swap-form";
@@ -400,6 +400,7 @@ function CreatePageContent() {
   const [remixError, setRemixError] = useState("");
   const [onboardingDismissed, setOnboardingDismissed] = useState(false);
   const [gameStyle, setGameStyle] = useState("fantasy");
+  const [fashionTab, setFashionTab] = useState<"try-on" | "gender-swap" | "age-transform">("try-on");
 
   useEffect(() => {
     if (!localStorage.getItem("imaginova-onboarded")) requestAnimationFrame(() => setShowHint(true));
@@ -609,33 +610,21 @@ function CreatePageContent() {
             <ModeOnboarding mode="try-on" onDismiss={() => setOnboardingDismissed(true)} />
           ) : (
             <div>
-              <h2 className="text-base font-semibold text-foreground mb-4">{t("scene.tryOn")}</h2>
-              <TryOnForm key="fashion-try-on" />
+              <Tabs
+                value={fashionTab}
+                onValueChange={(v) => setFashionTab(v as "try-on" | "gender-swap" | "age-transform")}
+              >
+                <TabsList variant="line" className="mb-6 flex flex-wrap w-full">
+                  <TabsTrigger value="try-on">{t("scene.tryOn")}</TabsTrigger>
+                  <TabsTrigger value="gender-swap">{t("scene.genderSwap")}</TabsTrigger>
+                  <TabsTrigger value="age-transform">{t("scene.ageTransform")}</TabsTrigger>
+                </TabsList>
+              </Tabs>
+              {fashionTab === "try-on" && <TryOnForm key="fashion-try-on" />}
+              {fashionTab === "gender-swap" && <GenderSwapForm key="fashion-gender-swap" />}
+              {fashionTab === "age-transform" && <AgeTransformForm key="fashion-age-transform" />}
             </div>
           )}
-          <div className="border-t border-border/60 pt-5">
-            <p className="text-xs text-muted-foreground mb-3 font-medium uppercase tracking-wider">{t("create.tryExample") || "Quick Access"}</p>
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => router.push("/create?mode=free&tab=gender-swap")}
-                className="rounded-xl border border-border/60 bg-card p-4 text-left hover:border-foreground/20 transition-all"
-              >
-                <VenusAndMars size={18} className="text-foreground/60 mb-2" />
-                <div className="text-sm font-medium text-foreground">{t("scene.genderSwap")}</div>
-                <div className="text-xs text-muted-foreground mt-0.5">{t("scene.genderSwapDesc")}</div>
-              </button>
-              <button
-                type="button"
-                onClick={() => router.push("/create?mode=free&tab=age-transform")}
-                className="rounded-xl border border-border/60 bg-card p-4 text-left hover:border-foreground/20 transition-all"
-              >
-                <UserCog size={18} className="text-foreground/60 mb-2" />
-                <div className="text-sm font-medium text-foreground">{t("scene.ageTransform")}</div>
-                <div className="text-xs text-muted-foreground mt-0.5">{t("scene.ageTransformDesc")}</div>
-              </button>
-            </div>
-          </div>
         </div>
       )}
 
