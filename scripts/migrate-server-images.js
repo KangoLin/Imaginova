@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 /**
  * Server-side migration script
  * Run inside Docker container: docker exec -i imaginova-imaginova-1 node /app/scripts/migrate-server-images.js

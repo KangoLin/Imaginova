@@ -13,9 +13,14 @@ export async function POST(request: NextRequest) {
     password = form.get("password") as string;
   } else {
     const raw = await request.text();
-    const json = JSON.parse(raw);
-    email = json.email;
-    password = json.password;
+    try {
+      const json = JSON.parse(raw);
+      email = json.email;
+      password = json.password;
+    } catch {
+      email = "";
+      password = "";
+    }
   }
 
   const proto = request.headers.get("x-forwarded-proto") || "https";

@@ -1,7 +1,6 @@
 "use client";
 
 import { Suspense, useEffect, useState, useCallback } from "react";
-import { useSearchParams } from "next/navigation";
 import { useToast } from "@/components/toast";
 import { api, ApiError } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
@@ -35,7 +34,6 @@ function CreditsLoading() {
 }
 
 function CreditsContent() {
-  const searchParams = useSearchParams();
   const { toast } = useToast();
   const { t } = useLocale();
   const [user, setUser] = useState<UserData | null>(null);
@@ -110,8 +108,8 @@ function CreditsContent() {
             <CardHeader className="pb-3"><CardTitle className="text-sm">{t("tasks.title")}</CardTitle></CardHeader>
             <CardContent className="space-y-1.5">
               {tasks.map((task) => {
-                const label = t(`tasks.${task.key}` as any);
-                const desc = t(`tasks.${task.key}_desc` as any);
+                const label = t(`tasks.${task.key}`);
+                const desc = t(`tasks.${task.key}_desc`);
                 return (
                   <div key={task.key} className={`flex items-center justify-between py-2 px-3 rounded-lg transition-colors ${task.completed ? 'bg-muted/20 opacity-60' : 'hover:bg-muted/30'}`}>
                     <div className="min-w-0 flex-1">

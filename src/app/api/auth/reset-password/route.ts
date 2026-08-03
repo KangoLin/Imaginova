@@ -4,7 +4,13 @@ import db, { type PasswordResetRow } from "@/lib/db";
 
 export async function POST(req: NextRequest) {
   const raw = await req.text();
-  const { token, password } = JSON.parse(raw);
+  let token = "";
+  let password = "";
+  try {
+    const json = JSON.parse(raw);
+    token = json.token ?? "";
+    password = json.password ?? "";
+  } catch {}
   if (!token || !password) return NextResponse.json({ error: "Token and password are required" }, { status: 400 });
 
   if (password.length < 6) return NextResponse.json({ error: "Password must be at least 6 characters" }, { status: 400 });

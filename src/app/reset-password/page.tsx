@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,7 +20,6 @@ export default function ResetPasswordPage() {
 }
 
 function ResetForm() {
-  const router = useRouter();
   const { t } = useLocale();
   const searchParams = useSearchParams();
   const token = searchParams.get("token") || "";

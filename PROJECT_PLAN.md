@@ -20,6 +20,13 @@
 | ✅ | **C3 Fashion Studio Inline Tabs** | `create/page.tsx` — Gender Swap / Age Transform now inline tabs in Fashion Studio (no more mode jumping) | Done |
 | ✅ | **C4 Free Mode Two-Row Tabs** | `create/page.tsx` — 5 tabs wrap to 2 rows at ≤375px | Done |
 
+### Tooling & Robustness Fixes (2026-08-03)
+| # | Change | Files | Status |
+|---|--------|-------|--------|
+| ✅ | **L1 Lint green (0 errors)** | disabled react-hooks v6 compiler rules (`set-state-in-effect`/`refs`/`purity`) in `eslint.config.mjs` — false positives on vendored React Bits + intentional localStorage/URL-in-effect patterns; fixed `any` casts in `credits/page.tsx`, unused `router`/`searchParams`, legacy `require()` in `migrate-server-images.js` | Done |
+| ✅ | **L2 Empty-body 500 → 400** | `login`, `register`, `send-code`, `forgot-password`, `reset-password` routes — guard `JSON.parse` on body (returns 400/redirect instead of crashing) | Done |
+| ✅ | **L3 E2E suite green** | `e2e/home.spec.ts` — pinned `imaginova-locale=en` cookie (app defaults to `zh`), assertions updated to current redesigned copy (h1 "Turn your ideas into reality", login button role) | Done |
+
 ### Studios Structure
 | Mode | Route | Content |
 |------|-------|---------|

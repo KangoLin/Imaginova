@@ -7,7 +7,11 @@ function stripHtml(s: string) { return s.replace(/<[^>]*>/g, "").trim(); }
 
 export async function POST(request: NextRequest) {
   const raw = await request.text();
-  const { name: rawName, email, password, code } = JSON.parse(raw);
+  let fields: { name?: string; email?: string; password?: string; code?: string } = {};
+  try {
+    fields = JSON.parse(raw);
+  } catch {}
+  const { name: rawName = "", email = "", password = "", code = "" } = fields;
   const name = stripHtml(rawName);
 
   if (!name || !email || !password || !code) {

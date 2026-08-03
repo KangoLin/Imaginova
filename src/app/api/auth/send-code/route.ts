@@ -8,7 +8,10 @@ const RATE_LIMIT_MS = 60_000;
 
 export async function POST(req: NextRequest) {
   const raw = await req.text();
-  const { email } = JSON.parse(raw);
+  let email = "";
+  try {
+    email = JSON.parse(raw).email;
+  } catch {}
   if (!email) {
     return NextResponse.json({ error: "all_fields_required" }, { status: 400 });
   }

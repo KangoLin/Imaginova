@@ -15,6 +15,7 @@ npm run test:e2e   # Playwright E2E
 ```
 
 **Build quirk**: Docker build uses `--webpack` flag (Turbopack has a `req.json()` bug in Docker). Local dev always uses Turbopack.
+**`req.json()` gotcha**: In some cold-start/Docker conditions `req.json()` misbehaves — API routes read `await req.text()` then `JSON.parse()` (see `src/app/api/settings/password/route.ts`). Follow that pattern for new POST routes.
 
 **Pre-commit**: `husky` → `lint-staged` auto-runs `eslint --fix` on staged `*.{js,jsx,ts,tsx,mjs}` files.
 
@@ -67,6 +68,7 @@ agnes-pool/       — Separate AI proxy service (FastAPI + Vue/Vite frontend)
 - **Middleware NOT applied to `/api/*`** — each API route does its own auth via `getSessionUser()`.
 - `api-client.ts`: Client-side fetch wrapper with `credentials: "include"`. Auto-redirects to `/login` on 401 (skips if already on `/login`).
 - The `request` helper in `image.ts`/`video.ts` uses `AbortController` with timeout + retries.
+- **Local file storage**: Generated images/videos are downloaded to `data/uploads/{images,videos}` (via `src/lib/storage.ts`) and served from `/api/file/[...path]` — auth-required, ownership-checked, supports HTTP Range. External Agnes URLs expire, so persist locally. Serve these with native `<img>` (they need the auth cookie); `next/image` will 401 on `/api/file/`.
 
 ### AI Generation
 - **Image**: `POST {AI_API_BASE}/v1/images/generations` with OpenAI-compatible schema.
@@ -77,17 +79,20 @@ agnes-pool/       — Separate AI proxy service (FastAPI + Vue/Vite frontend)
 ### Middleware (src/proxy.ts)
 - Filters via `matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"]`.
 - Reads JWT from cookie directly (not using `getSessionUser()` — it's an edge function).
+- Redirects authed users away from `/login`/`/register` to `/dashboard` (same cookie check as protected paths).
 
 ### i18n
 - `locale-provider.tsx`: Context-based. Inline script in `layout.tsx` pre-sets `html.lang` from localStorage to prevent flash.
 - Translation keys accessed via `t('key')`. All pages must use `t()`.
 - Add new keys to **both** `en.json` and `zh.json`.
+- Default locale is `zh`; persisted in localStorage + `imaginova-locale` cookie (server reads cookie for SSR).
 
 ### Design System
-- **Colors**: oklch values in CSS variables. Primary: purple (`oklch(0.5 0.22 280)`), Accent: teal (`oklch(0.55 0.2 200)`).
-- **Dark mode**: Class-based (`.dark` class on `<html>`).
+- **Monochrome** (redesigned 2026-07-30; PROJECT_PLAN lists tokens): pure black + grayscale, no purple/teal. Light `--primary: oklch(0.15 0.01 260)` / `--background: oklch(0.99 0 0)`; dark `--primary: oklch(0.95 0 0)` / `--background: oklch(0.022 0 0)`. `--accent` mirrors `--primary`. Don't reintroduce old colored accents.
+- **Dark mode**: Class-based (`.dark` class on `<html>`), stored in localStorage `theme`; follows `prefers-color-scheme` by default.
 - **Radius**: Three-tier system — 8px (functional), 14px (modals/containers), 9999px (CTA pills).
-- **Custom utilities** in `globals.css`: `text-gradient`, `glass`, `pill`, `card-elevated`, `animate-fade-in`, `animate-slide-up`, `animate-shimmer`.
+- **Custom utilities** in `globals.css`: `glass`, `glass-dark`, `glow-primary`/`glow-accent`, `text-gradient`, `pill`, `card-elevated`, `animate-fade-in`, `animate-slide-up`, `animate-shimmer`.
+- **UI primitives use Base UI (shadcn/ui v4)**: primitives come from `@base-ui/react`. Buttons accept a `render` prop + `nativeButton={false}` to swap the element (e.g. `<Button render={<Link href="/x" />} nativeButton={false} />`) — NOT `asChild`. Check existing usage before writing new UI.
 
 ### React Bits Components
 Installed animation components: `Aurora`, `SplitText`, `BlurText`, `ShinyText`, `FadeContent`, `DotField`, `TiltedCard`, `SpotlightCard`. Import from `@/components/`.
@@ -101,6 +106,8 @@ Installed animation components: `Aurora`, `SplitText`, `BlurText`, `ShinyText`, 
 ### Verification order
 `npm run lint` → `npm run build` → `npm test`
 
+CI (`.github/workflows/ci.yml`) runs `npm ci` → `lint` → `build` (with env vars set: `AUTH_SECRET`, `AI_API_BASE_URL`, `OPENAI_API_KEY`) → `test` on push/PR to `main`.
+
 ### Docker
 ```bash
 docker compose up -d --build
@@ -112,14 +119,17 @@ docker compose restart
 ### Environment Variables (required)
 | Var | Purpose |
 |-----|---------|
-| `AUTH_SECRET` | JWT signing key (32+ hex chars) |
+| `AUTH_SECRET` | JWT signing key (32+ hex chars) — **also required for `npm run build`** (module-init in `auth.ts`/`proxy.ts` throws without it) |
 | `OPENAI_API_KEY` | Agnes AI API key |
 | `STRIPE_SECRET_KEY` | Stripe secret |
 | `STRIPE_WEBHOOK_SECRET` | Stripe webhook signing secret |
-| `SMTP_HOST/SMTP_PORT/SMTP_USER/SMTP_PASS` | Email (QQ SMTP) |
-| `AI_API_BASE_URL` | Agnes AI base URL (default: `https://apihub.agnes-ai.com`) |
+| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe publishable key (client) |
+| `SMTP_HOST/SMTP_PORT/SMTP_USER/SMTP_PASS` | Email (QQ SMTP); when unset, mail logs to console in dev |
+| `AI_API_BASE_URL` | Agnes AI base URL (default: `https://apihub.agnes-ai.com`; Docker compose overrides to `http://agnes-pool:8000`) |
 | `DATABASE_PATH` | SQLite file path (default: `data.db` in cwd) |
 | `NEXT_PUBLIC_APP_URL` | Public site URL (for Stripe/cookie `secure`) |
+
+Note: `.env.example` lists legacy `DATABASE_URL`/`AUTH_URL` keys — the app code ignores them (uses `DATABASE_PATH`/`AUTH_SECRET`).
 
 ### Deployment
 - Docker `output: "standalone"` in next.config.ts.
@@ -129,6 +139,7 @@ docker compose restart
 
 ### Important Constraints
 - `as any` / `@ts-ignore` / `@ts-expect-error` — never use.
+- **Lint**: `eslint.config.mjs` disables the react-hooks v6 compiler rules (`set-state-in-effect`, `refs`, `purity`) — they false-positive on vendored React Bits/kokonutui components and on intentional localStorage/URL-in-effect patterns. `exhaustive-deps` stays on. Warnings for `no-img-element` are intentional (native `<img>` needs the auth cookie).
 - No `module.exports` in pages — breaks HMR.
 - All `min-h-screen` must be `min-h-dvh` (iOS Safari address bar fix).
 - Transition properties: prefer specific CSS properties over `transition-all` (performance).
