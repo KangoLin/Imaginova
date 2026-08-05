@@ -27,6 +27,22 @@
 | ✅ | **L2 Empty-body 500 → 400** | `login`, `register`, `send-code`, `forgot-password`, `reset-password` routes — guard `JSON.parse` on body (returns 400/redirect instead of crashing) | Done |
 | ✅ | **L3 E2E suite green** | `e2e/home.spec.ts` — pinned `imaginova-locale=en` cookie (app defaults to `zh`), assertions updated to current redesigned copy (h1 "Turn your ideas into reality", login button role) | Done |
 
+### AI 请求代理链路 (2026-08-04)
+| # | Change | Files | Status |
+|---|--------|-------|--------|
+| ✅ | **P1 AI 请求走 HTTP 代理** | `src/lib/ai-fetch.ts` (new) — 本机直连 `apihub.agnes-ai.com` 被 Cloudflare 超时;Node 全局 fetch 不读代理环境变量、Next patch-fetch 丢弃 `dispatcher` 选项,故用 undici `ProxyAgent`,取 `AI_API_PROXY || HTTPS_PROXY || HTTP_PROXY` | Done |
+| ✅ | **P2 全部外部 AI 请求接入 aiFetch** | `src/lib/image.ts` `makeRequest`、`src/lib/video.ts` `request`、`src/lib/storage.ts` `saveFileFromUrl`、`api/proxy/download/route.ts`、`api/proxy/video/route.ts` — 图片/视频生成、下载落盘、外部 URL 代理全部走代理 | Done |
+| ✅ | **P3 端到端实测通过** | 图片生成 18s (id=15, 本地落盘), 视频创建+轮询+下载落盘 (id=30, `/api/file/videos/30.mp4`);lint 0 errors, build ✓, jest 2/2, e2e 2/2 | Done |
+| ⚠️ | **P4 部署注意** | 生产服务器 (Tencent Cloud) 无本地代理,`AI_API_PROXY` 未设置时走直连(行为不变);如生产也需要代理需自行配置 | Info |
+
+### Create 页生成体验 (2026-08-05)
+| # | Change | Files | Status |
+|---|--------|-------|--------|
+| ✅ | **R1 Free Studio 去重** | `create/page.tsx` — 移除 Style Transfer / Gender Swap / Age Transform 三个重复 Tab(Style Studio / Fashion Studio 已提供),Free Studio 仅保留 Image / Video | Done |
+| ✅ | **R2 结果内联展示** | `create/page.tsx`、`create/campaign/page.tsx` — 图片/视频生成完成后不再跳转详情页,结果直接显示在表单下方(新组件 `create/generation-result.tsx`,图片/视频/下载/复制链接/查看详情) | Done |
+| ✅ | **R3 原地重新生成** | `generation-result.tsx` — 结果卡片"重新生成"按钮用当前表单状态(提示词/参考图/参数)就地再生成;切换工作室/Tab 时清空结果 | Done |
+| ✅ | **R4 Remix 跳转修复** | `create/page.tsx` — `mode=remix` 归一化为有效工作室(`type=image` → product-photography,`type=video` → free+video tab),详情页"重新生成"按钮不再落到空白页 | Done |
+
 ### Studios Structure
 | Mode | Route | Content |
 |------|-------|---------|
@@ -34,7 +50,7 @@
 | Fashion Studio | `/create?mode=fashion` | Tabs: Try-On / Gender Swap / Age Transform (all inline) |
 | Game Assets | `/create?mode=game` | Style presets (6) + prompt → image gen |
 | Style Transfer | `/create?mode=style` | StyleTransferForm |
-| Free Creation | `/create?mode=free` | Sub-tabs (2 rows): T2I, T2V, Style, Gender, Age |
+| Free Creation | `/create?mode=free` | Tabs: Image / Video |
 
 ### Design Tokens (new)
 | Token | Light | Dark |

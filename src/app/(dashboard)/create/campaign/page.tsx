@@ -7,8 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { LoadingSpinner } from "@/components/loading-spinner";
 import { api, ApiError } from "@/lib/api-client";
-import { useRouter } from "next/navigation";
 import { Sparkles, Upload } from "lucide-react";
+import { GenerationResult } from "@/components/create/generation-result";
 
 const STYLES = [
   { key: "luxury", label: "Luxury" },
@@ -18,7 +18,6 @@ const STYLES = [
 
 export default function CampaignPage() {
   const { t } = useLocale();
-  const router = useRouter();
   const [files, setFiles] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
   const [style, setStyle] = useState("luxury");
@@ -26,6 +25,7 @@ export default function CampaignPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [dragOver, setDragOver] = useState(false);
+  const [result, setResult] = useState<{ id: number; url: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   function handleFiles(newFiles: FileList | File[]) {
@@ -43,24 +43,29 @@ export default function CampaignPage() {
     });
   }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function runGeneration() {
     if (files.length === 0) return;
     setError("");
     setLoading(true);
+    setResult(null);
     try {
       const formData = new FormData();
       formData.append("prompt", `${description || "Campaign product shot"} — style: ${style}`);
       formData.append("model", "agnes-image-2.1-flash");
       formData.append("size", "1024x1024");
       for (const f of files) formData.append("image", f);
-      const data = (await api.post("/api/generate/image", formData)) as { id: number };
-      router.push(`/image/${data.id}`);
+      const data = (await api.post("/api/generate/image", formData)) as { id: number; url: string };
+      setResult({ id: data.id, url: data.url });
     } catch (err) {
       if (err instanceof ApiError) setError(err.message);
       else setError("Generation failed");
     }
     setLoading(false);
+  }
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    void runGeneration();
   }
 
   return (
@@ -140,6 +145,20 @@ export default function CampaignPage() {
           {loading ? "Generating..." : "✨ Generate Campaign"}
         </Button>
       </form>
+
+      {result && (
+        <div className="mt-6">
+          <GenerationResult
+            type="image"
+            id={result.id}
+            url={result.url}
+            prompt={description || "Campaign product shot"}
+            regenerating={loading}
+            onRegenerate={runGeneration}
+            t={t}
+          />
+        </div>
+      )}
     </main>
   );
 }

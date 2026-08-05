@@ -17,9 +17,10 @@ import { StyleTransferForm } from "@/components/create/style-transfer-form";
 import { GenderSwapForm } from "@/components/create/gender-swap-form";
 import { AgeTransformForm } from "@/components/create/age-transform-form";
 import { ModeOnboarding } from "@/components/create/mode-onboarding";
+import { GenerationResult } from "@/components/create/generation-result";
 
 type StudioMode = "product-photography" | "fashion" | "game" | "style" | "free";
-type FreeTab = "image" | "video" | "style-transfer" | "gender-swap" | "age-transform";
+type FreeTab = "image" | "video";
 
 interface RemixData {
   id: number; prompt: string; model: string; url: string;
@@ -374,8 +375,14 @@ function CreatePageContent() {
   const searchParams = useSearchParams();
   const { toast } = useToast();
   const { t, locale } = useLocale();
-  const studioMode = (searchParams.get("mode") as StudioMode) || "product-photography";
-  const initialFreeTab = (searchParams.get("tab") as FreeTab) || "image";
+  const rawMode = searchParams.get("mode");
+  const remixType = searchParams.get("type");
+  const studioMode: StudioMode = rawMode === "remix"
+    ? (remixType === "video" ? "free" : "product-photography")
+    : (rawMode as StudioMode) || "product-photography";
+  const initialFreeTab: FreeTab = rawMode === "remix" && remixType === "video"
+    ? "video"
+    : (searchParams.get("tab") as FreeTab) || "image";
   const [freeTab, setFreeTab] = useState<FreeTab>(initialFreeTab);
   const [prompt, setPrompt] = useState("");
   const [loading, setLoading] = useState(false);
@@ -392,6 +399,7 @@ function CreatePageContent() {
   const [showHint, setShowHint] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const [imageSize, setImageSize] = useState("1024x1024");
+  const [result, setResult] = useState<{ type: "image" | "video"; id: number; url: string } | null>(null);
   const [videoWidth, setVideoWidth] = useState(1280);
   const [videoHeight, setVideoHeight] = useState(720);
   const [videoNumFrames, setVideoNumFrames] = useState(121);
@@ -407,6 +415,9 @@ function CreatePageContent() {
   }, []);
 
   function switchMode(m: StudioMode) {
+    setResult(null);
+    setImageFiles([]);
+    setImagePreviews([]);
     if (m === "product-photography") router.push("/create");
     else router.push(`/create?mode=${m}`);
   }
@@ -444,34 +455,38 @@ function CreatePageContent() {
     return () => { pollingRef.current = false; };
   }, []);
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function runImageGeneration(effectivePrompt: string) {
     setError("");
     setProgress(0);
     setLoading(true);
+    setResult(null);
 
     try {
       const formData = new FormData();
-      formData.append("prompt", prompt);
+      formData.append("prompt", effectivePrompt);
       formData.append("model", "agnes-image-2.1-flash");
       formData.append("size", imageSize);
       for (const file of imageFiles) formData.append("image", file);
       const data = (imageFiles.length > 0
         ? await api.post("/api/generate/image", formData)
-        : await api.post("/api/generate/image", { prompt, model: "agnes-image-2.1-flash", size: imageSize })) as { id: number };
-      router.push(`/image/${data.id}`);
-      return;
+        : await api.post("/api/generate/image", { prompt: effectivePrompt, model: "agnes-image-2.1-flash", size: imageSize })) as { id: number; url: string };
+      setResult({ type: "image", id: data.id, url: data.url });
     } catch (err) {
       if (err instanceof ApiError) { setError(err.message); } else { setError(t("create.networkError")); }
-      setLoading(false);
     }
+    setLoading(false);
   }
 
-  async function handleVideoSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    await runImageGeneration(prompt);
+  }
+
+  async function runVideoGeneration() {
     setError("");
     setProgress(0);
     setLoading(true);
+    setResult(null);
 
     try {
       const formData = new FormData();
@@ -496,28 +511,21 @@ function CreatePageContent() {
     }
   }
 
+  async function handleVideoSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    await runVideoGeneration();
+  }
+
   async function handleGameSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setError("");
-    setProgress(0);
-    setLoading(true);
+    await runImageGeneration(`[${gameStyle} style] ${prompt}`);
+  }
 
-    try {
-      const prefixedPrompt = `[${gameStyle} style] ${prompt}`;
-      const formData = new FormData();
-      formData.append("prompt", prefixedPrompt);
-      formData.append("model", "agnes-image-2.1-flash");
-      formData.append("size", imageSize);
-      for (const file of imageFiles) formData.append("image", file);
-      const data = (imageFiles.length > 0
-        ? await api.post("/api/generate/image", formData)
-        : await api.post("/api/generate/image", { prompt: prefixedPrompt, model: "agnes-image-2.1-flash", size: imageSize })) as { id: number };
-      router.push(`/image/${data.id}`);
-      return;
-    } catch (err) {
-      if (err instanceof ApiError) { setError(err.message); } else { setError(t("create.networkError")); }
-      setLoading(false);
-    }
+  function handleResultRegenerate() {
+    if (!result) return;
+    if (result.type === "video") { void runVideoGeneration(); return; }
+    if (studioMode === "game") { void runImageGeneration(`[${gameStyle} style] ${prompt}`); return; }
+    void runImageGeneration(prompt);
   }
 
   function startSSE(videoId: number) {
@@ -530,7 +538,12 @@ function CreatePageContent() {
       if (p <= 0) setProgressPhase(t("create.waitingInQueue"));
       else if (p < 100) setProgressPhase(t("create.generatingProgress", { progress: p }));
       else setProgressPhase(t("create.finalizing"));
-      if (data.status === "completed") { es.close(); pollingRef.current = false; router.push(`/video/${videoId}`); }
+      if (data.status === "completed") {
+        es.close();
+        pollingRef.current = false;
+        setLoading(false);
+        setResult({ type: "video", id: videoId, url: data.url });
+      }
       else if (data.status === "failed") { es.close(); pollingRef.current = false; setError(data.error || t("create.videoFailed")); setLoading(false); }
     };
     es.onerror = () => { es.close(); pollingRef.current = false; setError(t("create.statusCheckFailed")); setLoading(false); };
@@ -740,13 +753,10 @@ function CreatePageContent() {
 
       {studioMode === "free" && (
         <div>
-          <Tabs value={freeTab} onValueChange={(v) => { setFreeTab(v as FreeTab); setImageFiles([]); setImagePreviews([]); if (fileInputRef.current) fileInputRef.current.value = ""; setError(""); }}>
+          <Tabs value={freeTab} onValueChange={(v) => { setFreeTab(v as FreeTab); setImageFiles([]); setImagePreviews([]); setResult(null); if (fileInputRef.current) fileInputRef.current.value = ""; setError(""); }}>
             <TabsList variant="line" className="mb-6 flex flex-wrap w-full">
               <TabsTrigger value="image">{t("create.image")}</TabsTrigger>
               <TabsTrigger value="video">{t("create.video")}</TabsTrigger>
-              <TabsTrigger value="style-transfer">{t("scene.styleTransfer")}</TabsTrigger>
-              <TabsTrigger value="gender-swap">{t("scene.genderSwap")}</TabsTrigger>
-              <TabsTrigger value="age-transform">{t("scene.ageTransform")}</TabsTrigger>
             </TabsList>
           </Tabs>
 
@@ -780,18 +790,20 @@ function CreatePageContent() {
               videoMode={videoMode} setVideoMode={setVideoMode}
             />
           )}
+        </div>
+      )}
 
-          {freeTab === "style-transfer" && (
-            <StyleTransferForm key="free-style-transfer" />
-          )}
-
-          {freeTab === "gender-swap" && (
-            <GenderSwapForm key="free-gender-swap" />
-          )}
-
-          {freeTab === "age-transform" && (
-            <AgeTransformForm key="free-age-transform" />
-          )}
+      {result && (
+        <div className="mt-6">
+          <GenerationResult
+            type={result.type}
+            id={result.id}
+            url={result.url}
+            prompt={prompt}
+            regenerating={loading}
+            onRegenerate={handleResultRegenerate}
+            t={t}
+          />
         </div>
       )}
     </main>

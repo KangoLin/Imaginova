@@ -119,6 +119,8 @@
   "create.singleImageHint": "Standard mode supports only one reference image",
   "create.dragHint": "Drag & drop images here",
   "create.remix": "Remix",
+  "create.regenerate": "Regenerate",
+  "create.resultTitle": "Generation Result",
   "create.videoFailed": "Video generation failed",
   "create.statusCheckFailed": "Status check failed after 3 retries",
   "create.remaining": "~{time} remaining",
