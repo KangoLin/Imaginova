@@ -75,6 +75,7 @@ agnes-pool/       — Separate AI proxy service (FastAPI + Vue/Vite frontend)
 - **Video**: `POST /v1/videos` to create, `GET /v1/videos/{task_id}` to poll. Response URL may be in `url`, `video_url`, `metadata.url`, or `result.url` fields (see `extractVideoUrl()` in `video.ts`).
 - Supports image-to-image (`extra_body.image` array) and image-to-video.
 - **SSE streaming**: `GET /api/video/[id]/stream` for real-time video progress. Frontend uses EventSource (not polling).
+- **Proxy requirement**: Mainland/Cloudflare-blocked networks can't reach `apihub.agnes-ai.com` directly. **All outbound AI/file requests MUST use `aiFetch()` from `src/lib/ai-fetch.ts`** (undici `ProxyAgent`) — NOT global `fetch` (ignores proxy env vars) or Next's patched fetch (drops `dispatcher`). Proxy source: `AI_API_PROXY` → `HTTPS_PROXY` → `HTTP_PROXY` (local dev sets `AI_API_PROXY=http://127.0.0.1:7897` in `.env.local`; production has none → direct, unchanged). Wire new calls via `aiFetch`, never raw `fetch`.
 
 ### Middleware (src/proxy.ts)
 - Filters via `matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"]`.
@@ -126,6 +127,7 @@ docker compose restart
 | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe publishable key (client) |
 | `SMTP_HOST/SMTP_PORT/SMTP_USER/SMTP_PASS` | Email (QQ SMTP); when unset, mail logs to console in dev |
 | `AI_API_BASE_URL` | Agnes AI base URL (default: `https://apihub.agnes-ai.com`; Docker compose overrides to `http://agnes-pool:8000`) |
+| `AI_API_PROXY` | Optional HTTP(S) proxy for all AI/file fetches (undici `ProxyAgent`; falls back to `HTTPS_PROXY`/`HTTP_PROXY`). Local dev: `http://127.0.0.1:7897` (Clash Verge). Unset in production → direct. |
 | `DATABASE_PATH` | SQLite file path (default: `data.db` in cwd) |
 | `NEXT_PUBLIC_APP_URL` | Public site URL (for Stripe/cookie `secure`) |
 

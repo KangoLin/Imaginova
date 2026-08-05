@@ -3,6 +3,7 @@ import fs from "fs/promises";
 import path from "path";
 import db, { type VideoRow } from "@/lib/db";
 import { getSessionUserId } from "@/lib/auth";
+import { aiFetch } from "@/lib/ai-fetch";
 
 const UPLOAD_DIR = path.join(process.cwd(), "data", "uploads");
 
@@ -82,7 +83,7 @@ export async function GET(req: NextRequest) {
     const headers: Record<string, string> = {};
     if (rangeHeader) headers["Range"] = rangeHeader;
 
-    const res = await fetch(videoUrl, { headers });
+    const res = await aiFetch(videoUrl, { headers });
 
     if (!res.ok) {
       return NextResponse.json({ error: "Failed to fetch video" }, { status: 502 });

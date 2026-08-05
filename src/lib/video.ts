@@ -1,5 +1,7 @@
 const AI_API_BASE = process.env.AI_API_BASE_URL || "https://apihub.agnes-ai.com";
 
+import { aiFetch } from "@/lib/ai-fetch";
+
 async function request(
   path: string,
   opts: { method: string; body?: string },
@@ -17,7 +19,7 @@ async function request(
           "Content-Type": "application/json",
           Authorization: `Bearer ${key}`,
         };
-        const res = await fetch(url, {
+        const res = await aiFetch(url, {
           method: opts.method,
           headers,
           body: opts.body,

@@ -1,5 +1,6 @@
 import fs from "fs/promises";
 import path from "path";
+import { aiFetch } from "@/lib/ai-fetch";
 
 const UPLOAD_DIR = path.join(process.cwd(), "data", "uploads");
 
@@ -23,7 +24,7 @@ export async function saveFileFromUrl(
   const categoryDir = path.join(UPLOAD_DIR, category);
   await ensureDir(categoryDir);
 
-  const response = await fetch(url);
+  const response = await aiFetch(url);
   if (!response.ok) {
     throw new Error(`Failed to download ${url}: ${response.status}`);
   }

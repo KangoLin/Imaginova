@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionUserId } from "@/lib/auth";
 import db from "@/lib/db";
+import { aiFetch } from "@/lib/ai-fetch";
 
 export async function GET(req: NextRequest) {
   const userId = await getSessionUserId();
@@ -24,7 +25,7 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const res = await fetch(url);
+    const res = await aiFetch(url);
 
     if (!res.ok) {
       return NextResponse.json({ error: "Failed to fetch file" }, { status: 502 });

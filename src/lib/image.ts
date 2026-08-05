@@ -1,5 +1,7 @@
 const AI_API_BASE = process.env.AI_API_BASE_URL || "https://apihub.agnes-ai.com";
 
+import { aiFetch } from "@/lib/ai-fetch";
+
 async function makeRequest(
   urlStr: string,
   opts: { method: string; headers: Record<string, string>; body?: string },
@@ -11,7 +13,7 @@ async function makeRequest(
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), timeoutMs);
       try {
-        const res = await fetch(urlStr, {
+        const res = await aiFetch(urlStr, {
           method: opts.method,
           headers: opts.headers,
           body: opts.body,
