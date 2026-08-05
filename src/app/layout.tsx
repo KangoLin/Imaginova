@@ -53,7 +53,7 @@ export default async function RootLayout({
               (function() {
                 try {
                   var t = localStorage.getItem('theme');
-                  if (t === 'dark' || (!t && matchMedia('(prefers-color-scheme:dark)').matches)) {
+                  if (t !== 'light') {
                     document.documentElement.classList.add('dark');
                   }
                   var l = localStorage.getItem('imaginova-locale');

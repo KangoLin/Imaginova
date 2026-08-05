@@ -42,6 +42,7 @@
 | ✅ | **R2 结果内联展示** | `create/page.tsx`、`create/campaign/page.tsx` — 图片/视频生成完成后不再跳转详情页,结果直接显示在表单下方(新组件 `create/generation-result.tsx`,图片/视频/下载/复制链接/查看详情) | Done |
 | ✅ | **R3 原地重新生成** | `generation-result.tsx` — 结果卡片"重新生成"按钮用当前表单状态(提示词/参考图/参数)就地再生成;切换工作室/Tab 时清空结果 | Done |
 | ✅ | **R4 Remix 跳转修复** | `create/page.tsx` — `mode=remix` 归一化为有效工作室(`type=image` → product-photography,`type=video` → free+video tab),详情页"重新生成"按钮不再落到空白页 | Done |
+| ✅ | **R5 默认暗色模式** | `layout.tsx` 内联脚本 + `theme-provider.tsx` — 无本地主题偏好时默认 `dark`(不再跟随系统 `prefers-color-scheme`),用户显式选择 `light` 仍生效 | Done |
 
 ### Studios Structure
 | Mode | Route | Content |
