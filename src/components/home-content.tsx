@@ -115,11 +115,11 @@ export function HomeContent({ user }: { user: { name: string } | null }) {
               </div>
             </div>
 
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold tracking-tight leading-[1.05] mb-6 max-w-4xl mx-auto text-foreground">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold tracking-tight leading-[1.05] mb-6 max-w-4xl mx-auto text-white drop-shadow-lg">
               {t("home.title1")} {t("home.title2")}
             </h1>
 
-            <p className="text-base sm:text-lg text-muted-foreground max-w-xl mx-auto mb-10 leading-relaxed">
+            <p className="text-base sm:text-lg text-white/70 max-w-xl mx-auto mb-10 leading-relaxed drop-shadow">
               {t("home.subtitle")}
             </p>
 

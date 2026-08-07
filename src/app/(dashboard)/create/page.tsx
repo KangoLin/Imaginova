@@ -16,7 +16,6 @@ import { TryOnForm } from "@/components/create/try-on-form";
 import { StyleTransferForm } from "@/components/create/style-transfer-form";
 import { GenderSwapForm } from "@/components/create/gender-swap-form";
 import { AgeTransformForm } from "@/components/create/age-transform-form";
-import { ModeOnboarding } from "@/components/create/mode-onboarding";
 import { GenerationResult } from "@/components/create/generation-result";
 
 type StudioMode = "product-photography" | "fashion" | "game" | "style" | "free";
@@ -406,7 +405,6 @@ function CreatePageContent() {
   const [videoFrameRate, setVideoFrameRate] = useState(24);
   const [remixLoading, setRemixLoading] = useState(false);
   const [remixError, setRemixError] = useState("");
-  const [onboardingDismissed, setOnboardingDismissed] = useState(false);
   const [gameStyle, setGameStyle] = useState("fantasy");
   const [fashionTab, setFashionTab] = useState<"try-on" | "gender-swap" | "age-transform">("try-on");
 
@@ -619,25 +617,19 @@ function CreatePageContent() {
 
       {studioMode === "fashion" && (
         <div className="space-y-6">
-          {!sessionStorage.getItem("imaginova-onboarded-try-on") && !onboardingDismissed ? (
-            <ModeOnboarding mode="try-on" onDismiss={() => setOnboardingDismissed(true)} />
-          ) : (
-            <div>
-              <Tabs
-                value={fashionTab}
-                onValueChange={(v) => setFashionTab(v as "try-on" | "gender-swap" | "age-transform")}
-              >
-                <TabsList variant="line" className="mb-6 flex flex-wrap w-full">
-                  <TabsTrigger value="try-on">{t("scene.tryOn")}</TabsTrigger>
-                  <TabsTrigger value="gender-swap">{t("scene.genderSwap")}</TabsTrigger>
-                  <TabsTrigger value="age-transform">{t("scene.ageTransform")}</TabsTrigger>
-                </TabsList>
-              </Tabs>
-              {fashionTab === "try-on" && <TryOnForm key="fashion-try-on" />}
-              {fashionTab === "gender-swap" && <GenderSwapForm key="fashion-gender-swap" />}
-              {fashionTab === "age-transform" && <AgeTransformForm key="fashion-age-transform" />}
-            </div>
-          )}
+          <Tabs
+            value={fashionTab}
+            onValueChange={(v) => setFashionTab(v as "try-on" | "gender-swap" | "age-transform")}
+          >
+            <TabsList variant="line" className="mb-6 flex flex-wrap w-full">
+              <TabsTrigger value="try-on">{t("scene.tryOn")}</TabsTrigger>
+              <TabsTrigger value="gender-swap">{t("scene.genderSwap")}</TabsTrigger>
+              <TabsTrigger value="age-transform">{t("scene.ageTransform")}</TabsTrigger>
+            </TabsList>
+          </Tabs>
+          {fashionTab === "try-on" && <TryOnForm key="fashion-try-on" />}
+          {fashionTab === "gender-swap" && <GenderSwapForm key="fashion-gender-swap" />}
+          {fashionTab === "age-transform" && <AgeTransformForm key="fashion-age-transform" />}
         </div>
       )}
 
